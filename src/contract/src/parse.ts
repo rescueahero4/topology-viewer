@@ -19,6 +19,7 @@ import { SCHEMA_VERSION } from "./schemaVersion";
 
 type Node = z.infer<typeof nodeSchema>;
 type Edge = z.infer<typeof edgeSchema>;
+type View = z.infer<typeof viewSchema>;
 type Path = Issue["path"];
 type Raw = Record<string, unknown>;
 
@@ -110,6 +111,19 @@ function typeIssues(raw: Raw): Issue[] {
   );
 }
 
+// why: PRD FR-CANVAS-7 — each bad entry gets its own issue; the valid ids stay
+function revealIssues(view: Raw): Issue[] {
+  const reveal = own(view, "reveal");
+  if (reveal === undefined) return [];
+  if (!Array.isArray(reveal))
+    return [{ code: "reveal-not-found", path: ["view", "reveal"] }];
+  return reveal.flatMap((id: unknown, index) =>
+    typeof id === "string"
+      ? []
+      : [{ code: "reveal-not-found", path: ["view", "reveal", index] }],
+  );
+}
+
 function viewIssues(raw: Raw): Issue[] {
   const view = own(raw, "view");
   if (!isRecord(view)) return [];
@@ -125,7 +139,7 @@ function viewIssues(raw: Raw): Issue[] {
       code,
     ),
   );
-  return [...values, ...unknown];
+  return [...values, ...revealIssues(view), ...unknown];
 }
 
 function inferredIssues(raw: Raw): Issue[] {
@@ -206,6 +220,14 @@ function cleanEdge(edge: Edge): Edge {
   return edge === null || Array.isArray(edge) ? edge : present(edge);
 }
 
+function cleanView(view: View): View {
+  const { reveal, ...rest } = view;
+  return present({
+    ...rest,
+    reveal: reveal?.filter((id): id is string => id !== undefined),
+  });
+}
+
 function clean(input: RenderInput): RenderInput {
   // why: PRD FR-DATA-8 — an absent or unknown version reads as the current one (S25)
   const { schemaVersion = SCHEMA_VERSION, ...rest } = input;
@@ -244,7 +266,7 @@ function clean(input: RenderInput): RenderInput {
           edgeConstraints: vocabulary.edgeConstraints?.map(present),
         })
       : undefined,
-    view: view ? present(view) : undefined,
+    view: view ? cleanView(view) : undefined,
   });
 }
 

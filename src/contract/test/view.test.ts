@@ -42,4 +42,24 @@ describe("view", () => {
     ]);
     expect(JSON.stringify(hidden.data)).not.toContain("hiddenTypes");
   });
+
+  it("S34 records an issue for a bad root and a bad reveal entry", () => {
+    const { data, issues } = parsed({
+      nodes: [],
+      view: { root: 7, reveal: ["a", 5] },
+    });
+    expect(issues).toEqual([
+      { code: "root-not-found", path: ["view", "root"] },
+      { code: "reveal-not-found", path: ["view", "reveal", 1] },
+    ]);
+    expect(data.view).toEqual({ reveal: ["a"] });
+    expect(JSON.stringify(data)).not.toMatch(/[57]/);
+    expect(JSON.stringify(issues)).not.toMatch(/[57]/);
+
+    const flat = parsed({ nodes: [], view: { reveal: "a" } });
+    expect(flat.issues).toEqual([
+      { code: "reveal-not-found", path: ["view", "reveal"] },
+    ]);
+    expect(flat.data.view).toEqual({});
+  });
 });

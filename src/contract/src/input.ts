@@ -92,19 +92,21 @@ const vocabularySchema = z.looseObject({
 });
 
 export const viewFields = {
+  root: text,
   layout: z.enum(["force", "atomic", "bubbles", "tree-h", "tree-v"]),
   budget: z.literal([10, 20, 50, "all"]),
 };
 
 export const VIEW_FIELD_CODES = {
+  root: "root-not-found",
   layout: "layout-rejected",
   budget: "budget-rejected",
 } as const;
 
 export const viewSchema = z.object({
   approach: optional(approachSchema),
-  root: optional(text),
-  reveal: optional(z.array(text)),
+  root: optional(viewFields.root),
+  reveal: optional(z.array(optional(text))),
   layout: optional(viewFields.layout),
   budget: optional(viewFields.budget),
 });
