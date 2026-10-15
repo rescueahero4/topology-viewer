@@ -1,0 +1,115 @@
+{
+  "key": "q-spec-scenarios",
+  "group": "QDIC",
+  "label": "QDIC spec scenarios A and B",
+  "tests": "Scenario A: CUSTOMER_EMAIL classifiedAs PII. Scenario B: CUSTOMER hasSteward steward Jane Doe, with the custom steward type and the governance category. GraphQL names only.",
+  "graph": {
+    "nodes": [
+      {
+        "globalId": "tbl-customer",
+        "nodeType": "table",
+        "physicalName": "CUSTOMER",
+        "isWritable": false
+      },
+      {
+        "globalId": "clmn-customer-email",
+        "nodeType": "column",
+        "physicalName": "CUSTOMER_EMAIL",
+        "isWritable": false
+      },
+      {
+        "globalId": "node-8f3a",
+        "nodeType": "classification",
+        "physicalName": "PII",
+        "isWritable": true,
+        "logicalName": "Personally Identifiable Information"
+      },
+      {
+        "globalId": "node-2c9b",
+        "nodeType": "steward",
+        "physicalName": "Jane Doe",
+        "isWritable": true,
+        "attributes": { "email": "jane.doe@example.com" }
+      }
+    ],
+    "edges": [
+      {
+        "subjectNodeId": "tbl-customer",
+        "predicate": "contains",
+        "objectNodeId": "clmn-customer-email",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "clmn-customer-email",
+        "predicate": "classifiedAs",
+        "objectNodeId": "node-8f3a",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-customer",
+        "predicate": "hasSteward",
+        "objectNodeId": "node-2c9b",
+        "isActive": true
+      }
+    ],
+    "vocabulary": {
+      "nodeTypes": [
+        {
+          "name": "classification",
+          "description": "Classification (e.g. PII)",
+          "is_system": false,
+          "is_active": true
+        },
+        {
+          "name": "steward",
+          "description": "A person designated as accountable for a data asset.",
+          "is_system": false,
+          "is_active": true
+        }
+      ],
+      "predicates": [
+        {
+          "name": "classifiedAs",
+          "category": "annotation",
+          "description": "Asset classified with a classification",
+          "inverse_predicate": null,
+          "is_system": false,
+          "is_active": true
+        },
+        {
+          "name": "hasSteward",
+          "category": "governance",
+          "description": "The person accountable for the accuracy and appropriate use of this asset.",
+          "inverse_predicate": null,
+          "is_system": false,
+          "is_active": true
+        }
+      ],
+      "edgeConstraints": [
+        {
+          "predicate": "classifiedAs",
+          "subject_node_type": "table",
+          "object_node_type": "classification"
+        },
+        {
+          "predicate": "classifiedAs",
+          "subject_node_type": "column",
+          "object_node_type": "classification"
+        },
+        {
+          "predicate": "hasSteward",
+          "subject_node_type": "table",
+          "object_node_type": "steward"
+        }
+      ]
+    },
+    "view": { "approach": "active", "root": "tbl-customer" }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "tbl-customer" },
+    "notice": null,
+    "warnings": {}
+  }
+}
