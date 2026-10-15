@@ -1,0 +1,17 @@
+{
+  "key": "s-extend",
+  "group": "Custom vocabulary",
+  "label": "Business keywords",
+  "tests": "Extend-theme types without icons (keyword, bk, business_process) + a custom predicate",
+  "dataset": "extend",
+  "story": {
+    "prompt": "What business knowledge do we have documented?",
+    "text": "These are the business keywords and the documents they come from. Select a keyword to see where it is defined and which assets use it."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

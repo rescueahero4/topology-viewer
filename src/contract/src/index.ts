@@ -5,6 +5,20 @@ export {
   type Issue,
   type RenderInput,
 } from "./input";
+export {
+  datasetFileSchema,
+  expectSchema,
+  firstPaintSchema,
+  fixtureFileSchema,
+  loadDatasetFile,
+  loadFixtureFile,
+  storySchema,
+  type DatasetFile,
+  type Expect,
+  type FirstPaint,
+  type FixtureFile,
+  type Story,
+} from "./corpus";
 export { NODE_DESIGN_GUIDE, guidance } from "./guidance";
 export { renderInputJsonSchema } from "./jsonSchema";
 export {

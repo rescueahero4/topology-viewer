@@ -1,0 +1,14 @@
+{
+  "key": "s-invalid",
+  "group": "Edge cases",
+  "label": "Invalid payload",
+  "tests": "nodes is not an array → error state",
+  "graph": { "nodes": "oops", "edges": [] },
+  "story": null,
+  "expect": {
+    "schema": "nodes-not-array",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

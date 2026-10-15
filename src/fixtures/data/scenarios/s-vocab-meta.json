@@ -1,0 +1,69 @@
+{
+  "key": "s-vocab-meta",
+  "group": "Data shape",
+  "label": "Metadata in other vocabularies",
+  "tests": "Catalog fields found under Graph Vocabulary / alias names (comment_on_ddl, service_name, updated_at, owner), owners and tags from edges, path and data source from the containment chain; AI client labels unknown keys and maps steward_email to Owners via `fields`",
+  "graph": {
+    "nodes": [
+      { "id": "ds", "type": "data_source", "label": "BigQuery · acme-dw" },
+      { "id": "db", "type": "database", "label": "acme-dw" },
+      { "id": "sc", "type": "schema", "label": "finance" },
+      {
+        "id": "tb",
+        "type": "table",
+        "label": "invoices",
+        "attrs": {
+          "service_name": "bigquery",
+          "display_name": "Customer invoices",
+          "comment_on_ddl": "one row per issued invoice",
+          "updated_at": 1758960000,
+          "ext_url": "https://console.cloud.google.com/bigquery",
+          "rto_hours": 4,
+          "pii_level": "medium",
+          "retentionDays": 2555,
+          "steward_email": "mika.sato@acme.example",
+          "_inferred": { "display_name": "Named from the table and its schema" }
+        }
+      },
+      {
+        "id": "cl",
+        "type": "column",
+        "label": "invoice_total",
+        "attrs": {
+          "data_type": "NUMERIC(18,2)",
+          "ordinal_position": 4,
+          "description": "Invoice total in the billing currency"
+        }
+      },
+      { "id": "u", "type": "user", "label": "Aiko Tanaka" },
+      { "id": "tg", "type": "tag", "label": "Finance / Billing" }
+    ],
+    "edges": [
+      { "source": "ds", "target": "db", "predicate": "contains" },
+      { "source": "db", "target": "sc", "predicate": "contains" },
+      { "source": "sc", "target": "tb", "predicate": "contains" },
+      { "source": "tb", "target": "cl", "predicate": "contains" },
+      { "source": "tb", "target": "u", "predicate": "ownedBy" },
+      { "source": "tb", "target": "tg", "predicate": "taggedWith" }
+    ],
+    "fields": {
+      "rto_hours": {
+        "label": "Recovery time objective (hours)",
+        "why": "From the team's data contract naming"
+      },
+      "pii_level": { "label": "Personal data level" },
+      "steward_email": {
+        "slot": "owners",
+        "why": "An e-mail of the person responsible reads as the steward"
+      }
+    },
+    "view": { "root": "tb", "approach": "active" }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "tb" },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "key": "s-vague",
+  "group": "Story approach",
+  "label": "Vague request · Passive (sent)",
+  "tests": "Intent unclear → AI sends approach passive, no root",
+  "dataset": "catalog",
+  "story": {
+    "prompt": "What's in our Snowflake and Tableau catalog?",
+    "text": "Your catalog flows from Snowflake through Fivetran and dbt into the Finance Tableau project. Double-click any asset to follow its lineage or see who owns it."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "key": "s-badroot",
+  "group": "Story approach",
+  "label": "Active · root not in data",
+  "tests": "Hint root id does not exist → hint ignored, most connected node becomes the root",
+  "dataset": "catalog",
+  "view": {
+    "approach": "active",
+    "root": "t_DOES_NOT_EXIST",
+    "reveal": ["t_FCT_REVENUE"]
+  },
+  "story": {
+    "prompt": "Who owns LEGACY_BILLING?",
+    "text": "I couldn't find LEGACY_BILLING in the catalog; here is the closest part of the lineage I could find."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_SF_ACCOUNT" },
+    "notice": null,
+    "warnings": { "root-not-found": 1 }
+  }
+}

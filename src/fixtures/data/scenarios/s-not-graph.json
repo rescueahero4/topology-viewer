@@ -1,0 +1,14 @@
+{
+  "key": "s-not-graph",
+  "group": "Edge cases",
+  "label": "Not a graph",
+  "tests": "Payload is an array, not an object → error notice (not-object)",
+  "graph": [{ "id": "x" }],
+  "story": null,
+  "expect": {
+    "schema": "not-object",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "key": "extend",
+  "label": "Business keywords",
+  "description": "Extend theme: keyword and bk types with no icon yet",
+  "graph": {
+    "nodes": [
+      {
+        "id": "bk_glossary",
+        "type": "bk",
+        "label": "Finance glossary FY25.pdf",
+        "attrs": { "reference": "sharepoint://finance/glossary-fy25.pdf" }
+      },
+      {
+        "id": "bk_playbook",
+        "type": "bk",
+        "label": "Sales playbook.docx",
+        "attrs": { "reference": "sharepoint://sales/playbook.docx" }
+      },
+      {
+        "id": "kw_arr",
+        "type": "keyword",
+        "label": "ARR",
+        "attrs": { "name": "ARR", "definition": "Annual recurring revenue" }
+      },
+      {
+        "id": "kw_mrr",
+        "type": "keyword",
+        "label": "MRR",
+        "attrs": { "name": "MRR", "definition": "Monthly recurring revenue" }
+      },
+      {
+        "id": "kw_revenue",
+        "type": "keyword",
+        "label": "Revenue",
+        "attrs": {
+          "name": "Revenue",
+          "definition": "Income from customer contracts"
+        }
+      },
+      {
+        "id": "kw_churn",
+        "type": "keyword",
+        "label": "Churn",
+        "attrs": { "name": "Churn", "definition": "Customers lost in a period" }
+      },
+      {
+        "id": "kw_customer",
+        "type": "keyword",
+        "label": "Customer",
+        "attrs": {
+          "name": "Customer",
+          "definition": "An account with at least one paid invoice"
+        }
+      },
+      {
+        "id": "kw_pipeline",
+        "type": "keyword",
+        "label": "Pipeline",
+        "attrs": {
+          "name": "Pipeline",
+          "definition": "Open opportunities weighted by stage"
+        }
+      },
+      {
+        "id": "kw_win_rate",
+        "type": "keyword",
+        "label": "Win rate",
+        "attrs": {
+          "name": "Win rate",
+          "definition": "Won ÷ closed opportunities"
+        }
+      },
+      {
+        "id": "kw_client",
+        "type": "keyword",
+        "label": "Client",
+        "attrs": { "name": "Client", "definition": "Synonym of customer" }
+      },
+      {
+        "id": "t_FCT_REVENUE",
+        "type": "table",
+        "label": "FCT_REVENUE",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_DIM_CUSTOMER",
+        "type": "table",
+        "label": "DIM_CUSTOMER",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_FCT_PIPELINE",
+        "type": "table",
+        "label": "FCT_PIPELINE",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_V_REVENUE_MONTHLY",
+        "type": "view",
+        "label": "V_REVENUE_MONTHLY",
+        "attrs": { "asset_type": "view" }
+      },
+      {
+        "id": "db_revenue",
+        "type": "dashboard",
+        "label": "Revenue Overview",
+        "attrs": { "asset_type": "dashboard" }
+      },
+      {
+        "id": "proc_q_close",
+        "type": "business_process",
+        "label": "Quarter close",
+        "attrs": { "owner": "Finance ops" }
+      }
+    ],
+    "edges": [
+      { "source": "kw_arr", "target": "bk_glossary", "predicate": "relatedTo" },
+      { "source": "kw_mrr", "target": "bk_glossary", "predicate": "relatedTo" },
+      {
+        "source": "kw_revenue",
+        "target": "bk_glossary",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_churn",
+        "target": "bk_glossary",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_customer",
+        "target": "bk_glossary",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_pipeline",
+        "target": "bk_playbook",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_win_rate",
+        "target": "bk_playbook",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_client",
+        "target": "bk_playbook",
+        "predicate": "relatedTo"
+      },
+      { "source": "kw_arr", "target": "kw_revenue", "predicate": "broader" },
+      { "source": "kw_mrr", "target": "kw_revenue", "predicate": "broader" },
+      {
+        "source": "kw_client",
+        "target": "kw_customer",
+        "predicate": "synonymOf"
+      },
+      {
+        "source": "kw_churn",
+        "target": "kw_customer",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_win_rate",
+        "target": "kw_pipeline",
+        "predicate": "relatedTo"
+      },
+      {
+        "source": "kw_revenue",
+        "target": "t_FCT_REVENUE",
+        "predicate": "representsConcept"
+      },
+      {
+        "source": "kw_mrr",
+        "target": "t_V_REVENUE_MONTHLY",
+        "predicate": "representsConcept"
+      },
+      {
+        "source": "kw_customer",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "representsConcept"
+      },
+      {
+        "source": "kw_pipeline",
+        "target": "t_FCT_PIPELINE",
+        "predicate": "representsConcept"
+      },
+      {
+        "source": "kw_arr",
+        "target": "db_revenue",
+        "predicate": "representsConcept"
+      },
+      {
+        "source": "t_V_REVENUE_MONTHLY",
+        "target": "t_FCT_REVENUE",
+        "predicate": "definedBy"
+      },
+      {
+        "source": "db_revenue",
+        "target": "t_V_REVENUE_MONTHLY",
+        "predicate": "mapsTo"
+      },
+      {
+        "source": "proc_q_close",
+        "target": "kw_revenue",
+        "predicate": "produces"
+      }
+    ]
+  },
+  "story": {
+    "prompt": "What business knowledge do we have documented?",
+    "text": "These are the business keywords and the documents they come from. Select a keyword to see where it is defined and which assets use it."
+  }
+}

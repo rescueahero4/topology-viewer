@@ -1,0 +1,20 @@
+{
+  "key": "s-noid-all",
+  "group": "Edge cases",
+  "label": "No node has an id",
+  "tests": "Every node lacks an id → error notice (no-valid-nodes)",
+  "graph": {
+    "nodes": [
+      { "type": "table", "label": "ORDERS" },
+      { "type": "column", "label": "ORDER_ID" }
+    ],
+    "edges": []
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": "no-valid-nodes",
+    "warnings": {}
+  }
+}

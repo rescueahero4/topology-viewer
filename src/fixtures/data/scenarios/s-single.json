@@ -1,0 +1,28 @@
+{
+  "key": "s-single",
+  "group": "Data shape",
+  "label": "Single node",
+  "tests": "One node, no edges: nothing to explore",
+  "graph": {
+    "nodes": [
+      {
+        "id": "t_FCT_REVENUE",
+        "type": "table",
+        "label": "FCT_REVENUE",
+        "attrs": { "service_name": "snowflake" }
+      }
+    ],
+    "edges": [],
+    "view": { "approach": "active", "root": "t_FCT_REVENUE" }
+  },
+  "story": {
+    "prompt": "Show me FCT_REVENUE",
+    "text": "Here is FCT_REVENUE. It has no recorded owners, tags or lineage yet."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_FCT_REVENUE" },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "key": "s-empty",
+  "group": "Edge cases",
+  "label": "Empty result",
+  "tests": "AI found nothing: nodes and edges are empty arrays",
+  "graph": { "nodes": [], "edges": [] },
+  "story": {
+    "prompt": "Who owns LEGACY_BILLING?",
+    "text": "I couldn't find anything called LEGACY_BILLING in the catalog."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": "no-data",
+    "warnings": {}
+  }
+}

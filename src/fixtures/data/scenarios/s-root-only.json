@@ -1,0 +1,18 @@
+{
+  "key": "s-root-only",
+  "group": "Story approach",
+  "label": "Active · root only, no reveal",
+  "tests": "Hint names a root but reveals nothing: one node with a +N chip",
+  "dataset": "governance",
+  "view": { "approach": "active", "root": "t_FCT_REVENUE" },
+  "story": {
+    "prompt": "Tell me about FCT_REVENUE",
+    "text": "FCT_REVENUE is the revenue fact table. Double-click it to see its tags, owners and who can access it."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_FCT_REVENUE" },
+    "notice": null,
+    "warnings": {}
+  }
+}

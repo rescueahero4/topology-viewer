@@ -1,0 +1,14 @@
+{
+  "key": "s-stress",
+  "group": "Data shape",
+  "label": "Warehouse-sized (5k nodes)",
+  "tests": "Render speed and auto scope on a huge result",
+  "dataset": "stress",
+  "story": null,
+  "expect": {
+    "schema": "too-large",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "key": "s-mixed",
+  "group": "Custom vocabulary",
+  "label": "QDIC + custom classes · Active",
+  "tests": "Known icons next to fallback glyphs; known families next to Other",
+  "graph": {
+    "nodes": [
+      {
+        "id": "t_DIM_CUSTOMER",
+        "type": "table",
+        "label": "DIM_CUSTOMER",
+        "attrs": { "asset_type": "table", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_FCT_REVENUE",
+        "type": "table",
+        "label": "FCT_REVENUE",
+        "attrs": { "asset_type": "table", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_FCT_PIPELINE",
+        "type": "table",
+        "label": "FCT_PIPELINE",
+        "attrs": { "asset_type": "table", "service_name": "snowflake" }
+      },
+      { "id": "u_aiko", "type": "user", "label": "Aiko Tanaka", "attrs": {} },
+      {
+        "id": "ug_ds",
+        "type": "user_group",
+        "label": "Data science",
+        "attrs": {}
+      },
+      {
+        "id": "f_ltv",
+        "type": "feature",
+        "label": "customer_ltv_90d",
+        "attrs": { "store": "feast" }
+      },
+      {
+        "id": "f_seg",
+        "type": "feature",
+        "label": "segment_onehot",
+        "attrs": { "store": "feast" }
+      },
+      {
+        "id": "f_rev",
+        "type": "feature",
+        "label": "revenue_trend_6m",
+        "attrs": { "store": "feast" }
+      },
+      {
+        "id": "f_win",
+        "type": "feature",
+        "label": "win_rate_rolling",
+        "attrs": { "store": "feast" }
+      },
+      {
+        "id": "m_churn",
+        "type": "ml_model",
+        "label": "churn-xgb v14",
+        "attrs": { "framework": "xgboost" }
+      },
+      {
+        "id": "m_upsell",
+        "type": "ml_model",
+        "label": "upsell-ranker v3",
+        "attrs": { "framework": "lightgbm" }
+      },
+      {
+        "id": "exp_212",
+        "type": "experiment",
+        "label": "exp-212 · churn retrain",
+        "attrs": {}
+      },
+      {
+        "id": "ep_churn",
+        "type": "endpoint",
+        "label": "churn-api /v1/score",
+        "attrs": {}
+      },
+      {
+        "id": "ep_upsell",
+        "type": "endpoint",
+        "label": "crm-upsell /rank",
+        "attrs": {}
+      }
+    ],
+    "edges": [
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "u_aiko",
+        "predicate": "ownedBy"
+      },
+      { "source": "u_aiko", "target": "ug_ds", "predicate": "memberOf" },
+      {
+        "source": "f_ltv",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "f_seg",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "f_rev",
+        "target": "t_FCT_REVENUE",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "f_win",
+        "target": "t_FCT_PIPELINE",
+        "predicate": "derivedFrom"
+      },
+      { "source": "m_churn", "target": "f_ltv", "predicate": "trainedOn" },
+      { "source": "m_churn", "target": "f_seg", "predicate": "trainedOn" },
+      { "source": "m_churn", "target": "f_rev", "predicate": "trainedOn" },
+      { "source": "m_upsell", "target": "f_ltv", "predicate": "trainedOn" },
+      { "source": "m_upsell", "target": "f_win", "predicate": "trainedOn" },
+      { "source": "exp_212", "target": "m_churn", "predicate": "produced" },
+      { "source": "m_churn", "target": "ep_churn", "predicate": "servedBy" },
+      { "source": "m_upsell", "target": "ep_upsell", "predicate": "servedBy" },
+      { "source": "m_churn", "target": "ug_ds", "predicate": "ownedBy" },
+      { "source": "m_upsell", "target": "ug_ds", "predicate": "ownedBy" }
+    ],
+    "view": {
+      "approach": "active",
+      "root": "t_DIM_CUSTOMER",
+      "reveal": [
+        "f_ltv",
+        "f_seg",
+        "m_churn",
+        "m_upsell",
+        "ep_churn",
+        "ep_upsell",
+        "u_aiko"
+      ]
+    }
+  },
+  "story": {
+    "prompt": "What would break if DIM_CUSTOMER changed?",
+    "text": "Two features derive from DIM_CUSTOMER and both models train on them, so the churn API and the CRM upsell ranker would be affected."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_DIM_CUSTOMER" },
+    "notice": null,
+    "warnings": {}
+  }
+}

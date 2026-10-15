@@ -1,0 +1,542 @@
+{
+  "key": "q-full-vocabulary",
+  "group": "QDIC",
+  "label": "QDIC full vocabulary",
+  "tests": "Every node type, predicate, inverse name, pairing and edge attribute of the QDIC profile appears at least once, in the GraphQL shape. The data_source node has no edge, because no pairing joins it. The four predicates with no pairing (classifiedAs, governedBy, calculatedFrom, sourcedFrom) have edges. Two of the ends come from SA-Intro (classifiedAs from a column to a classification, governedBy from a table to a policy). The ends of the other four predicates are chosen only to cover them, and no document gives them.",
+  "graph": {
+    "nodes": [
+      {
+        "globalId": "dsrc-warehouse",
+        "nodeType": "data_source",
+        "physicalName": "WAREHOUSE",
+        "isWritable": false
+      },
+      {
+        "globalId": "schm-sales-db",
+        "nodeType": "database",
+        "physicalName": "SALES_DB",
+        "isWritable": false
+      },
+      {
+        "globalId": "schm-sales",
+        "nodeType": "schema",
+        "physicalName": "SALES",
+        "isWritable": false
+      },
+      {
+        "globalId": "tbl-orders",
+        "nodeType": "table",
+        "physicalName": "ORDERS",
+        "isWritable": false
+      },
+      {
+        "globalId": "tbl-orders-archive",
+        "nodeType": "table",
+        "physicalName": "ORDERS_ARCHIVE",
+        "isWritable": false
+      },
+      {
+        "globalId": "tbl-customers",
+        "nodeType": "table",
+        "physicalName": "CUSTOMERS",
+        "isWritable": false
+      },
+      {
+        "globalId": "clmn-order-id",
+        "nodeType": "column",
+        "physicalName": "ORDER_ID",
+        "isWritable": false
+      },
+      {
+        "globalId": "clmn-archive-order-id",
+        "nodeType": "column",
+        "physicalName": "ARCHIVE_ORDER_ID",
+        "isWritable": false
+      },
+      {
+        "globalId": "view-orders-monthly",
+        "nodeType": "view",
+        "physicalName": "V_ORDERS_MONTHLY",
+        "isWritable": false
+      },
+      {
+        "globalId": "etl-load-orders",
+        "nodeType": "etl",
+        "physicalName": "LOAD_ORDERS",
+        "isWritable": false
+      },
+      {
+        "globalId": "etl-build-marts",
+        "nodeType": "etl",
+        "physicalName": "BUILD_MARTS",
+        "isWritable": false
+      },
+      {
+        "globalId": "bigroup-finance",
+        "nodeType": "bigroup",
+        "physicalName": "Finance BI group",
+        "isWritable": false
+      },
+      {
+        "globalId": "dash-revenue",
+        "nodeType": "dashboard",
+        "physicalName": "Revenue Overview",
+        "isWritable": false
+      },
+      {
+        "globalId": "dash-ops",
+        "nodeType": "dashboard",
+        "physicalName": "Operations Overview",
+        "isWritable": false
+      },
+      {
+        "globalId": "rpt-quarterly",
+        "nodeType": "report",
+        "physicalName": "Quarterly Report",
+        "isWritable": false
+      },
+      {
+        "globalId": "rpt-weekly",
+        "nodeType": "report",
+        "physicalName": "Weekly Report",
+        "isWritable": false
+      },
+      {
+        "globalId": "usr-jane",
+        "nodeType": "user",
+        "physicalName": "Jane Example",
+        "isWritable": false
+      },
+      {
+        "globalId": "ugrp-analysts",
+        "nodeType": "user_group",
+        "physicalName": "Analysts",
+        "isWritable": false
+      },
+      {
+        "globalId": "agrp-finance",
+        "nodeType": "asset_group",
+        "physicalName": "Finance assets",
+        "isWritable": false
+      },
+      {
+        "globalId": "tag-pii",
+        "nodeType": "tag",
+        "physicalName": "PII",
+        "isWritable": false
+      },
+      {
+        "globalId": "tag-personal",
+        "nodeType": "tag",
+        "physicalName": "Personal",
+        "isWritable": false
+      },
+      {
+        "globalId": "tag-email",
+        "nodeType": "tag",
+        "physicalName": "Email",
+        "isWritable": false
+      },
+      {
+        "globalId": "tagg-classification",
+        "nodeType": "tag_group",
+        "physicalName": "Classification",
+        "isWritable": false
+      },
+      {
+        "globalId": "cat-finance",
+        "nodeType": "custom_category",
+        "physicalName": "Finance",
+        "isWritable": false
+      },
+      {
+        "globalId": "pset-retention",
+        "nodeType": "property_set",
+        "physicalName": "Retention",
+        "isWritable": false
+      },
+      {
+        "globalId": "prop-retention-days",
+        "nodeType": "property",
+        "physicalName": "Retention days",
+        "isWritable": false
+      },
+      {
+        "globalId": "node-class-pii",
+        "nodeType": "classification",
+        "physicalName": "PII",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-domain-sales",
+        "nodeType": "domain",
+        "physicalName": "Sales",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-policy-retention",
+        "nodeType": "policy",
+        "physicalName": "Retention policy",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-metric-revenue",
+        "nodeType": "metric",
+        "physicalName": "Revenue",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-ext-crm",
+        "nodeType": "external_system",
+        "physicalName": "CRM",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-model-churn",
+        "nodeType": "model",
+        "physicalName": "Churn model",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-revenue",
+        "nodeType": "keyword",
+        "physicalName": "Revenue",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-sales",
+        "nodeType": "keyword",
+        "physicalName": "Sales",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-turnover",
+        "nodeType": "keyword",
+        "physicalName": "Turnover",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-booking",
+        "nodeType": "keyword",
+        "physicalName": "Booking",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-invoice",
+        "nodeType": "keyword",
+        "physicalName": "Invoice",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-kw-order",
+        "nodeType": "keyword",
+        "physicalName": "Order",
+        "isWritable": true
+      },
+      {
+        "globalId": "node-bk-contract",
+        "nodeType": "bk",
+        "physicalName": "Sales contract",
+        "isWritable": true
+      }
+    ],
+    "edges": [
+      {
+        "subjectNodeId": "schm-sales-db",
+        "predicate": "contains",
+        "objectNodeId": "schm-sales",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "schm-sales",
+        "predicate": "contains",
+        "objectNodeId": "tbl-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "contains",
+        "objectNodeId": "clmn-order-id",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "bigroup-finance",
+        "predicate": "contains",
+        "objectNodeId": "dash-revenue",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "dash-revenue",
+        "predicate": "contains",
+        "objectNodeId": "rpt-quarterly",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-customers",
+        "predicate": "partOf",
+        "objectNodeId": "schm-sales",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "clmn-archive-order-id",
+        "predicate": "partOf",
+        "objectNodeId": "tbl-orders-archive",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "dash-ops",
+        "predicate": "partOf",
+        "objectNodeId": "bigroup-finance",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "rpt-weekly",
+        "predicate": "partOf",
+        "objectNodeId": "dash-revenue",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders-archive",
+        "predicate": "derivedFrom",
+        "objectNodeId": "tbl-orders",
+        "isActive": false,
+        "valid_from": "2025-01-01",
+        "valid_to": "2025-12-31"
+      },
+      {
+        "subjectNodeId": "clmn-archive-order-id",
+        "predicate": "derivedFrom",
+        "objectNodeId": "clmn-order-id",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "view-orders-monthly",
+        "predicate": "definedBy",
+        "objectNodeId": "tbl-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "etl-load-orders",
+        "predicate": "dependsOn",
+        "objectNodeId": "tbl-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "etl-build-marts",
+        "predicate": "dependsOn",
+        "objectNodeId": "etl-load-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "dash-revenue",
+        "predicate": "mapsTo",
+        "objectNodeId": "tbl-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "rpt-quarterly",
+        "predicate": "mapsTo",
+        "objectNodeId": "tbl-orders",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "bigroup-finance",
+        "predicate": "mapsTo",
+        "objectNodeId": "tbl-customers",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "bigroup-finance",
+        "predicate": "mapsTo",
+        "objectNodeId": "schm-sales",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "sharedWith",
+        "objectNodeId": "tbl-customers",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "ownedBy",
+        "objectNodeId": "usr-jane",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "groupedIn",
+        "objectNodeId": "agrp-finance",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tag-pii",
+        "predicate": "groupedIn",
+        "objectNodeId": "tagg-classification",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tag-pii",
+        "predicate": "groupedIn",
+        "objectNodeId": "cat-finance",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "prop-retention-days",
+        "predicate": "groupedIn",
+        "objectNodeId": "pset-retention",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "taggedWith",
+        "objectNodeId": "tag-pii",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "enrichedWith",
+        "objectNodeId": "pset-retention",
+        "isActive": true,
+        "attrs": { "values": { "retention_days": 2555 } }
+      },
+      {
+        "subjectNodeId": "tag-pii",
+        "predicate": "broader",
+        "objectNodeId": "tag-personal",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tag-email",
+        "predicate": "narrower",
+        "objectNodeId": "tag-personal",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "usr-jane",
+        "predicate": "memberOf",
+        "objectNodeId": "ugrp-analysts",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "ugrp-analysts",
+        "predicate": "permissionedTo",
+        "objectNodeId": "tbl-orders",
+        "isActive": true,
+        "valid_from": "2026-01-01",
+        "valid_to": "2026-12-31",
+        "attrs": { "permissions": ["view", "edit"] }
+      },
+      {
+        "subjectNodeId": "node-kw-revenue",
+        "predicate": "representsConcept",
+        "objectNodeId": "node-metric-revenue",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-revenue",
+        "predicate": "relatedTo",
+        "objectNodeId": "node-kw-sales",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "relatedTo",
+        "objectNodeId": "node-kw-sales",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-revenue",
+        "predicate": "relatedTo",
+        "objectNodeId": "node-bk-contract",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-customers",
+        "predicate": "relatedTo",
+        "objectNodeId": "node-bk-contract",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-revenue",
+        "predicate": "synonymOf",
+        "objectNodeId": "node-kw-turnover",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-sales",
+        "predicate": "broader",
+        "objectNodeId": "node-kw-booking",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-order",
+        "predicate": "precededBy",
+        "objectNodeId": "node-kw-invoice",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-booking",
+        "predicate": "produces",
+        "objectNodeId": "node-kw-invoice",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-invoice",
+        "predicate": "follows",
+        "objectNodeId": "node-kw-booking",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-kw-order",
+        "predicate": "producedBy",
+        "objectNodeId": "node-kw-turnover",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "clmn-order-id",
+        "predicate": "classifiedAs",
+        "objectNodeId": "node-class-pii",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-orders",
+        "predicate": "governedBy",
+        "objectNodeId": "node-policy-retention",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-domain-sales",
+        "predicate": "governedBy",
+        "objectNodeId": "node-policy-retention",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-metric-revenue",
+        "predicate": "calculatedFrom",
+        "objectNodeId": "clmn-order-id",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "node-model-churn",
+        "predicate": "calculatedFrom",
+        "objectNodeId": "tbl-customers",
+        "isActive": true
+      },
+      {
+        "subjectNodeId": "tbl-customers",
+        "predicate": "sourcedFrom",
+        "objectNodeId": "node-ext-crm",
+        "isActive": true
+      }
+    ],
+    "view": { "approach": "passive" }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "key": "s-access",
+  "group": "Story approach",
+  "label": "Access question · Active",
+  "tests": "Clear subject/object/intent → AI sends approach active + root + reveal",
+  "dataset": "access",
+  "story": {
+    "prompt": "Who has access to FCT_REVENUE?",
+    "text": "FCT_REVENUE has three data owners. Finance Admins can view and edit it directly; Analytics and Exec reach it view-only through their asset groups. The table sits at the centre — click a group to see which people it covers."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_FCT_REVENUE" },
+    "notice": null,
+    "warnings": { "dangling-edge": 9 }
+  }
+}
