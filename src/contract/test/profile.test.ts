@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { profile } from "../src/index";
+import { loadProfile, profile } from "../src/index";
+import qdic from "../src/profile/qdic.json";
 
 const root = new URL("../../../", import.meta.url);
 const storyFile = new URL(
@@ -241,7 +242,15 @@ describe("QDIC profile attributes, slots and lookups", () => {
       sets.asset
         ?.filter((a) => a.resolves !== undefined)
         .map((a) => [a.key, a.resolves]),
-    ).toEqual([["asset_type", ["view", "table"]]]);
+    ).toEqual([
+      [
+        "asset_type",
+        [
+          ["view", "table"],
+          ["database", "schema"],
+        ],
+      ],
+    ]);
   });
 
   it("S7 holds 13 slots in inspector order", () => {
@@ -302,5 +311,54 @@ describe("QDIC profile attributes, slots and lookups", () => {
       if (entry.type !== null)
         expect(profile.nodeTypes).toHaveProperty(entry.type);
     }
+  });
+});
+
+describe("QDIC profile slot rules", () => {
+  const slot = (id: string) => profile.slots.find((s) => s.slot === id);
+
+  it("S24 keeps definition out of the description keys", () => {
+    expect(slot("description")?.keys).toEqual([
+      "description",
+      "desc",
+      "summary",
+    ]);
+    expect(profile.attributeSets.keyword?.map((a) => a.key)).toContain(
+      "definition",
+    );
+  });
+
+  it("S25 keeps stewards out of the owners keys", () => {
+    expect(slot("owners")?.edge).toBe("ownedBy");
+    expect(slot("owners")?.keys).toEqual(["owners", "owner", "data_owner"]);
+  });
+
+  it("S26 filters asset groups and derives parent owners", () => {
+    expect(slot("asset_groups")).toMatchObject({
+      edge: "groupedIn",
+      edgeObject: "asset_group",
+    });
+    expect(slot("parent_owners")?.keys).toEqual(["parent_owners"]);
+    expect(slot("parent_owners")?.derive).toBe("parent-owners");
+    const copy = structuredClone(qdic);
+    const index = copy.slots.findIndex((s) => s.slot === "asset_groups");
+    (copy.slots[index] as { edgeObject?: string }).edgeObject = "asset_grp";
+    expect(() => loadProfile(copy)).toThrow(
+      `slots.${index}.edgeObject: unknown node type "asset_grp"`,
+    );
+  });
+
+  it("S27 resolves two pairs and keeps schm- on schema", () => {
+    const resolver = profile.attributeSets.asset?.find(
+      (a) => a.key === "asset_type",
+    );
+    expect(resolver?.resolves).toEqual([
+      ["view", "table"],
+      ["database", "schema"],
+    ]);
+    expect(profile.globalIdPrefixes["schm-"]).toMatchObject({
+      type: "schema",
+      source: { doc: "PRD", section: "FR-QDIC-6" },
+    });
   });
 });

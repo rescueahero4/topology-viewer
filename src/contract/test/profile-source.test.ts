@@ -144,23 +144,76 @@ function findDuplicateKey(text: string) {
   return value("$");
 }
 
-describe("QDIC profile sources", () => {
-  it("S4 cites a heading of the cited document for every entry", () => {
-    const all = entries(profile);
-    expect(all).toHaveLength(157);
-    for (const { path, source } of all) {
-      if (source === undefined) throw new Error(`${path} has no source`);
-      expect(source.section.length, path).toBeGreaterThan(0);
-      if (source.doc === "PRD") {
-        expect(prdText, path).toContain(`**${source.section}**`);
-      } else {
-        const list = documents[source.doc as keyof typeof documents];
-        expect(
-          list,
-          `${path} cites ${source.doc} §${source.section}`,
-        ).toContain(source.section);
-      }
+const prdAllowed = new Set([
+  "shapeHeuristics.0",
+  "shapeHeuristics.1",
+  "shapeHeuristics.2",
+  "shapeHeuristics.4",
+  "shapeHeuristics.5",
+  "globalIdPrefixes.schm-",
+]);
+
+function sourceErrors(p: typeof profile) {
+  const errors: string[] = [];
+  for (const { path, source } of entries(p)) {
+    if (source === undefined || source.section.length === 0) {
+      errors.push(`${path}: no source section`);
+    } else if (source.doc === "PRD") {
+      if (!prdAllowed.has(path))
+        errors.push(`${path}: PRD citation outside the allow-list`);
+      if (!prdText.includes(`**${source.section}**`))
+        errors.push(`${path}: no FR id ${source.section} in the PRD`);
+    } else if (
+      !documents[source.doc as keyof typeof documents].includes(source.section)
+    ) {
+      errors.push(`${path}: no heading ${source.doc} "${source.section}"`);
     }
+  }
+  for (const path of prdAllowed) {
+    const found = entries(p).find((e) => e.path === path);
+    if (found?.source?.doc !== "PRD")
+      errors.push(`${path}: allow-listed entry does not cite the PRD`);
+  }
+  return errors;
+}
+
+describe("QDIC profile sources", () => {
+  it("S4 cites a heading, or an allow-listed PRD requirement, for every entry", () => {
+    expect(entries(profile)).toHaveLength(157);
+    expect(sourceErrors(profile)).toEqual([]);
+  });
+
+  it("S23 cites GV or SA-Intro for the 13 slots and subject/object", () => {
+    const cited = [
+      ...profile.slots.map((s) => [s.slot, s.source] as const),
+      ["subject/object", profile.shapeHeuristics[3].source] as const,
+    ];
+    expect(cited).toHaveLength(14);
+    expect(cited.filter(([, src]) => src.doc === "PRD")).toEqual([]);
+    const derived = ["path", "data_source", "parent_owners", "subject/object"];
+    for (const [name, src] of cited) {
+      if (derived.includes(name))
+        expect(src.note?.length, name).toBeGreaterThan(0);
+    }
+  });
+
+  it("S28 fails a PRD citation outside the allow-list", () => {
+    const copy = structuredClone(profile);
+    const index = copy.slots.findIndex((s) => s.slot === "description");
+    copy.slots[index].source = { doc: "PRD", section: "FR-INSPECT-4" };
+    expect(sourceErrors(copy)).toEqual([
+      `slots.${index}: PRD citation outside the allow-list`,
+    ]);
+  });
+
+  it("S29 fails a missing heading and a missing FR id", () => {
+    const copy = structuredClone(profile);
+    copy.nodeTypes.table.source = { doc: "GV", section: "No such heading" };
+    copy.shapeHeuristics[0].source = { doc: "PRD", section: "FR-NOPE-9" };
+    expect(sourceErrors(copy)).toEqual([
+      'nodeTypes.table: no heading GV "No such heading"',
+      "shapeHeuristics.0: no FR id FR-NOPE-9 in the PRD",
+    ]);
   });
 
   it("S9 rejects an entry without source and names its path", () => {

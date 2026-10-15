@@ -124,8 +124,10 @@ inverses.${name}.predicate: unknown predicate "nope"`,
       l.some((a) => "resolves" in a),
     )!;
     const at = list.findIndex((a) => "resolves" in a);
-    expect(broken((d) => (d.attributeSets[set][at].resolves = ["nope"]))).toBe(
-      `Invalid profile:\nattributeSets.${set}.${at}.resolves.0: unknown node type "nope"`,
+    expect(
+      broken((d) => (d.attributeSets[set][at].resolves = [["nope", "table"]])),
+    ).toBe(
+      `Invalid profile:\nattributeSets.${set}.${at}.resolves.0.0: unknown node type "nope"`,
     );
   });
 

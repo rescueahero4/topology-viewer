@@ -87,9 +87,14 @@ export function checkPairings(p: Shape, { needType, needPredicate }: Checker) {
   });
 }
 
-export function checkSlots(p: Shape, { fail, needPredicate }: Checker) {
+export function checkSlots(
+  p: Shape,
+  { fail, needPredicate, needType }: Checker,
+) {
   p.slots.forEach((s, i) => {
     if (s.edge !== undefined) needPredicate(["slots", i, "edge"], s.edge);
+    if (s.edgeObject !== undefined)
+      needType(["slots", i, "edgeObject"], s.edgeObject);
   });
   const slotIds = new Set(p.slots.map((s) => s.slot));
   p.notYetIncluded.forEach((n, i) => {
@@ -101,8 +106,10 @@ export function checkSlots(p: Shape, { fail, needPredicate }: Checker) {
 export function checkReferences(p: Shape, { needType }: Checker) {
   for (const [set, list] of Object.entries(p.attributeSets)) {
     list.forEach((a, i) => {
-      a.resolves?.forEach((name, j) =>
-        needType(["attributeSets", set, i, "resolves", j], name),
+      a.resolves?.forEach((pair, j) =>
+        pair.forEach((name, k) =>
+          needType(["attributeSets", set, i, "resolves", j, k], name),
+        ),
       );
     });
   }

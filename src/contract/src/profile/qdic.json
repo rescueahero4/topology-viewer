@@ -1103,10 +1103,14 @@
     "asset": [
       {
         "key": "asset_type",
-        "resolves": ["view", "table"],
+        "resolves": [
+          ["view", "table"],
+          ["database", "schema"]
+        ],
         "source": {
           "doc": "GV",
-          "section": "Attributes"
+          "section": "Attributes",
+          "note": "The database and schema pair comes from GV Node Types: database shares an identifier prefix with schema and the asset type tells them apart."
         }
       },
       {
@@ -1432,8 +1436,8 @@
         "name"
       ],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "SA-Intro",
+        "section": "Browsing before you write anything"
       }
     },
     {
@@ -1447,25 +1451,25 @@
         "title"
       ],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "SA-Intro",
+        "section": "Scenario A: Classify CUSTOMER_EMAIL as PII"
       }
     },
     {
       "slot": "description",
-      "keys": ["description", "desc", "summary", "definition"],
+      "keys": ["description", "desc", "summary"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Attributes"
       }
     },
     {
       "slot": "owners",
-      "keys": ["owners", "owner", "data_owner", "stewards", "steward"],
+      "keys": ["owners", "owner", "data_owner"],
       "edge": "ownedBy",
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Predicates"
       }
     },
     {
@@ -1473,8 +1477,8 @@
       "keys": ["tags", "labels", "keywords"],
       "edge": "taggedWith",
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Predicates"
       }
     },
     {
@@ -1482,8 +1486,9 @@
       "keys": ["directory_path", "path", "qualified_name", "fqn"],
       "derive": "path",
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Predicates",
+        "note": "Derived. The asset hierarchy is the contains predicate (database to schema, schema to table, table to column). The path is the chain of containers that you find when you follow contains in the inbound direction."
       }
     },
     {
@@ -1492,32 +1497,35 @@
       "late": ["service_name", "data_source_id"],
       "derive": "source",
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Node Types",
+        "note": "Derived. GV defines the node type data_source but no graph pairing links it to an asset yet. The slot reads the data_source key first and the late key service_name second; the derive finds the data_source node when GV adds that link."
       }
     },
     {
       "slot": "parent_owners",
       "keys": ["parent_owners"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
-      }
+        "doc": "GV",
+        "section": "Predicates",
+        "note": "Derived. The native parent_owners key comes first. If it is not present, the owners are the ownedBy objects of the nearest container, found when you follow contains in the inbound direction."
+      },
+      "derive": "parent-owners"
     },
     {
       "slot": "data_type",
       "keys": ["data_type", "dataType"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Attributes"
       }
     },
     {
       "slot": "ddl_comment",
       "keys": ["ddl_comment", "comment_on_ddl"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Not yet included"
       }
     },
     {
@@ -1525,24 +1533,25 @@
       "keys": ["asset_groups"],
       "edge": "groupedIn",
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
-      }
+        "doc": "GV",
+        "section": "Predicates"
+      },
+      "edgeObject": "asset_group"
     },
     {
       "slot": "updated",
       "keys": ["_updated_at", "updated_at", "last_modified", "modified_at"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Attributes"
       }
     },
     {
       "slot": "link",
       "keys": ["ext_url", "url", "link"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-INSPECT-4"
+        "doc": "GV",
+        "section": "Attributes"
       }
     }
   ],
@@ -1575,8 +1584,9 @@
       "kind": "rows",
       "columns": ["subject", "object"],
       "source": {
-        "doc": "PRD",
-        "section": "FR-DATA-10"
+        "doc": "GV",
+        "section": "Predicates",
+        "note": "Derived. GV lists each pairing as Subject to Object, and SA-Intro Scenario A calls createEdge with subjectNodeId and objectNodeId. Thus subject and object name the two ends of an edge."
       }
     },
     {

@@ -5,6 +5,7 @@ const text = z.string().min(1);
 export const sourceSchema = z.strictObject({
   doc: z.enum(["GV", "SA-Intro", "PRD"]),
   section: text,
+  note: text.optional(),
 });
 
 const designSchema = z
@@ -64,7 +65,7 @@ export const writeRuleSchema = z.strictObject({
 
 export const attributeSchema = z.strictObject({
   key: text,
-  resolves: z.array(text).optional(),
+  resolves: z.array(z.tuple([text, text])).optional(),
   source: sourceSchema,
 });
 
@@ -80,7 +81,8 @@ export const slotSchema = z.strictObject({
   keys: z.array(text).min(1),
   late: z.array(text).optional(),
   edge: text.optional(),
-  derive: text.optional(),
+  edgeObject: text.optional(),
+  derive: z.enum(["path", "source", "parent-owners"]).optional(),
   source: sourceSchema,
 });
 
