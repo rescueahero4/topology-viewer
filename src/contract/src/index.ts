@@ -5,6 +5,7 @@ export {
   type Issue,
   type RenderInput,
 } from "./input";
+export { NODE_DESIGN_GUIDE, guidance } from "./guidance";
 export { renderInputJsonSchema } from "./jsonSchema";
 export {
   notices,
