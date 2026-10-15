@@ -5,7 +5,7 @@ import qdic from "../src/profile/qdic.json";
 
 const root = new URL("../../../", import.meta.url);
 const storyFile = new URL(
-  "docs/epics/open/EPIC-001-contract-profile-guidance/stories/STORY-001-03-qdic-profile.md",
+  "docs/epics/closed/EPIC-001-contract-profile-guidance/stories/STORY-001-03-qdic-profile.md",
   root,
 );
 
