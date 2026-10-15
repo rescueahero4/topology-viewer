@@ -7,6 +7,7 @@ export {
 } from "./input";
 export { renderInputJsonSchema } from "./jsonSchema";
 export { parseRenderInput } from "./parse";
+export { loadProfile, profile, profileSchema, type Profile } from "./profile";
 export {
   structuredContentSchema,
   warningEntrySchema,

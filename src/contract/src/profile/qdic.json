@@ -1,0 +1,1637 @@
+{
+  "categoryOrder": [
+    "Structure",
+    "Lineage",
+    "Reference",
+    "Annotation",
+    "Ownership & Access",
+    "Other"
+  ],
+  "nodeTypes": {
+    "database": {
+      "category": "Catalog structure",
+      "label": "Database",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 1,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "database",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "schema": {
+      "category": "Catalog structure",
+      "label": "Schema",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 2,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "schema",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "table": {
+      "category": "Catalog structure",
+      "label": "Table",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 3,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "table",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "view": {
+      "category": "Catalog structure",
+      "label": "View",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 3,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "view",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "column": {
+      "category": "Catalog structure",
+      "label": "Column",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 4,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "column",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "data_source": {
+      "category": "Catalog structure",
+      "label": "Data source",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 0,
+      "attributeSet": null,
+      "attributes": [],
+      "icon": "data_source",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "bigroup": {
+      "category": "Catalog structure",
+      "label": "BI group",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 1,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "bigroup",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "dashboard": {
+      "category": "Catalog structure",
+      "label": "Dashboard",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 2,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "dashboard",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "report": {
+      "category": "Catalog structure",
+      "label": "Report",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 3,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "report",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "etl": {
+      "category": "Catalog structure",
+      "label": "ETL",
+      "isSystem": true,
+      "treeRole": "structure",
+      "level": 1,
+      "attributeSet": "asset",
+      "attributes": [],
+      "icon": "etl",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "user": {
+      "category": "People & access",
+      "label": "User",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [
+        "email",
+        "given name",
+        "family name",
+        "internal flag",
+        "disabled flag",
+        "roles"
+      ],
+      "icon": "user",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "user_group": {
+      "category": "People & access",
+      "label": "User group",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": ["type", "asset group enabled", "internal flag"],
+      "icon": "user_group",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "asset_group": {
+      "category": "People & access",
+      "label": "Asset group",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": ["description", "group type"],
+      "icon": "asset_group",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "tag": {
+      "category": "Tagging",
+      "label": "Tag",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": ["description"],
+      "icon": "tag",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "tag_group": {
+      "category": "Tagging",
+      "label": "Tag group",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": ["description", "colour"],
+      "icon": "tag_group",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "custom_category": {
+      "category": "Tagging",
+      "label": "Custom category",
+      "isSystem": true,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": ["icon"],
+      "icon": "custom_category",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "property_set": {
+      "category": "Tagging",
+      "label": "Property set",
+      "isSystem": true,
+      "treeRole": "attribute",
+      "attributeSet": null,
+      "attributes": ["description", "object type"],
+      "icon": "property_set",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "property": {
+      "category": "Tagging",
+      "label": "Property",
+      "isSystem": true,
+      "treeRole": "attribute",
+      "attributeSet": null,
+      "attributes": ["type", "options", "tooltip", "placeholder"],
+      "icon": "property",
+      "source": {
+        "doc": "GV",
+        "section": "Node Types"
+      }
+    },
+    "classification": {
+      "category": "Annotation concepts",
+      "label": "Classification",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#815937",
+      "abbr": "CL",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "domain": {
+      "category": "Annotation concepts",
+      "label": "Domain",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#523781",
+      "abbr": "DM",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "policy": {
+      "category": "Annotation concepts",
+      "label": "Policy",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#813743",
+      "abbr": "PL",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "metric": {
+      "category": "Annotation concepts",
+      "label": "Metric",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#377481",
+      "abbr": "MT",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "external_system": {
+      "category": "Annotation concepts",
+      "label": "External system",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#375681",
+      "abbr": "ES",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "model": {
+      "category": "Annotation concepts",
+      "label": "Model",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#813781",
+      "abbr": "MD",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "keyword": {
+      "category": "Extend",
+      "label": "Keyword",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": "keyword",
+      "attributes": [],
+      "rank": 0,
+      "color": "#37815C",
+      "abbr": "KW",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "GV",
+        "section": "Node types"
+      }
+    },
+    "bk": {
+      "category": "Extend",
+      "label": "Source file",
+      "isSystem": false,
+      "treeRole": "curation",
+      "attributeSet": null,
+      "attributes": [],
+      "rank": 0,
+      "color": "#688137",
+      "abbr": "BK",
+      "design": "owner-accepted-2026-10-14",
+      "source": {
+        "doc": "GV",
+        "section": "Node types"
+      }
+    }
+  },
+  "predicates": {
+    "contains": {
+      "category": "Structure",
+      "inverse": "partOf",
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "broader": {
+      "category": "Structure",
+      "inverse": "narrower",
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "derivedFrom": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "definedBy": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "dependsOn": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "mapsTo": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "sharedWith": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "representsConcept": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "taggedWith": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "enrichedWith": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "relatedTo": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "both",
+      "isSystem": false,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "synonymOf": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "both",
+      "isSystem": false,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "classifiedAs": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "governedBy": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "calculatedFrom": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "sourcedFrom": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Reference"
+      }
+    },
+    "ownedBy": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "groupedIn": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "memberOf": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "permissionedTo": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "precededBy": {
+      "category": "Other",
+      "inverse": "follows",
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "produces": {
+      "category": "Other",
+      "inverse": "producedBy",
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    }
+  },
+  "inverses": {
+    "partOf": {
+      "predicate": "contains",
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "narrower": {
+      "predicate": "broader",
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "follows": {
+      "predicate": "precededBy",
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    },
+    "producedBy": {
+      "predicate": "produces",
+      "source": {
+        "doc": "GV",
+        "section": "Predicates"
+      }
+    }
+  },
+  "pairings": [
+    {
+      "predicate": "contains",
+      "subject": "database",
+      "object": "schema",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "contains",
+      "subject": "schema",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "contains",
+      "subject": "table",
+      "object": "column",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "contains",
+      "subject": "bigroup",
+      "object": "dashboard",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "contains",
+      "subject": "dashboard",
+      "object": "report",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "partOf",
+      "subject": "table",
+      "object": "schema",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "partOf",
+      "subject": "column",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "partOf",
+      "subject": "dashboard",
+      "object": "bigroup",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "partOf",
+      "subject": "report",
+      "object": "dashboard",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "derivedFrom",
+      "subject": "table",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "derivedFrom",
+      "subject": "column",
+      "object": "column",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "definedBy",
+      "subject": "view",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "dependsOn",
+      "subject": "etl",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "dependsOn",
+      "subject": "etl",
+      "object": "etl",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "mapsTo",
+      "subject": "dashboard",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "mapsTo",
+      "subject": "report",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "mapsTo",
+      "subject": "bigroup",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "mapsTo",
+      "subject": "bigroup",
+      "object": "schema",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "sharedWith",
+      "subject": "table",
+      "object": "table",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "ownedBy",
+      "subject": "any",
+      "object": "user",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "groupedIn",
+      "subject": "any",
+      "object": "asset_group",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "groupedIn",
+      "subject": "tag",
+      "object": "tag_group",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "groupedIn",
+      "subject": "tag",
+      "object": "custom_category",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "groupedIn",
+      "subject": "property",
+      "object": "property_set",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "taggedWith",
+      "subject": "any",
+      "object": "tag",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "enrichedWith",
+      "subject": "any",
+      "object": "property_set",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "broader",
+      "subject": "tag",
+      "object": "tag",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "narrower",
+      "subject": "tag",
+      "object": "tag",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "memberOf",
+      "subject": "user",
+      "object": "user_group",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "permissionedTo",
+      "subject": "user_group",
+      "object": "any",
+      "owner": "System",
+      "status": null,
+      "source": {
+        "doc": "GV",
+        "section": "System pairings"
+      }
+    },
+    {
+      "predicate": "representsConcept",
+      "subject": "keyword",
+      "object": "any",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "relatedTo",
+      "subject": "keyword",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "relatedTo",
+      "subject": "any",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "relatedTo",
+      "subject": "keyword",
+      "object": "bk",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "note": "Links a term to the file it came from",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "relatedTo",
+      "subject": "any",
+      "object": "bk",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "synonymOf",
+      "subject": "keyword",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "broader",
+      "subject": "keyword",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "note": "Predicate exists, pairing missing",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "precededBy",
+      "subject": "keyword",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "note": "Future: process modelling",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    },
+    {
+      "predicate": "produces",
+      "subject": "keyword",
+      "object": "keyword",
+      "owner": "BPaaS",
+      "status": "proposed",
+      "note": "Future: process modelling",
+      "source": {
+        "doc": "GV",
+        "section": "Custom pairings"
+      }
+    }
+  ],
+  "writeRules": [
+    {
+      "text": "A new custom node must use a custom-defined node type",
+      "source": {
+        "doc": "GV",
+        "section": "The three rules"
+      }
+    },
+    {
+      "text": "Every edge must match an allowed pairing",
+      "source": {
+        "doc": "GV",
+        "section": "The three rules"
+      }
+    },
+    {
+      "text": "Both ends of a custom edge cannot be system-owned",
+      "source": {
+        "doc": "GV",
+        "section": "The three rules"
+      }
+    }
+  ],
+  "attributeSets": {
+    "asset": [
+      {
+        "key": "asset_type",
+        "resolves": ["view", "table"],
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "description",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "service_name",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "data_type",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "ordinal_position",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "ddl_statement",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "ext_url",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "is_csv_imported",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "is_lost",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      }
+    ],
+    "record": [
+      {
+        "key": "created_at",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "updated_at",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "created_by",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      },
+      {
+        "key": "updated_by",
+        "source": {
+          "doc": "GV",
+          "section": "Attributes"
+        }
+      }
+    ],
+    "keyword": [
+      {
+        "key": "name",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "description",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "definition",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "similar_words",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "example",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "reference",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      },
+      {
+        "key": "metrics",
+        "source": {
+          "doc": "GV",
+          "section": "Fields"
+        }
+      }
+    ]
+  },
+  "notYetIncluded": [
+    {
+      "field": "ext_name",
+      "group": "Source identity",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "ext_description",
+      "group": "Source identity",
+      "slot": "description",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "comment_on_ddl",
+      "group": "Source identity",
+      "slot": "ddl_comment",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "record_updated_at",
+      "group": "Source identity",
+      "slot": "updated",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "data_source_id",
+      "group": "Provenance",
+      "slot": "data_source",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "ext_tags",
+      "group": "Tags & owners",
+      "slot": "tags",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "ext_owners",
+      "group": "Tags & owners",
+      "slot": "owners",
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "ext_access_count",
+      "group": "Usage",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_size",
+      "group": "Table statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_count",
+      "group": "Table statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_min",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_max",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_mean",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_median",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_mode",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_stddev",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_number_of_null",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "stats_number_of_unique",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    },
+    {
+      "field": "externally_updated_at",
+      "group": "Column statistics",
+      "slot": null,
+      "source": {
+        "doc": "GV",
+        "section": "Not yet included"
+      }
+    }
+  ],
+  "slots": [
+    {
+      "slot": "physical_name",
+      "keys": [
+        "physical_name",
+        "physicalName",
+        "table_name",
+        "asset_name",
+        "name"
+      ],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "logical_name",
+      "keys": [
+        "logical_name",
+        "logicalName",
+        "business_name",
+        "display_name",
+        "displayName",
+        "title"
+      ],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "description",
+      "keys": ["description", "desc", "summary", "definition"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "owners",
+      "keys": ["owners", "owner", "data_owner", "stewards", "steward"],
+      "edge": "ownedBy",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "tags",
+      "keys": ["tags", "labels", "keywords"],
+      "edge": "taggedWith",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "path",
+      "keys": ["directory_path", "path", "qualified_name", "fqn"],
+      "derive": "path",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "data_source",
+      "keys": ["data_source", "data_source_name"],
+      "late": ["service_name", "data_source_id"],
+      "derive": "source",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "parent_owners",
+      "keys": ["parent_owners"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "data_type",
+      "keys": ["data_type", "dataType"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "ddl_comment",
+      "keys": ["ddl_comment", "comment_on_ddl"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "asset_groups",
+      "keys": ["asset_groups"],
+      "edge": "groupedIn",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "updated",
+      "keys": ["_updated_at", "updated_at", "last_modified", "modified_at"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    },
+    {
+      "slot": "link",
+      "keys": ["ext_url", "url", "link"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-INSPECT-4"
+      }
+    }
+  ],
+  "shapeHeuristics": [
+    {
+      "kind": "rows",
+      "columns": ["source", "target"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": ["from", "to"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": ["parent", "child"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": ["subject", "object"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": ["*_id"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    },
+    {
+      "kind": "tree",
+      "columns": ["children", "items"],
+      "source": {
+        "doc": "PRD",
+        "section": "FR-DATA-10"
+      }
+    }
+  ],
+  "globalIdPrefixes": {
+    "tbl-": {
+      "type": "table",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Key terms"
+      }
+    },
+    "clmn-": {
+      "type": "column",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Key terms"
+      }
+    },
+    "schm-": {
+      "type": "schema",
+      "source": {
+        "doc": "PRD",
+        "section": "FR-QDIC-6"
+      }
+    },
+    "usr-": {
+      "type": "user",
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Key terms"
+      }
+    },
+    "node-": {
+      "type": null,
+      "writable": true,
+      "source": {
+        "doc": "SA-Intro",
+        "section": "Key terms"
+      }
+    }
+  }
+}
