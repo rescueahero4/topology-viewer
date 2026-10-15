@@ -1,0 +1,29 @@
+{
+  "key": "s-lineage",
+  "group": "Story approach",
+  "label": "Lineage question · Active",
+  "tests": "Active root on a dashboard with an upstream reveal path",
+  "dataset": "catalog",
+  "view": {
+    "approach": "active",
+    "root": "db_revenue",
+    "reveal": [
+      "v_V_REVENUE_MONTHLY",
+      "t_FCT_REVENUE",
+      "etl_dbt_marts",
+      "t_STG_PAYMENTS",
+      "t_STG_ACCOUNTS",
+      "etl_dbt_staging"
+    ]
+  },
+  "story": {
+    "prompt": "Where does the Revenue Overview dashboard get its data?",
+    "text": "Revenue Overview reads V_REVENUE_MONTHLY, which dbt builds from FCT_REVENUE. That table comes from the staging layer (payments and accounts) loaded by Fivetran from Stripe and Salesforce."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "db_revenue" },
+    "notice": null,
+    "warnings": {}
+  }
+}

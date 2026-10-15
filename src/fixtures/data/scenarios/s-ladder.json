@@ -1,0 +1,140 @@
+{
+  "key": "s-ladder",
+  "group": "Node design",
+  "label": "Hierarchy ladder · rank 0–6",
+  "tests": "One type per rank: circle → triangle → square/diamond → pentagon → hexagon → heptagon → octagon, size growing with rank",
+  "graph": {
+    "nodes": [
+      { "id": "co", "type": "company", "label": "Acme Corp", "attrs": {} },
+      { "id": "dv_plat", "type": "division", "label": "Platform", "attrs": {} },
+      { "id": "dv_grow", "type": "division", "label": "Growth", "attrs": {} },
+      {
+        "id": "dp_data",
+        "type": "department",
+        "label": "Data & AI",
+        "attrs": {}
+      },
+      {
+        "id": "dp_mkt",
+        "type": "department",
+        "label": "Marketing",
+        "attrs": {}
+      },
+      { "id": "tm_cat", "type": "team", "label": "Catalog team", "attrs": {} },
+      { "id": "tm_ml", "type": "team", "label": "ML team", "attrs": {} },
+      { "id": "tm_web", "type": "team", "label": "Web team", "attrs": {} },
+      { "id": "pj_lin", "type": "project", "label": "Lineage v2", "attrs": {} },
+      {
+        "id": "pj_rec",
+        "type": "project",
+        "label": "Recommender",
+        "attrs": {}
+      },
+      {
+        "id": "pj_site",
+        "type": "project",
+        "label": "Site redesign",
+        "attrs": {}
+      },
+      { "id": "ms_beta", "type": "milestone", "label": "Beta", "attrs": {} },
+      { "id": "ms_ga", "type": "milestone", "label": "GA", "attrs": {} },
+      {
+        "id": "ms_ab",
+        "type": "milestone",
+        "label": "A/B launch",
+        "attrs": {}
+      },
+      { "id": "tk_0", "type": "task", "label": "Task 1", "attrs": {} },
+      { "id": "st_1", "type": "subtask", "label": "Subtask 1.1", "attrs": {} },
+      { "id": "tk_1", "type": "task", "label": "Task 2", "attrs": {} },
+      { "id": "st_2", "type": "subtask", "label": "Subtask 2.1", "attrs": {} },
+      { "id": "tk_2", "type": "task", "label": "Task 3", "attrs": {} },
+      { "id": "st_3", "type": "subtask", "label": "Subtask 3.1", "attrs": {} },
+      { "id": "tk_3", "type": "task", "label": "Task 4", "attrs": {} },
+      { "id": "st_4", "type": "subtask", "label": "Subtask 4.1", "attrs": {} },
+      { "id": "tk_4", "type": "task", "label": "Task 5", "attrs": {} },
+      { "id": "st_5", "type": "subtask", "label": "Subtask 5.1", "attrs": {} },
+      { "id": "tk_5", "type": "task", "label": "Task 6", "attrs": {} },
+      { "id": "st_6", "type": "subtask", "label": "Subtask 6.1", "attrs": {} }
+    ],
+    "edges": [
+      { "source": "co", "target": "dv_plat", "predicate": "includes" },
+      { "source": "co", "target": "dv_grow", "predicate": "includes" },
+      { "source": "dv_plat", "target": "dp_data", "predicate": "includes" },
+      { "source": "dv_grow", "target": "dp_mkt", "predicate": "includes" },
+      { "source": "dp_data", "target": "tm_cat", "predicate": "includes" },
+      { "source": "dp_data", "target": "tm_ml", "predicate": "includes" },
+      { "source": "dp_mkt", "target": "tm_web", "predicate": "includes" },
+      { "source": "tm_cat", "target": "pj_lin", "predicate": "owns" },
+      { "source": "tm_ml", "target": "pj_rec", "predicate": "owns" },
+      { "source": "tm_web", "target": "pj_site", "predicate": "owns" },
+      { "source": "pj_lin", "target": "ms_beta", "predicate": "plans" },
+      { "source": "pj_lin", "target": "ms_ga", "predicate": "plans" },
+      { "source": "pj_rec", "target": "ms_ab", "predicate": "plans" },
+      { "source": "ms_beta", "target": "tk_0", "predicate": "includes" },
+      { "source": "tk_0", "target": "st_1", "predicate": "includes" },
+      { "source": "ms_beta", "target": "tk_1", "predicate": "includes" },
+      { "source": "tk_1", "target": "st_2", "predicate": "includes" },
+      { "source": "ms_ga", "target": "tk_2", "predicate": "includes" },
+      { "source": "tk_2", "target": "st_3", "predicate": "includes" },
+      { "source": "ms_ga", "target": "tk_3", "predicate": "includes" },
+      { "source": "tk_3", "target": "st_4", "predicate": "includes" },
+      { "source": "ms_ab", "target": "tk_4", "predicate": "includes" },
+      { "source": "tk_4", "target": "st_5", "predicate": "includes" },
+      { "source": "ms_ab", "target": "tk_5", "predicate": "includes" },
+      { "source": "tk_5", "target": "st_6", "predicate": "includes" }
+    ],
+    "types": {
+      "company": {
+        "label": "Company",
+        "rank": 6,
+        "color": "#3b4a6b",
+        "abbr": "CO"
+      },
+      "division": {
+        "label": "Division",
+        "rank": 5,
+        "color": "#4a5a7e",
+        "abbr": "DV"
+      },
+      "department": {
+        "label": "Department",
+        "rank": 4,
+        "color": "#566a8f",
+        "abbr": "DP"
+      },
+      "team": { "label": "Team", "rank": 3, "color": "#2f6f73", "abbr": "TM" },
+      "project": {
+        "label": "Project",
+        "rank": 2,
+        "shape": "square",
+        "color": "#3f7a5a",
+        "abbr": "PJ"
+      },
+      "milestone": {
+        "label": "Milestone",
+        "rank": 2,
+        "shape": "diamond",
+        "color": "#7a6a3a",
+        "abbr": "MS"
+      },
+      "task": { "label": "Task", "rank": 1, "color": "#8a5a4a", "abbr": "TK" },
+      "subtask": {
+        "label": "Subtask",
+        "rank": 0,
+        "color": "#7a7f88",
+        "abbr": "ST"
+      }
+    }
+  },
+  "story": {
+    "prompt": "How is Acme organised?",
+    "text": "Acme has two divisions. Platform runs one department with two teams; each team owns projects and milestones broken into tasks and subtasks."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

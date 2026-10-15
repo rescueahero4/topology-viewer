@@ -1,0 +1,175 @@
+{
+  "key": "s-many-preds",
+  "group": "Data shape",
+  "label": "Rich vocabulary · 22 predicates",
+  "tests": "More than 10 predicates: the predicate filter switches from pills to a searchable dropdown",
+  "graph": {
+    "nodes": [
+      {
+        "id": "ds",
+        "type": "data_source",
+        "label": "Snowflake · prod",
+        "attrs": {}
+      },
+      { "id": "db", "type": "database", "label": "ANALYTICS", "attrs": {} },
+      { "id": "sc", "type": "schema", "label": "FINANCE", "attrs": {} },
+      {
+        "id": "t_FCT_REVENUE",
+        "type": "table",
+        "label": "FCT_REVENUE",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_DIM_CUSTOMER",
+        "type": "table",
+        "label": "DIM_CUSTOMER",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_STG_PAYMENTS",
+        "type": "table",
+        "label": "STG_PAYMENTS",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "t_V_REVENUE_MONTHLY",
+        "type": "table",
+        "label": "V_REVENUE_MONTHLY",
+        "attrs": { "asset_type": "table" }
+      },
+      {
+        "id": "db_rev",
+        "type": "dashboard",
+        "label": "Revenue Overview",
+        "attrs": { "asset_type": "dashboard" }
+      },
+      { "id": "kw_rev", "type": "keyword", "label": "Revenue", "attrs": {} },
+      { "id": "kw_arr", "type": "keyword", "label": "ARR", "attrs": {} },
+      { "id": "kw_inc", "type": "keyword", "label": "Income", "attrs": {} },
+      { "id": "tag_pii", "type": "tag", "label": "PII", "attrs": {} },
+      { "id": "tag_fin", "type": "tag", "label": "Finance", "attrs": {} },
+      {
+        "id": "cf_tier",
+        "type": "custom_field",
+        "label": "Data tier: Gold",
+        "attrs": {}
+      },
+      { "id": "u_aiko", "type": "user", "label": "Aiko Tanaka", "attrs": {} },
+      { "id": "u_ben", "type": "user", "label": "Ben Ortiz", "attrs": {} },
+      {
+        "id": "g_fin",
+        "type": "user_group",
+        "label": "Finance analysts",
+        "attrs": {}
+      },
+      {
+        "id": "ctl_sox",
+        "type": "control",
+        "label": "SOX revenue control",
+        "attrs": {}
+      },
+      {
+        "id": "job_dq",
+        "type": "monitor",
+        "label": "Freshness monitor",
+        "attrs": {}
+      },
+      { "id": "dr", "type": "database", "label": "ANALYTICS_DR", "attrs": {} }
+    ],
+    "edges": [
+      { "source": "ds", "target": "db", "predicate": "contains" },
+      { "source": "db", "target": "sc", "predicate": "contains" },
+      { "source": "sc", "target": "db", "predicate": "partOf" },
+      { "source": "sc", "target": "t_FCT_REVENUE", "predicate": "contains" },
+      { "source": "sc", "target": "t_DIM_CUSTOMER", "predicate": "contains" },
+      { "source": "sc", "target": "t_STG_PAYMENTS", "predicate": "contains" },
+      {
+        "source": "sc",
+        "target": "t_V_REVENUE_MONTHLY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "t_STG_PAYMENTS",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_V_REVENUE_MONTHLY",
+        "target": "t_FCT_REVENUE",
+        "predicate": "definedBy"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "db_rev",
+        "target": "t_V_REVENUE_MONTHLY",
+        "predicate": "mapsTo"
+      },
+      {
+        "source": "db_rev",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "sharedWith"
+      },
+      {
+        "source": "kw_rev",
+        "target": "t_FCT_REVENUE",
+        "predicate": "representsConcept"
+      },
+      { "source": "kw_arr", "target": "kw_rev", "predicate": "broader" },
+      { "source": "kw_rev", "target": "kw_arr", "predicate": "narrower" },
+      { "source": "kw_inc", "target": "kw_rev", "predicate": "synonymOf" },
+      { "source": "kw_arr", "target": "db_rev", "predicate": "relatedTo" },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "tag_fin",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "cf_tier",
+        "predicate": "enrichedWith"
+      },
+      { "source": "t_FCT_REVENUE", "target": "u_aiko", "predicate": "ownedBy" },
+      { "source": "db_rev", "target": "u_ben", "predicate": "ownedBy" },
+      { "source": "u_ben", "target": "g_fin", "predicate": "memberOf" },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "g_fin",
+        "predicate": "groupedIn"
+      },
+      {
+        "source": "g_fin",
+        "target": "t_V_REVENUE_MONTHLY",
+        "predicate": "permissionedTo"
+      },
+      { "source": "ctl_sox", "target": "t_FCT_REVENUE", "predicate": "audits" },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "ctl_sox",
+        "predicate": "certifiedBy"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "job_dq",
+        "predicate": "monitoredBy"
+      },
+      { "source": "db", "target": "dr", "predicate": "replicatedTo" }
+    ],
+    "view": { "approach": "passive" }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

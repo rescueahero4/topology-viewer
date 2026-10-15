@@ -1,0 +1,34 @@
+{
+  "key": "s-islands",
+  "group": "Data shape",
+  "label": "Disconnected islands",
+  "tests": "Four unrelated components, incl. an orphan node; no obvious root",
+  "graph": {
+    "nodes": [
+      { "id": "a1", "type": "table", "label": "ORDERS", "attrs": {} },
+      { "id": "a2", "type": "table", "label": "ORDER_ITEMS", "attrs": {} },
+      { "id": "a3", "type": "view", "label": "V_ORDER_TOTALS", "attrs": {} },
+      { "id": "b1", "type": "dashboard", "label": "HR Headcount", "attrs": {} },
+      { "id": "b2", "type": "user", "label": "Ren Sato", "attrs": {} },
+      { "id": "c1", "type": "tag", "label": "Deprecated", "attrs": {} },
+      { "id": "d1", "type": "keyword", "label": "Net revenue", "attrs": {} },
+      { "id": "d2", "type": "bk", "label": "Finance glossary.pdf", "attrs": {} }
+    ],
+    "edges": [
+      { "source": "a3", "target": "a1", "predicate": "derivedFrom" },
+      { "source": "a3", "target": "a2", "predicate": "derivedFrom" },
+      { "source": "b1", "target": "b2", "predicate": "ownedBy" },
+      { "source": "d1", "target": "d2", "predicate": "relatedTo" }
+    ]
+  },
+  "story": {
+    "prompt": "Show me what changed this week",
+    "text": "Four unrelated things changed: an orders view, an HR dashboard owner, a new Deprecated tag and a glossary term."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

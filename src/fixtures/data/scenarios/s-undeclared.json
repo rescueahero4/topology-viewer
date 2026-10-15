@@ -1,0 +1,97 @@
+{
+  "key": "s-undeclared",
+  "group": "Node design",
+  "label": "12 types · nothing declared",
+  "tests": "Client sends no types: every unknown type is a rank-0 circle, letters derived without collisions (process PR, product PD, project PJ)",
+  "graph": {
+    "nodes": [
+      { "id": "hub", "type": "domain", "label": "Order-to-cash", "attrs": {} },
+      {
+        "id": "n_process",
+        "type": "process",
+        "label": "process example",
+        "attrs": {}
+      },
+      {
+        "id": "n_product",
+        "type": "product",
+        "label": "product example",
+        "attrs": {}
+      },
+      {
+        "id": "n_project",
+        "type": "project",
+        "label": "project example",
+        "attrs": {}
+      },
+      {
+        "id": "n_policy",
+        "type": "policy",
+        "label": "policy example",
+        "attrs": {}
+      },
+      {
+        "id": "n_pipeline_run",
+        "type": "pipeline_run",
+        "label": "pipeline run example",
+        "attrs": {}
+      },
+      { "id": "n_kpi", "type": "kpi", "label": "kpi example", "attrs": {} },
+      { "id": "n_risk", "type": "risk", "label": "risk example", "attrs": {} },
+      {
+        "id": "n_control",
+        "type": "control",
+        "label": "control example",
+        "attrs": {}
+      },
+      {
+        "id": "n_vendor",
+        "type": "vendor",
+        "label": "vendor example",
+        "attrs": {}
+      },
+      {
+        "id": "n_contract",
+        "type": "contract",
+        "label": "contract example",
+        "attrs": {}
+      },
+      {
+        "id": "n_system",
+        "type": "system",
+        "label": "system example",
+        "attrs": {}
+      },
+      {
+        "id": "n_capability",
+        "type": "capability",
+        "label": "capability example",
+        "attrs": {}
+      }
+    ],
+    "edges": [
+      { "source": "hub", "target": "n_process", "predicate": "governs" },
+      { "source": "hub", "target": "n_product", "predicate": "uses" },
+      { "source": "hub", "target": "n_project", "predicate": "dependsOn" },
+      { "source": "hub", "target": "n_policy", "predicate": "contains" },
+      { "source": "hub", "target": "n_pipeline_run", "predicate": "governs" },
+      { "source": "hub", "target": "n_kpi", "predicate": "uses" },
+      { "source": "hub", "target": "n_risk", "predicate": "dependsOn" },
+      { "source": "hub", "target": "n_control", "predicate": "contains" },
+      { "source": "hub", "target": "n_vendor", "predicate": "governs" },
+      { "source": "hub", "target": "n_contract", "predicate": "uses" },
+      { "source": "hub", "target": "n_system", "predicate": "dependsOn" },
+      { "source": "hub", "target": "n_capability", "predicate": "contains" },
+      { "source": "n_risk", "target": "n_control", "predicate": "mitigatedBy" },
+      { "source": "n_vendor", "target": "n_contract", "predicate": "boundBy" },
+      { "source": "n_process", "target": "n_system", "predicate": "runsOn" }
+    ]
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

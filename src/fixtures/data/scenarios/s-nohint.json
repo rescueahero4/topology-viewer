@@ -1,0 +1,17 @@
+{
+  "key": "s-nohint",
+  "group": "Story approach",
+  "label": "No hint · Passive (inferred)",
+  "tests": "AI sends no view at all → passive",
+  "dataset": "governance",
+  "story": {
+    "prompt": "Give me an overview of our governance setup",
+    "text": "Here are your tags, custom fields, users and groups and how they connect to assets. Pick a tag or a group to see what it governs."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

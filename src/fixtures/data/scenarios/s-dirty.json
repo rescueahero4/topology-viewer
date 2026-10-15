@@ -1,0 +1,43 @@
+{
+  "key": "s-dirty",
+  "group": "Edge cases",
+  "label": "Dirty payload",
+  "tests": "Duplicate ids, dangling edges, missing type/label/predicate, self-loop, numeric id, JP + very long labels",
+  "graph": {
+    "nodes": [
+      { "id": "t1", "type": "table", "label": "FCT_REVENUE" },
+      { "id": "t1", "type": "table", "label": "FCT_REVENUE (duplicate id)" },
+      {
+        "id": "t2",
+        "type": "table",
+        "label": "顧客マスタ_統合_2024年度版_最終確定（営業本部・経理部共同管理）"
+      },
+      {
+        "id": "t3",
+        "type": "table",
+        "label": "very_long_table_name_that_was_generated_by_an_ingestion_tool_without_any_human_review_v2_final"
+      },
+      { "id": "t4", "label": "No type given" },
+      { "id": "t5", "type": "view" },
+      { "id": 42, "type": "column", "label": "numeric id" },
+      { "id": "u1", "type": "user", "label": "" }
+    ],
+    "edges": [
+      { "source": "t2", "target": "t1", "predicate": "derivedFrom" },
+      { "source": "t3", "target": "t1", "predicate": "derivedFrom" },
+      { "source": "t5", "target": "t2" },
+      { "source": "42", "target": "t4", "type": "contains" },
+      { "source": "t1", "target": "u1", "predicate": "ownedBy" },
+      { "source": "t1", "target": "ghost_1", "predicate": "derivedFrom" },
+      { "source": "ghost_2", "target": "t3", "predicate": "ownedBy" },
+      { "source": "t1", "target": "t1", "predicate": "relatedTo" }
+    ]
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": { "duplicate-id": 1, "dangling-edge": 2 }
+  }
+}

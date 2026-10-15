@@ -1,0 +1,336 @@
+{
+  "key": "s-designed",
+  "group": "Node design",
+  "label": "Supply chain · AI-designed · Active",
+  "tests": "Client declares rank, colour and two-letter abbr per type",
+  "graph": {
+    "nodes": [
+      {
+        "id": "reg_eu_battery",
+        "type": "regulation",
+        "label": "EU Battery Regulation 2023/1542",
+        "attrs": {
+          "jurisdiction": "EU",
+          "effective": "2025-02-18",
+          "celex": "32023R1542",
+          "issuing_body": "European Parliament and Council",
+          "replaces": "Directive 2006/66/EC",
+          "scope": "All batteries placed on the EU market",
+          "due_diligence_from": "2027-08-18",
+          "carbon_footprint_declaration": true,
+          "battery_passport_from": "2027-02-18",
+          "risk_to_portfolio": "high",
+          "affected_products": 3,
+          "description": "Sets sustainability, safety, labelling and end-of-life rules for batteries across their life cycle.",
+          "_inferred": {
+            "risk_to_portfolio": "All three products are lithium-based and sold in the EU",
+            "affected_products": "Counted from regulatedBy edges"
+          }
+        }
+      },
+      {
+        "id": "reg_reach",
+        "type": "regulation",
+        "label": "REACH",
+        "attrs": { "jurisdiction": "EU" }
+      },
+      {
+        "id": "kpi_co2",
+        "type": "kpi",
+        "label": "CO₂ per unit",
+        "attrs": { "unit": "kg" }
+      },
+      {
+        "id": "kpi_otd",
+        "type": "kpi",
+        "label": "On-time delivery",
+        "attrs": { "unit": "%" }
+      },
+      {
+        "id": "sup_li",
+        "type": "supplier",
+        "label": "Lithium Andes SpA",
+        "attrs": { "country": "CL" }
+      },
+      {
+        "id": "site_CL",
+        "type": "site",
+        "label": "CL",
+        "attrs": { "country_code": "CL" }
+      },
+      {
+        "id": "sup_co",
+        "type": "supplier",
+        "label": "Katanga Cobalt",
+        "attrs": { "country": "CD" }
+      },
+      {
+        "id": "site_CD",
+        "type": "site",
+        "label": "CD",
+        "attrs": { "country_code": "CD" }
+      },
+      {
+        "id": "sup_ni",
+        "type": "supplier",
+        "label": "Sulawesi Nickel",
+        "attrs": { "country": "ID" }
+      },
+      {
+        "id": "site_ID",
+        "type": "site",
+        "label": "ID",
+        "attrs": { "country_code": "ID" }
+      },
+      {
+        "id": "sup_gr",
+        "type": "supplier",
+        "label": "Graphite One",
+        "attrs": { "country": "US" }
+      },
+      {
+        "id": "site_US",
+        "type": "site",
+        "label": "US",
+        "attrs": { "country_code": "US" }
+      },
+      {
+        "id": "sup_cell",
+        "type": "supplier",
+        "label": "Kansai Cell Works",
+        "attrs": { "country": "JP" }
+      },
+      {
+        "id": "site_JP",
+        "type": "site",
+        "label": "JP",
+        "attrs": { "country_code": "JP" }
+      },
+      {
+        "id": "sup_pack",
+        "type": "supplier",
+        "label": "Rhein Pack GmbH",
+        "attrs": { "country": "DE" }
+      },
+      {
+        "id": "site_DE",
+        "type": "site",
+        "label": "DE",
+        "attrs": { "country_code": "DE" }
+      },
+      {
+        "id": "fac_osaka",
+        "type": "factory",
+        "label": "Osaka cell plant",
+        "attrs": {}
+      },
+      {
+        "id": "fac_brno",
+        "type": "factory",
+        "label": "Brno pack line",
+        "attrs": {}
+      },
+      {
+        "id": "prd_cell",
+        "type": "product",
+        "label": "NMC 811 cell",
+        "attrs": {}
+      },
+      {
+        "id": "prd_pack",
+        "type": "product",
+        "label": "48V battery pack",
+        "attrs": {}
+      },
+      {
+        "id": "prd_bike",
+        "type": "product",
+        "label": "E-bike drivetrain kit",
+        "attrs": {}
+      },
+      {
+        "id": "shp_1",
+        "type": "shipment",
+        "label": "SHP-24-0001",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_2",
+        "type": "shipment",
+        "label": "SHP-24-0002",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_3",
+        "type": "shipment",
+        "label": "SHP-24-0003",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_4",
+        "type": "shipment",
+        "label": "SHP-24-0004",
+        "attrs": { "status": "delayed" }
+      },
+      {
+        "id": "shp_5",
+        "type": "shipment",
+        "label": "SHP-24-0005",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_6",
+        "type": "shipment",
+        "label": "SHP-24-0006",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_7",
+        "type": "shipment",
+        "label": "SHP-24-0007",
+        "attrs": { "status": "delivered" }
+      },
+      {
+        "id": "shp_8",
+        "type": "shipment",
+        "label": "SHP-24-0008",
+        "attrs": { "status": "delayed" }
+      }
+    ],
+    "edges": [
+      { "source": "sup_li", "target": "site_CL", "predicate": "locatedIn" },
+      { "source": "sup_co", "target": "site_CD", "predicate": "locatedIn" },
+      { "source": "sup_ni", "target": "site_ID", "predicate": "locatedIn" },
+      { "source": "sup_gr", "target": "site_US", "predicate": "locatedIn" },
+      { "source": "sup_cell", "target": "site_JP", "predicate": "locatedIn" },
+      { "source": "sup_pack", "target": "site_DE", "predicate": "locatedIn" },
+      { "source": "sup_li", "target": "sup_cell", "predicate": "supplies" },
+      { "source": "sup_co", "target": "sup_cell", "predicate": "supplies" },
+      { "source": "sup_ni", "target": "sup_cell", "predicate": "supplies" },
+      { "source": "sup_gr", "target": "sup_cell", "predicate": "supplies" },
+      { "source": "sup_cell", "target": "fac_osaka", "predicate": "supplies" },
+      { "source": "sup_pack", "target": "fac_brno", "predicate": "supplies" },
+      { "source": "fac_osaka", "target": "fac_brno", "predicate": "shipsTo" },
+      {
+        "source": "fac_osaka",
+        "target": "prd_cell",
+        "predicate": "manufactures"
+      },
+      {
+        "source": "fac_brno",
+        "target": "prd_pack",
+        "predicate": "manufactures"
+      },
+      {
+        "source": "fac_brno",
+        "target": "prd_bike",
+        "predicate": "manufactures"
+      },
+      {
+        "source": "prd_cell",
+        "target": "reg_eu_battery",
+        "predicate": "regulatedBy"
+      },
+      {
+        "source": "prd_pack",
+        "target": "reg_eu_battery",
+        "predicate": "regulatedBy"
+      },
+      {
+        "source": "prd_bike",
+        "target": "reg_eu_battery",
+        "predicate": "regulatedBy"
+      },
+      { "source": "sup_co", "target": "reg_reach", "predicate": "regulatedBy" },
+      { "source": "sup_ni", "target": "reg_reach", "predicate": "regulatedBy" },
+      { "source": "fac_osaka", "target": "shp_1", "predicate": "dispatched" },
+      { "source": "shp_1", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_1", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_brno", "target": "shp_2", "predicate": "dispatched" },
+      { "source": "shp_2", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_2", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_osaka", "target": "shp_3", "predicate": "dispatched" },
+      { "source": "shp_3", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_3", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_brno", "target": "shp_4", "predicate": "dispatched" },
+      { "source": "shp_4", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_4", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_osaka", "target": "shp_5", "predicate": "dispatched" },
+      { "source": "shp_5", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_5", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_brno", "target": "shp_6", "predicate": "dispatched" },
+      { "source": "shp_6", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_6", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_osaka", "target": "shp_7", "predicate": "dispatched" },
+      { "source": "shp_7", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_7", "target": "kpi_otd", "predicate": "measuredBy" },
+      { "source": "fac_brno", "target": "shp_8", "predicate": "dispatched" },
+      { "source": "shp_8", "target": "kpi_co2", "predicate": "measuredBy" },
+      { "source": "shp_8", "target": "kpi_otd", "predicate": "measuredBy" }
+    ],
+    "view": {
+      "approach": "active",
+      "root": "reg_eu_battery",
+      "reveal": [
+        "prd_cell",
+        "prd_pack",
+        "prd_bike",
+        "fac_osaka",
+        "fac_brno",
+        "sup_cell",
+        "sup_pack"
+      ]
+    },
+    "types": {
+      "shipment": {
+        "label": "Shipment",
+        "rank": 0,
+        "color": "#7a8a99",
+        "abbr": "SH"
+      },
+      "kpi": { "label": "KPI", "rank": 1, "color": "#9a7b3c", "abbr": "KP" },
+      "product": {
+        "label": "Product",
+        "rank": 1,
+        "color": "#3f7a5a",
+        "abbr": "PR"
+      },
+      "supplier": {
+        "label": "Supplier",
+        "rank": 2,
+        "shape": "diamond",
+        "color": "#5b6b8c",
+        "abbr": "SU"
+      },
+      "factory": {
+        "label": "Factory",
+        "rank": 2,
+        "shape": "square",
+        "color": "#4b5d73",
+        "abbr": "FA"
+      },
+      "site": {
+        "label": "Country",
+        "rank": 3,
+        "color": "#6d5a7a",
+        "abbr": "CO"
+      },
+      "regulation": {
+        "label": "Regulation",
+        "rank": 4,
+        "color": "#8a4b4b",
+        "abbr": "RG"
+      }
+    }
+  },
+  "story": {
+    "prompt": "Which of our products fall under the EU Battery Regulation?",
+    "text": "All three products are in scope: the NMC 811 cell from Osaka, and the 48V pack and e-bike kit from Brno."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "reg_eu_battery" },
+    "notice": null,
+    "warnings": {}
+  }
+}

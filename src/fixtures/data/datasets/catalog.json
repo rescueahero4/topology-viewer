@@ -1,0 +1,3081 @@
+{
+  "key": "catalog",
+  "label": "Catalog & lineage",
+  "description": "Snowflake → dbt → Tableau: structure, lineage and BI references",
+  "graph": {
+    "nodes": [
+      {
+        "id": "ds_snowflake",
+        "type": "data_source",
+        "label": "Snowflake · acme-prod",
+        "attrs": {
+          "service_name": "snowflake",
+          "description": "Production Snowflake account"
+        }
+      },
+      {
+        "id": "ds_tableau",
+        "type": "data_source",
+        "label": "Tableau Cloud · acme",
+        "attrs": { "service_name": "tableau" }
+      },
+      {
+        "id": "db_RAW",
+        "type": "database",
+        "label": "RAW",
+        "attrs": {
+          "asset_type": "database",
+          "service_name": "snowflake",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW"
+        }
+      },
+      {
+        "id": "sc_SALESFORCE",
+        "type": "schema",
+        "label": "RAW.SALESFORCE",
+        "attrs": { "asset_type": "schema", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_SF_ACCOUNT",
+        "type": "table",
+        "label": "SF_ACCOUNT",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "sf account",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/SALESFORCE/table/SF_ACCOUNT",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.NAME",
+        "type": "column",
+        "label": "NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.TYPE",
+        "type": "column",
+        "label": "TYPE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.PARENT_ID",
+        "type": "column",
+        "label": "PARENT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.BILLING_STREET",
+        "type": "column",
+        "label": "BILLING_STREET",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.BILLING_CITY",
+        "type": "column",
+        "label": "BILLING_CITY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.BILLING_STATE",
+        "type": "column",
+        "label": "BILLING_STATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.BILLING_POSTAL_CODE",
+        "type": "column",
+        "label": "BILLING_POSTAL_CODE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.BILLING_COUNTRY",
+        "type": "column",
+        "label": "BILLING_COUNTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.SHIPPING_STREET",
+        "type": "column",
+        "label": "SHIPPING_STREET",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 10
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.SHIPPING_CITY",
+        "type": "column",
+        "label": "SHIPPING_CITY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 11
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.SHIPPING_COUNTRY",
+        "type": "column",
+        "label": "SHIPPING_COUNTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 12
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.PHONE",
+        "type": "column",
+        "label": "PHONE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 13
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.FAX",
+        "type": "column",
+        "label": "FAX",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 14
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.WEBSITE",
+        "type": "column",
+        "label": "WEBSITE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 15
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.INDUSTRY",
+        "type": "column",
+        "label": "INDUSTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 16
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.ANNUAL_REVENUE",
+        "type": "column",
+        "label": "ANNUAL_REVENUE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 17
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.NUMBER_OF_EMPLOYEES",
+        "type": "column",
+        "label": "NUMBER_OF_EMPLOYEES",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 18
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.OWNERSHIP",
+        "type": "column",
+        "label": "OWNERSHIP",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 19
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.TICKER_SYMBOL",
+        "type": "column",
+        "label": "TICKER_SYMBOL",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 20
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.DESCRIPTION",
+        "type": "column",
+        "label": "DESCRIPTION",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 21
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.RATING",
+        "type": "column",
+        "label": "RATING",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 22
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.SITE",
+        "type": "column",
+        "label": "SITE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 23
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.OWNER_ID",
+        "type": "column",
+        "label": "OWNER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 24
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.CREATED_DATE",
+        "type": "column",
+        "label": "CREATED_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 25
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.CREATED_BY_ID",
+        "type": "column",
+        "label": "CREATED_BY_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 26
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.LAST_MODIFIED_DATE",
+        "type": "column",
+        "label": "LAST_MODIFIED_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 27
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.LAST_MODIFIED_BY_ID",
+        "type": "column",
+        "label": "LAST_MODIFIED_BY_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 28
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.SYSTEM_MODSTAMP",
+        "type": "column",
+        "label": "SYSTEM_MODSTAMP",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 29
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.LAST_ACTIVITY_DATE",
+        "type": "column",
+        "label": "LAST_ACTIVITY_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 30
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.IS_DELETED",
+        "type": "column",
+        "label": "IS_DELETED",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 31
+        }
+      },
+      {
+        "id": "c_SF_ACCOUNT.ACCOUNT_SOURCE",
+        "type": "column",
+        "label": "ACCOUNT_SOURCE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 32
+        }
+      },
+      {
+        "id": "t_SF_OPPORTUNITY",
+        "type": "table",
+        "label": "SF_OPPORTUNITY",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "sf opportunity",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/SALESFORCE/table/SF_OPPORTUNITY",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.ACCOUNT_ID",
+        "type": "column",
+        "label": "ACCOUNT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.NAME",
+        "type": "column",
+        "label": "NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.STAGE_NAME",
+        "type": "column",
+        "label": "STAGE_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.AMOUNT",
+        "type": "column",
+        "label": "AMOUNT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.PROBABILITY",
+        "type": "column",
+        "label": "PROBABILITY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.CLOSE_DATE",
+        "type": "column",
+        "label": "CLOSE_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.TYPE",
+        "type": "column",
+        "label": "TYPE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.LEAD_SOURCE",
+        "type": "column",
+        "label": "LEAD_SOURCE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.IS_CLOSED",
+        "type": "column",
+        "label": "IS_CLOSED",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 10
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.IS_WON",
+        "type": "column",
+        "label": "IS_WON",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 11
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.FORECAST_CATEGORY",
+        "type": "column",
+        "label": "FORECAST_CATEGORY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 12
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.OWNER_ID",
+        "type": "column",
+        "label": "OWNER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 13
+        }
+      },
+      {
+        "id": "c_SF_OPPORTUNITY.CREATED_DATE",
+        "type": "column",
+        "label": "CREATED_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 14
+        }
+      },
+      {
+        "id": "t_SF_CONTACT",
+        "type": "table",
+        "label": "SF_CONTACT",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "sf contact",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/SALESFORCE/table/SF_CONTACT",
+          "is_lost": true
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.ACCOUNT_ID",
+        "type": "column",
+        "label": "ACCOUNT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.FIRST_NAME",
+        "type": "column",
+        "label": "FIRST_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.LAST_NAME",
+        "type": "column",
+        "label": "LAST_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.EMAIL",
+        "type": "column",
+        "label": "EMAIL",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.PHONE",
+        "type": "column",
+        "label": "PHONE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.TITLE",
+        "type": "column",
+        "label": "TITLE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.MAILING_COUNTRY",
+        "type": "column",
+        "label": "MAILING_COUNTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_SF_CONTACT.CREATED_DATE",
+        "type": "column",
+        "label": "CREATED_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "sc_STRIPE",
+        "type": "schema",
+        "label": "RAW.STRIPE",
+        "attrs": { "asset_type": "schema", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_STRIPE_CHARGES",
+        "type": "table",
+        "label": "STRIPE_CHARGES",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stripe charges",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/STRIPE/table/STRIPE_CHARGES",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.AMOUNT",
+        "type": "column",
+        "label": "AMOUNT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.CURRENCY",
+        "type": "column",
+        "label": "CURRENCY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.INVOICE_ID",
+        "type": "column",
+        "label": "INVOICE_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.STATUS",
+        "type": "column",
+        "label": "STATUS",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.PAID",
+        "type": "column",
+        "label": "PAID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.REFUNDED",
+        "type": "column",
+        "label": "REFUNDED",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.FAILURE_CODE",
+        "type": "column",
+        "label": "FAILURE_CODE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "c_STRIPE_CHARGES.CREATED",
+        "type": "column",
+        "label": "CREATED",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 10
+        }
+      },
+      {
+        "id": "t_STRIPE_CUSTOMERS",
+        "type": "table",
+        "label": "STRIPE_CUSTOMERS",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stripe customers",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/STRIPE/table/STRIPE_CUSTOMERS",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.EMAIL",
+        "type": "column",
+        "label": "EMAIL",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.NAME",
+        "type": "column",
+        "label": "NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.CURRENCY",
+        "type": "column",
+        "label": "CURRENCY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.DELINQUENT",
+        "type": "column",
+        "label": "DELINQUENT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STRIPE_CUSTOMERS.CREATED",
+        "type": "column",
+        "label": "CREATED",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "t_STRIPE_INVOICES",
+        "type": "table",
+        "label": "STRIPE_INVOICES",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stripe invoices",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/RAW/schemas/STRIPE/table/STRIPE_INVOICES",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.ID",
+        "type": "column",
+        "label": "ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.SUBSCRIPTION_ID",
+        "type": "column",
+        "label": "SUBSCRIPTION_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.AMOUNT_DUE",
+        "type": "column",
+        "label": "AMOUNT_DUE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.AMOUNT_PAID",
+        "type": "column",
+        "label": "AMOUNT_PAID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.STATUS",
+        "type": "column",
+        "label": "STATUS",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.PERIOD_START",
+        "type": "column",
+        "label": "PERIOD_START",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_STRIPE_INVOICES.PERIOD_END",
+        "type": "column",
+        "label": "PERIOD_END",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "db_ANALYTICS",
+        "type": "database",
+        "label": "ANALYTICS",
+        "attrs": {
+          "asset_type": "database",
+          "service_name": "snowflake",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS"
+        }
+      },
+      {
+        "id": "sc_STAGING",
+        "type": "schema",
+        "label": "ANALYTICS.STAGING",
+        "attrs": { "asset_type": "schema", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_STG_ACCOUNTS",
+        "type": "table",
+        "label": "STG_ACCOUNTS",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stg accounts",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/STAGING/table/STG_ACCOUNTS",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.ACCOUNT_ID",
+        "type": "column",
+        "label": "ACCOUNT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.ACCOUNT_NAME",
+        "type": "column",
+        "label": "ACCOUNT_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.INDUSTRY",
+        "type": "column",
+        "label": "INDUSTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.COUNTRY",
+        "type": "column",
+        "label": "COUNTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.OWNER_ID",
+        "type": "column",
+        "label": "OWNER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STG_ACCOUNTS.CREATED_AT",
+        "type": "column",
+        "label": "CREATED_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "t_STG_OPPORTUNITIES",
+        "type": "table",
+        "label": "STG_OPPORTUNITIES",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stg opportunities",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/STAGING/table/STG_OPPORTUNITIES",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.OPPORTUNITY_ID",
+        "type": "column",
+        "label": "OPPORTUNITY_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.ACCOUNT_ID",
+        "type": "column",
+        "label": "ACCOUNT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.STAGE",
+        "type": "column",
+        "label": "STAGE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.AMOUNT_USD",
+        "type": "column",
+        "label": "AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.CLOSE_DATE",
+        "type": "column",
+        "label": "CLOSE_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STG_OPPORTUNITIES.IS_WON",
+        "type": "column",
+        "label": "IS_WON",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "t_STG_PAYMENTS",
+        "type": "table",
+        "label": "STG_PAYMENTS",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "stg payments",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/STAGING/table/STG_PAYMENTS",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.PAYMENT_ID",
+        "type": "column",
+        "label": "PAYMENT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.INVOICE_ID",
+        "type": "column",
+        "label": "INVOICE_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.AMOUNT_USD",
+        "type": "column",
+        "label": "AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.STATUS",
+        "type": "column",
+        "label": "STATUS",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_STG_PAYMENTS.PAID_AT",
+        "type": "column",
+        "label": "PAID_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "sc_MARTS",
+        "type": "schema",
+        "label": "ANALYTICS.MARTS",
+        "attrs": { "asset_type": "schema", "service_name": "snowflake" }
+      },
+      {
+        "id": "t_DIM_CUSTOMER",
+        "type": "table",
+        "label": "DIM_CUSTOMER",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "One row per paying customer, merging Salesforce accounts with Stripe customers; carries segment, region and lifetime value.",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/MARTS/table/DIM_CUSTOMER",
+          "is_lost": false,
+          "logical_name": "Customer dimension",
+          "_inferred": {
+            "logical_name": "Named from the table and its dbt model",
+            "description": "Summarised from column names and upstream lineage (STG_ACCOUNTS, STRIPE_CUSTOMERS)"
+          }
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.ACCOUNT_ID",
+        "type": "column",
+        "label": "ACCOUNT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.CUSTOMER_NAME",
+        "type": "column",
+        "label": "CUSTOMER_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.EMAIL",
+        "type": "column",
+        "label": "EMAIL",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.PHONE",
+        "type": "column",
+        "label": "PHONE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.INDUSTRY",
+        "type": "column",
+        "label": "INDUSTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.SEGMENT",
+        "type": "column",
+        "label": "SEGMENT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.COUNTRY",
+        "type": "column",
+        "label": "COUNTRY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.REGION",
+        "type": "column",
+        "label": "REGION",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.OWNER_NAME",
+        "type": "column",
+        "label": "OWNER_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 10
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.LIFECYCLE_STAGE",
+        "type": "column",
+        "label": "LIFECYCLE_STAGE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 11
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.FIRST_PAYMENT_AT",
+        "type": "column",
+        "label": "FIRST_PAYMENT_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 12
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.LAST_PAYMENT_AT",
+        "type": "column",
+        "label": "LAST_PAYMENT_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 13
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.IS_DELINQUENT",
+        "type": "column",
+        "label": "IS_DELINQUENT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 14
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.LTV_USD",
+        "type": "column",
+        "label": "LTV_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 15
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.CREATED_AT",
+        "type": "column",
+        "label": "CREATED_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 16
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER.UPDATED_AT",
+        "type": "column",
+        "label": "UPDATED_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 17
+        }
+      },
+      {
+        "id": "c_DIM_CUSTOMER._LOADED_AT",
+        "type": "column",
+        "label": "_LOADED_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 18
+        }
+      },
+      {
+        "id": "t_FCT_REVENUE",
+        "type": "table",
+        "label": "FCT_REVENUE",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "One row per recognised revenue line: invoice, payment and customer joined and converted to USD. The source of truth for finance reporting.",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/MARTS/table/FCT_REVENUE",
+          "is_lost": false,
+          "physical_name": "FCT_REVENUE",
+          "logical_name": "Revenue fact",
+          "ddl_comment": "fact table – revenue lines (USD)",
+          "parent_owners": [
+            {
+              "given_name": "Mika",
+              "family_name": "Sato",
+              "role": "Head of Finance Data"
+            }
+          ],
+          "owners": [
+            {
+              "given_name": "Aiko",
+              "family_name": "Tanaka",
+              "role": "Data steward"
+            }
+          ],
+          "tags": [
+            {
+              "tag_group": { "name": "Data classification" },
+              "parent_tag": { "label": "Confidential" }
+            },
+            {
+              "tag_group": { "name": "Business domain" },
+              "parent_tag": { "label": "Finance" },
+              "child_tag": { "label": "Revenue" }
+            }
+          ],
+          "directory_path": [
+            { "object_type": "database", "label": "ANALYTICS" },
+            { "object_type": "schema", "label": "MARTS" },
+            {
+              "object_type": "table",
+              "label": "FCT_REVENUE",
+              "is_active": true
+            }
+          ],
+          "data_source": { "name": "Snowflake · acme-prod", "type": "agent" },
+          "_updated_at": "2026-09-28T06:30:00+09:00",
+          "refresh_cadence": "hourly",
+          "row_count": 1284003,
+          "clustering_key": "REVENUE_DATE"
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.REVENUE_ID",
+        "type": "column",
+        "label": "REVENUE_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.INVOICE_ID",
+        "type": "column",
+        "label": "INVOICE_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.PAYMENT_ID",
+        "type": "column",
+        "label": "PAYMENT_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.REVENUE_DATE",
+        "type": "column",
+        "label": "REVENUE_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.FISCAL_MONTH",
+        "type": "column",
+        "label": "FISCAL_MONTH",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.FISCAL_QUARTER",
+        "type": "column",
+        "label": "FISCAL_QUARTER",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.FISCAL_YEAR",
+        "type": "column",
+        "label": "FISCAL_YEAR",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.GROSS_AMOUNT_USD",
+        "type": "column",
+        "label": "GROSS_AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 9
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.DISCOUNT_USD",
+        "type": "column",
+        "label": "DISCOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 10
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.TAX_USD",
+        "type": "column",
+        "label": "TAX_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 11
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.NET_AMOUNT_USD",
+        "type": "column",
+        "label": "NET_AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 12
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.REFUND_USD",
+        "type": "column",
+        "label": "REFUND_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 13
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.CURRENCY",
+        "type": "column",
+        "label": "CURRENCY",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 14
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.FX_RATE",
+        "type": "column",
+        "label": "FX_RATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 15
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.PRODUCT_LINE",
+        "type": "column",
+        "label": "PRODUCT_LINE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 16
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.PLAN",
+        "type": "column",
+        "label": "PLAN",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 17
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.SEGMENT",
+        "type": "column",
+        "label": "SEGMENT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 18
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.REGION",
+        "type": "column",
+        "label": "REGION",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 19
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.IS_RECURRING",
+        "type": "column",
+        "label": "IS_RECURRING",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 20
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.IS_EXPANSION",
+        "type": "column",
+        "label": "IS_EXPANSION",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 21
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE.SOURCE_SYSTEM",
+        "type": "column",
+        "label": "SOURCE_SYSTEM",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 22
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE._LOADED_AT",
+        "type": "column",
+        "label": "_LOADED_AT",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 23
+        }
+      },
+      {
+        "id": "c_FCT_REVENUE._BATCH_ID",
+        "type": "column",
+        "label": "_BATCH_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 24
+        }
+      },
+      {
+        "id": "t_FCT_PIPELINE",
+        "type": "table",
+        "label": "FCT_PIPELINE",
+        "attrs": {
+          "asset_type": "table",
+          "service_name": "snowflake",
+          "description": "fct pipeline",
+          "ext_url": "https://snowflake.example/ap-northeast-1/acme/#/data/databases/ANALYTICS/schemas/MARTS/table/FCT_PIPELINE",
+          "is_lost": false
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.OPPORTUNITY_ID",
+        "type": "column",
+        "label": "OPPORTUNITY_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 1
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.CUSTOMER_ID",
+        "type": "column",
+        "label": "CUSTOMER_ID",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 2
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.STAGE",
+        "type": "column",
+        "label": "STAGE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 3
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.AMOUNT_USD",
+        "type": "column",
+        "label": "AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 4
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.WEIGHTED_AMOUNT_USD",
+        "type": "column",
+        "label": "WEIGHTED_AMOUNT_USD",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "NUMBER(18,2)",
+          "ordinal_position": 5
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.CLOSE_DATE",
+        "type": "column",
+        "label": "CLOSE_DATE",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "TIMESTAMP_NTZ",
+          "ordinal_position": 6
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.OWNER_NAME",
+        "type": "column",
+        "label": "OWNER_NAME",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "VARCHAR",
+          "ordinal_position": 7
+        }
+      },
+      {
+        "id": "c_FCT_PIPELINE.IS_WON",
+        "type": "column",
+        "label": "IS_WON",
+        "attrs": {
+          "asset_type": "column",
+          "data_type": "BOOLEAN",
+          "ordinal_position": 8
+        }
+      },
+      {
+        "id": "v_V_REVENUE_MONTHLY",
+        "type": "view",
+        "label": "V_REVENUE_MONTHLY",
+        "attrs": {
+          "asset_type": "view",
+          "service_name": "snowflake",
+          "ddl_statement": "create view V_REVENUE_MONTHLY as select … from FCT_REVENUE"
+        }
+      },
+      {
+        "id": "v_V_ACTIVE_CUSTOMERS",
+        "type": "view",
+        "label": "V_ACTIVE_CUSTOMERS",
+        "attrs": {
+          "asset_type": "view",
+          "service_name": "snowflake",
+          "ddl_statement": "create view V_ACTIVE_CUSTOMERS as select … from DIM_CUSTOMER"
+        }
+      },
+      {
+        "id": "etl_fivetran_sf",
+        "type": "etl",
+        "label": "Fivetran · salesforce",
+        "attrs": { "asset_type": "etl", "service_name": "fivetran" }
+      },
+      {
+        "id": "etl_fivetran_stripe",
+        "type": "etl",
+        "label": "Fivetran · stripe",
+        "attrs": { "asset_type": "etl", "service_name": "fivetran" }
+      },
+      {
+        "id": "etl_dbt_staging",
+        "type": "etl",
+        "label": "dbt · staging",
+        "attrs": { "asset_type": "etl", "service_name": "dbt" }
+      },
+      {
+        "id": "etl_dbt_marts",
+        "type": "etl",
+        "label": "dbt · marts",
+        "attrs": { "asset_type": "etl", "service_name": "dbt" }
+      },
+      {
+        "id": "bg_finance",
+        "type": "bigroup",
+        "label": "Finance (Tableau project)",
+        "attrs": { "asset_type": "bigroup", "service_name": "tableau" }
+      },
+      {
+        "id": "db_revenue",
+        "type": "dashboard",
+        "label": "Revenue Overview",
+        "attrs": {
+          "asset_type": "dashboard",
+          "service_name": "tableau",
+          "ext_url": "https://tableau.acme.example/#/views/db_revenue"
+        }
+      },
+      {
+        "id": "db_revenue_r0",
+        "type": "report",
+        "label": "Monthly revenue",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_revenue_r1",
+        "type": "report",
+        "label": "Revenue by region",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_revenue_r2",
+        "type": "report",
+        "label": "Refunds",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_revenue_r3",
+        "type": "report",
+        "label": "Net vs gross",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_pipeline",
+        "type": "dashboard",
+        "label": "Pipeline Health",
+        "attrs": {
+          "asset_type": "dashboard",
+          "service_name": "tableau",
+          "ext_url": "https://tableau.acme.example/#/views/db_pipeline"
+        }
+      },
+      {
+        "id": "db_pipeline_r0",
+        "type": "report",
+        "label": "Stage funnel",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_pipeline_r1",
+        "type": "report",
+        "label": "Win rate",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_pipeline_r2",
+        "type": "report",
+        "label": "Forecast",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers",
+        "type": "dashboard",
+        "label": "Customer 360",
+        "attrs": {
+          "asset_type": "dashboard",
+          "service_name": "tableau",
+          "ext_url": "https://tableau.acme.example/#/views/db_customers"
+        }
+      },
+      {
+        "id": "db_customers_r0",
+        "type": "report",
+        "label": "Active customers",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r1",
+        "type": "report",
+        "label": "Delinquency",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r2",
+        "type": "report",
+        "label": "LTV cohort",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r3",
+        "type": "report",
+        "label": "Segments",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r4",
+        "type": "report",
+        "label": "Top accounts",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r5",
+        "type": "report",
+        "label": "Churn risk",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r6",
+        "type": "report",
+        "label": "Geo map",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r7",
+        "type": "report",
+        "label": "Industry mix",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r8",
+        "type": "report",
+        "label": "Owner leaderboard",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "db_customers_r9",
+        "type": "report",
+        "label": "Lifecycle",
+        "attrs": { "asset_type": "report" }
+      },
+      {
+        "id": "tag_pii",
+        "type": "tag",
+        "label": "PII",
+        "attrs": { "description": "Personally identifiable information" }
+      },
+      {
+        "id": "u_aiko",
+        "type": "user",
+        "label": "Aiko Tanaka",
+        "attrs": {
+          "email": "aiko@acme.example",
+          "given_name": "Aiko",
+          "family_name": "Tanaka",
+          "roles": ["data_steward"]
+        }
+      },
+      {
+        "id": "u_ben",
+        "type": "user",
+        "label": "Ben Ortiz",
+        "attrs": {
+          "email": "ben@acme.example",
+          "given_name": "Ben",
+          "family_name": "Ortiz",
+          "roles": ["analytics_engineer"]
+        }
+      },
+      {
+        "id": "ag_finance",
+        "type": "asset_group",
+        "label": "Finance domain",
+        "attrs": {
+          "description": "Finance-owned data products",
+          "group_type": "domain"
+        }
+      }
+    ],
+    "edges": [
+      { "source": "ds_snowflake", "target": "db_RAW", "predicate": "contains" },
+      {
+        "source": "db_RAW",
+        "target": "sc_SALESFORCE",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_SALESFORCE",
+        "target": "t_SF_ACCOUNT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.TYPE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.PARENT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.BILLING_STREET",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.BILLING_CITY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.BILLING_STATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.BILLING_POSTAL_CODE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.BILLING_COUNTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.SHIPPING_STREET",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.SHIPPING_CITY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.SHIPPING_COUNTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.PHONE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.FAX",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.WEBSITE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.INDUSTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.ANNUAL_REVENUE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.NUMBER_OF_EMPLOYEES",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.OWNERSHIP",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.TICKER_SYMBOL",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.DESCRIPTION",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.RATING",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.SITE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.OWNER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.CREATED_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.CREATED_BY_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.LAST_MODIFIED_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.LAST_MODIFIED_BY_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.SYSTEM_MODSTAMP",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.LAST_ACTIVITY_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.IS_DELETED",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_ACCOUNT",
+        "target": "c_SF_ACCOUNT.ACCOUNT_SOURCE",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_SALESFORCE",
+        "target": "t_SF_OPPORTUNITY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.ACCOUNT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.STAGE_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.AMOUNT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.PROBABILITY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.CLOSE_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.TYPE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.LEAD_SOURCE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.IS_CLOSED",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.IS_WON",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.FORECAST_CATEGORY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.OWNER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_OPPORTUNITY",
+        "target": "c_SF_OPPORTUNITY.CREATED_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_SALESFORCE",
+        "target": "t_SF_CONTACT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.ACCOUNT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.FIRST_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.LAST_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.EMAIL",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.PHONE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.TITLE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.MAILING_COUNTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_SF_CONTACT",
+        "target": "c_SF_CONTACT.CREATED_DATE",
+        "predicate": "contains"
+      },
+      { "source": "db_RAW", "target": "sc_STRIPE", "predicate": "contains" },
+      {
+        "source": "sc_STRIPE",
+        "target": "t_STRIPE_CHARGES",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.AMOUNT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.CURRENCY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.INVOICE_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.STATUS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.PAID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.REFUNDED",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.FAILURE_CODE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CHARGES",
+        "target": "c_STRIPE_CHARGES.CREATED",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_STRIPE",
+        "target": "t_STRIPE_CUSTOMERS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.EMAIL",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.CURRENCY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.DELINQUENT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_CUSTOMERS",
+        "target": "c_STRIPE_CUSTOMERS.CREATED",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_STRIPE",
+        "target": "t_STRIPE_INVOICES",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.SUBSCRIPTION_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.AMOUNT_DUE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.AMOUNT_PAID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.STATUS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.PERIOD_START",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STRIPE_INVOICES",
+        "target": "c_STRIPE_INVOICES.PERIOD_END",
+        "predicate": "contains"
+      },
+      {
+        "source": "ds_snowflake",
+        "target": "db_ANALYTICS",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_ANALYTICS",
+        "target": "sc_STAGING",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_STAGING",
+        "target": "t_STG_ACCOUNTS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.ACCOUNT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.ACCOUNT_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.INDUSTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.COUNTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.OWNER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "c_STG_ACCOUNTS.CREATED_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_STAGING",
+        "target": "t_STG_OPPORTUNITIES",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.OPPORTUNITY_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.ACCOUNT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.STAGE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.CLOSE_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "c_STG_OPPORTUNITIES.IS_WON",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_STAGING",
+        "target": "t_STG_PAYMENTS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.PAYMENT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.INVOICE_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.STATUS",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "c_STG_PAYMENTS.PAID_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_ANALYTICS",
+        "target": "sc_MARTS",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_MARTS",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.ACCOUNT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.CUSTOMER_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.EMAIL",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.PHONE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.INDUSTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.SEGMENT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.COUNTRY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.REGION",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.OWNER_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.LIFECYCLE_STAGE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.FIRST_PAYMENT_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.LAST_PAYMENT_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.IS_DELINQUENT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.LTV_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.CREATED_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER.UPDATED_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "c_DIM_CUSTOMER._LOADED_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_MARTS",
+        "target": "t_FCT_REVENUE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.REVENUE_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.INVOICE_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.PAYMENT_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.REVENUE_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.FISCAL_MONTH",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.FISCAL_QUARTER",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.FISCAL_YEAR",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.GROSS_AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.DISCOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.TAX_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.NET_AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.REFUND_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.CURRENCY",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.FX_RATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.PRODUCT_LINE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.PLAN",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.SEGMENT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.REGION",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.IS_RECURRING",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.IS_EXPANSION",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE.SOURCE_SYSTEM",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE._LOADED_AT",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "c_FCT_REVENUE._BATCH_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_MARTS",
+        "target": "t_FCT_PIPELINE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.OPPORTUNITY_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.CUSTOMER_ID",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.STAGE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.WEIGHTED_AMOUNT_USD",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.CLOSE_DATE",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.OWNER_NAME",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "c_FCT_PIPELINE.IS_WON",
+        "predicate": "contains"
+      },
+      {
+        "source": "sc_MARTS",
+        "target": "v_V_REVENUE_MONTHLY",
+        "predicate": "contains"
+      },
+      {
+        "source": "v_V_REVENUE_MONTHLY",
+        "target": "t_FCT_REVENUE",
+        "predicate": "definedBy"
+      },
+      {
+        "source": "sc_MARTS",
+        "target": "v_V_ACTIVE_CUSTOMERS",
+        "predicate": "contains"
+      },
+      {
+        "source": "v_V_ACTIVE_CUSTOMERS",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "definedBy"
+      },
+      {
+        "source": "t_STG_ACCOUNTS",
+        "target": "t_SF_ACCOUNT",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "t_SF_OPPORTUNITY",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "t_STRIPE_CHARGES",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_STG_PAYMENTS",
+        "target": "t_STRIPE_INVOICES",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "t_STG_ACCOUNTS",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "t_STRIPE_CUSTOMERS",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "t_STG_PAYMENTS",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "t_STG_OPPORTUNITIES",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "c_FCT_REVENUE.CUSTOMER_ID",
+        "target": "c_DIM_CUSTOMER.CUSTOMER_ID",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "c_DIM_CUSTOMER.ACCOUNT_ID",
+        "target": "c_STG_ACCOUNTS.ACCOUNT_ID",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "c_STG_ACCOUNTS.ACCOUNT_ID",
+        "target": "c_SF_ACCOUNT.ID",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "c_FCT_REVENUE.NET_AMOUNT_USD",
+        "target": "c_STG_PAYMENTS.AMOUNT_USD",
+        "predicate": "derivedFrom"
+      },
+      {
+        "source": "etl_dbt_staging",
+        "target": "t_SF_ACCOUNT",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_staging",
+        "target": "t_SF_OPPORTUNITY",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_marts",
+        "target": "t_STG_ACCOUNTS",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_marts",
+        "target": "t_STG_PAYMENTS",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_staging",
+        "target": "etl_fivetran_sf",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_staging",
+        "target": "etl_fivetran_stripe",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "etl_dbt_marts",
+        "target": "etl_dbt_staging",
+        "predicate": "dependsOn"
+      },
+      {
+        "source": "ds_tableau",
+        "target": "bg_finance",
+        "predicate": "contains"
+      },
+      {
+        "source": "bg_finance",
+        "target": "db_revenue",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_revenue",
+        "target": "v_V_REVENUE_MONTHLY",
+        "predicate": "mapsTo"
+      },
+      {
+        "source": "db_revenue",
+        "target": "db_revenue_r0",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_revenue",
+        "target": "db_revenue_r1",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_revenue",
+        "target": "db_revenue_r2",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_revenue",
+        "target": "db_revenue_r3",
+        "predicate": "contains"
+      },
+      {
+        "source": "bg_finance",
+        "target": "db_pipeline",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_pipeline",
+        "target": "t_FCT_PIPELINE",
+        "predicate": "mapsTo"
+      },
+      {
+        "source": "db_pipeline",
+        "target": "db_pipeline_r0",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_pipeline",
+        "target": "db_pipeline_r1",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_pipeline",
+        "target": "db_pipeline_r2",
+        "predicate": "contains"
+      },
+      {
+        "source": "bg_finance",
+        "target": "db_customers",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "t_DIM_CUSTOMER",
+        "predicate": "mapsTo"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r0",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r1",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r2",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r3",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r4",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r5",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r6",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r7",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r8",
+        "predicate": "contains"
+      },
+      {
+        "source": "db_customers",
+        "target": "db_customers_r9",
+        "predicate": "contains"
+      },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "t_FCT_PIPELINE",
+        "predicate": "sharedWith",
+        "attrs": { "sharing_type": "outbound" }
+      },
+      {
+        "source": "c_SF_CONTACT.EMAIL",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "c_SF_CONTACT.PHONE",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "c_DIM_CUSTOMER.EMAIL",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "c_DIM_CUSTOMER.PHONE",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      {
+        "source": "c_STRIPE_CUSTOMERS.EMAIL",
+        "target": "tag_pii",
+        "predicate": "taggedWith"
+      },
+      { "source": "t_FCT_REVENUE", "target": "u_aiko", "predicate": "ownedBy" },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "u_aiko",
+        "predicate": "ownedBy"
+      },
+      {
+        "source": "t_FCT_PIPELINE",
+        "target": "u_aiko",
+        "predicate": "ownedBy"
+      },
+      { "source": "t_STG_ACCOUNTS", "target": "u_ben", "predicate": "ownedBy" },
+      {
+        "source": "t_STG_OPPORTUNITIES",
+        "target": "u_ben",
+        "predicate": "ownedBy"
+      },
+      { "source": "t_STG_PAYMENTS", "target": "u_ben", "predicate": "ownedBy" },
+      {
+        "source": "t_FCT_REVENUE",
+        "target": "ag_finance",
+        "predicate": "groupedIn"
+      },
+      {
+        "source": "t_DIM_CUSTOMER",
+        "target": "ag_finance",
+        "predicate": "groupedIn"
+      },
+      {
+        "source": "db_revenue",
+        "target": "ag_finance",
+        "predicate": "groupedIn"
+      }
+    ],
+    "view": { "approach": "passive" }
+  },
+  "story": {
+    "prompt": "What's in our Snowflake and Tableau catalog?",
+    "text": "Your catalog flows from Snowflake through Fivetran and dbt into the Finance Tableau project. Double-click any asset to follow its lineage or see who owns it."
+  }
+}

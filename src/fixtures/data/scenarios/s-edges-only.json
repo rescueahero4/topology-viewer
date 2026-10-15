@@ -1,0 +1,20 @@
+{
+  "key": "s-edges-only",
+  "group": "Edge cases",
+  "label": "Edges without nodes",
+  "tests": "nodes is empty but edges arrived → empty notice (edges-only)",
+  "graph": {
+    "nodes": [],
+    "edges": [
+      { "source": "a", "target": "b", "predicate": "contains" },
+      { "source": "b", "target": "c", "predicate": "contains" }
+    ]
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": "edges-only",
+    "warnings": { "dangling-edge": 2 }
+  }
+}

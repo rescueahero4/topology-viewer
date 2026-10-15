@@ -1,0 +1,54 @@
+{
+  "key": "s-chain",
+  "group": "Data shape",
+  "label": "Deep chain · 14 hops",
+  "tests": "Long single lineage path: tree layouts, camera, scope budget",
+  "graph": {
+    "nodes": [
+      { "id": "t0", "type": "table", "label": "STEP_00", "attrs": {} },
+      { "id": "t1", "type": "view", "label": "STEP_01", "attrs": {} },
+      { "id": "t2", "type": "view", "label": "STEP_02", "attrs": {} },
+      { "id": "t3", "type": "etl", "label": "STEP_03", "attrs": {} },
+      { "id": "t4", "type": "view", "label": "STEP_04", "attrs": {} },
+      { "id": "t5", "type": "view", "label": "STEP_05", "attrs": {} },
+      { "id": "t6", "type": "etl", "label": "STEP_06", "attrs": {} },
+      { "id": "t7", "type": "view", "label": "STEP_07", "attrs": {} },
+      { "id": "t8", "type": "view", "label": "STEP_08", "attrs": {} },
+      { "id": "t9", "type": "etl", "label": "STEP_09", "attrs": {} },
+      { "id": "t10", "type": "view", "label": "STEP_10", "attrs": {} },
+      { "id": "t11", "type": "view", "label": "STEP_11", "attrs": {} },
+      { "id": "t12", "type": "etl", "label": "STEP_12", "attrs": {} },
+      {
+        "id": "t13",
+        "type": "dashboard",
+        "label": "Board KPI pack",
+        "attrs": {}
+      }
+    ],
+    "edges": [
+      { "source": "t1", "target": "t0", "predicate": "derivedFrom" },
+      { "source": "t2", "target": "t1", "predicate": "derivedFrom" },
+      { "source": "t3", "target": "t2", "predicate": "derivedFrom" },
+      { "source": "t4", "target": "t3", "predicate": "derivedFrom" },
+      { "source": "t5", "target": "t4", "predicate": "derivedFrom" },
+      { "source": "t6", "target": "t5", "predicate": "derivedFrom" },
+      { "source": "t7", "target": "t6", "predicate": "derivedFrom" },
+      { "source": "t8", "target": "t7", "predicate": "derivedFrom" },
+      { "source": "t9", "target": "t8", "predicate": "derivedFrom" },
+      { "source": "t10", "target": "t9", "predicate": "derivedFrom" },
+      { "source": "t11", "target": "t10", "predicate": "derivedFrom" },
+      { "source": "t12", "target": "t11", "predicate": "derivedFrom" },
+      { "source": "t13", "target": "t12", "predicate": "derivedFrom" }
+    ]
+  },
+  "story": {
+    "prompt": "Trace the Board KPI pack back to source",
+    "text": "The Board KPI pack is 13 steps downstream of the source table."
+  },
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

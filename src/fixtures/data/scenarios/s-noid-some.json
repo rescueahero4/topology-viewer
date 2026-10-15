@@ -1,0 +1,27 @@
+{
+  "key": "s-noid-some",
+  "group": "Edge cases",
+  "label": "Some nodes without id",
+  "tests": "2 of 5 nodes have no id → the rest renders; a data notice says what was left out and why",
+  "graph": {
+    "nodes": [
+      { "id": "t1", "type": "table", "label": "ORDERS" },
+      { "type": "column", "label": "ORDER_ID" },
+      { "id": "c2", "type": "column", "label": "AMOUNT" },
+      { "label": "NOTE" },
+      { "id": "u1", "type": "user", "label": "Aiko Tanaka" }
+    ],
+    "edges": [
+      { "source": "t1", "target": "c2", "predicate": "contains" },
+      { "source": "u1", "target": "t1", "predicate": "owns" },
+      { "source": "t1", "target": "c9", "predicate": "contains" }
+    ]
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": { "no-id": 2, "dangling-edge": 1 }
+  }
+}
