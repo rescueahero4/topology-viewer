@@ -21,7 +21,7 @@ export function nodeId(node: Raw): string | undefined {
   return asId(node.id ?? node.globalId);
 }
 
-export function edgeEnds(edge: Raw): [string, string] {
+function edgeEnds(edge: Raw): [string, string] {
   return [
     String(edge.source ?? edge.subject ?? edge.subjectNodeId),
     String(edge.target ?? edge.object ?? edge.objectNodeId),

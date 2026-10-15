@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const text = z.string().min(1);
 
-export const sourceSchema = z.strictObject({
+const sourceSchema = z.strictObject({
   doc: z.enum(["GV", "SA-Intro", "PRD"]),
   section: text,
   note: text.optional(),
@@ -12,7 +12,7 @@ const designSchema = z
   .string()
   .regex(/^(pending-ddr|owner-accepted-\d{4}-\d{2}-\d{2}|ddr-[A-Za-z0-9-]+)$/);
 
-export const nodeTypeSchema = z.strictObject({
+const nodeTypeSchema = z.strictObject({
   category: text,
   label: text,
   isSystem: z.boolean(),
@@ -34,7 +34,7 @@ export const nodeTypeSchema = z.strictObject({
   source: sourceSchema,
 });
 
-export const predicateSchema = z.strictObject({
+const predicateSchema = z.strictObject({
   category: text,
   inverse: text.nullable(),
   direction: z.enum(["out", "in", "both"]),
@@ -43,12 +43,12 @@ export const predicateSchema = z.strictObject({
   source: sourceSchema,
 });
 
-export const inverseSchema = z.strictObject({
+const inverseSchema = z.strictObject({
   predicate: text,
   source: sourceSchema,
 });
 
-export const pairingSchema = z.strictObject({
+const pairingSchema = z.strictObject({
   predicate: text,
   subject: text,
   object: text,
@@ -58,25 +58,25 @@ export const pairingSchema = z.strictObject({
   source: sourceSchema,
 });
 
-export const writeRuleSchema = z.strictObject({
+const writeRuleSchema = z.strictObject({
   text,
   source: sourceSchema,
 });
 
-export const attributeSchema = z.strictObject({
+const attributeSchema = z.strictObject({
   key: text,
   resolves: z.array(z.tuple([text, text])).optional(),
   source: sourceSchema,
 });
 
-export const notYetIncludedSchema = z.strictObject({
+const notYetIncludedSchema = z.strictObject({
   field: text,
   group: text,
   slot: text.nullable(),
   source: sourceSchema,
 });
 
-export const slotSchema = z.strictObject({
+const slotSchema = z.strictObject({
   slot: text,
   keys: z.array(text).min(1),
   late: z.array(text).optional(),
@@ -86,13 +86,13 @@ export const slotSchema = z.strictObject({
   source: sourceSchema,
 });
 
-export const shapeHeuristicSchema = z.strictObject({
+const shapeHeuristicSchema = z.strictObject({
   kind: z.enum(["rows", "tree"]),
   columns: z.array(text).min(1),
   source: sourceSchema,
 });
 
-export const globalIdPrefixSchema = z.strictObject({
+const globalIdPrefixSchema = z.strictObject({
   type: text.nullable(),
   writable: z.literal(true).optional(),
   source: sourceSchema,
