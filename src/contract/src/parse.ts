@@ -16,7 +16,15 @@ import {
   type Issue,
   type RenderInput,
 } from "./input";
-import { at, isRecord, own, type Path, type Raw } from "./raw";
+import {
+  at,
+  EDGE_LISTS,
+  isRecord,
+  NODE_LISTS,
+  own,
+  type Path,
+  type Raw,
+} from "./raw";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
 type Node = z.infer<typeof nodeSchema>;
@@ -26,8 +34,6 @@ type View = z.infer<typeof viewSchema>;
 const TOP_KEYS = new Set(Object.keys(renderInputSchema.shape));
 const NODE_KEYS = new Set(Object.keys(nodeObject.shape));
 const VIEW_KEYS = new Set(Object.keys(viewSchema.shape));
-const NODE_LISTS: Path[] = [["nodes"], ["neighborhood", "nodes"]];
-const EDGE_LISTS: Path[] = [["edges"], ["links"], ["neighborhood", "edges"]];
 
 function length(raw: Raw, lists: Path[]): number {
   return lists.reduce((sum, path) => {

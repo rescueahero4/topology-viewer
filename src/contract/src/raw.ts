@@ -1,7 +1,15 @@
-import type { Issue } from "./input";
+import type { z } from "zod";
+import type { attrs, issueSchema } from "./input";
 
-export type Path = Issue["path"];
-export type Raw = Record<string, unknown>;
+export type Path = z.infer<typeof issueSchema>["path"];
+export type Raw = z.infer<typeof attrs>;
+
+export const NODE_LISTS: Path[] = [["nodes"], ["neighborhood", "nodes"]];
+export const EDGE_LISTS: Path[] = [
+  ["edges"],
+  ["links"],
+  ["neighborhood", "edges"],
+];
 
 export function isRecord(value: unknown): value is Raw {
   return typeof value === "object" && value !== null && !Array.isArray(value);

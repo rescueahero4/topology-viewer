@@ -16,7 +16,15 @@ import {
   vocabularyRowFields,
   type Issue,
 } from "./input";
-import { at, isRecord, own, type Path, type Raw } from "./raw";
+import {
+  at,
+  EDGE_LISTS,
+  isRecord,
+  NODE_LISTS,
+  own,
+  type Path,
+  type Raw,
+} from "./raw";
 
 type Fields = Record<string, z.ZodType>;
 type Tuple = {
@@ -24,8 +32,6 @@ type Tuple = {
   items: [number, z.ZodType][];
 };
 
-const NODE_LISTS: Path[] = [["nodes"], ["neighborhood", "nodes"]];
-const EDGE_LISTS: Path[] = [["edges"], ["links"], ["neighborhood", "edges"]];
 const NODE_TUPLE: Tuple = {
   valid: (items) => items.length <= 4 && typeof items[0] === "string",
   items: [
