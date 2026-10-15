@@ -12,14 +12,7 @@ export const datasets = corpus.datasets;
 export const loadFixture = corpus.load;
 export {
   createCorpus,
-  parseDataset,
-  parseFixture,
   type Corpus,
   type CorpusFiles,
-  type DatasetFile,
-  type Expect,
-  type FirstPaint,
-  type Fixture,
   type LoadedFixture,
-  type Story,
 } from "./corpus";

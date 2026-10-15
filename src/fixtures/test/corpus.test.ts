@@ -150,7 +150,7 @@ describe("S6 s-dirty", () => {
   const { input, expect: outcome } = loadFixture("s-dirty");
   const graph = input as { nodes: Raw[]; edges: Raw[] };
 
-  it("has one repeated id, two edges to missing nodes, one numeric id and one self-loop", () => {
+  it("has one repeated id, two edges to missing nodes, one numeric id (no id by the contract) and one self-loop", () => {
     expect(graph.nodes.filter((node) => node.id === "t1")).toHaveLength(2);
     expect(
       graph.nodes.filter((node) => typeof node.id === "number"),
@@ -166,11 +166,15 @@ describe("S6 s-dirty", () => {
 
   it("declares the counts that the rules give and a passing schema", () => {
     expect(skipCounts(input)).toEqual({
-      "no-id": 0,
+      "no-id": 1,
       "duplicate-id": 1,
-      "dangling-edge": 2,
+      "dangling-edge": 3,
     });
-    expect(outcome.warnings).toEqual({ "duplicate-id": 1, "dangling-edge": 2 });
+    expect(outcome.warnings).toEqual({
+      "no-id": 1,
+      "duplicate-id": 1,
+      "dangling-edge": 3,
+    });
     expect(outcome.schema).toBe("pass");
   });
 });

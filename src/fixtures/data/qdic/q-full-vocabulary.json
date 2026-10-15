@@ -2,7 +2,7 @@
   "key": "q-full-vocabulary",
   "group": "QDIC",
   "label": "QDIC full vocabulary",
-  "tests": "Every node type, predicate, inverse name, pairing and edge attribute of the QDIC profile appears at least once, in the GraphQL shape. The data_source node has no edge, because no pairing joins it. The four predicates with no pairing (classifiedAs, governedBy, calculatedFrom, sourcedFrom) use invented ends.",
+  "tests": "Every node type, predicate, inverse name, pairing and edge attribute of the QDIC profile appears at least once, in the GraphQL shape. The data_source node has no edge, because no pairing joins it. The four predicates with no pairing (classifiedAs, governedBy, calculatedFrom, sourcedFrom) have edges. Two of the ends come from SA-Intro (classifiedAs from a column to a classification, governedBy from a table to a policy). The ends of the other four predicates are chosen only to cover them, and no document gives them.",
   "graph": {
     "nodes": [
       {

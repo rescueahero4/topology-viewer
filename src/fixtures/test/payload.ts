@@ -14,11 +14,7 @@ export const nodesOf = (input: unknown) => list(input, "nodes");
 export const edgesOf = (input: unknown) => list(input, "edges");
 
 function asId(value: unknown): string | undefined {
-  const text =
-    typeof value === "string" || typeof value === "number"
-      ? String(value)
-      : undefined;
-  return text === "" ? undefined : text;
+  return typeof value === "string" && value !== "" ? value : undefined;
 }
 
 export function nodeId(node: Raw): string | undefined {

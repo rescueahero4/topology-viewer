@@ -38,6 +38,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "passive", "selected": null },
     "notice": null,
-    "warnings": { "duplicate-id": 1, "dangling-edge": 2 }
+    "warnings": { "no-id": 1, "duplicate-id": 1, "dangling-edge": 3 }
   }
 }
