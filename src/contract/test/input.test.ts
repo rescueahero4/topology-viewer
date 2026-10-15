@@ -24,6 +24,7 @@ const SA_WARNING_CODES = [
   "root-not-found",
   "reveal-not-found",
   "shaped-from",
+  "field-rejected",
 ];
 
 const canonical = {

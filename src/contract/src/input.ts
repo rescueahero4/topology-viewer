@@ -7,8 +7,8 @@ function optional<T extends z.ZodType>(schema: T) {
   return schema.optional().catch(undefined);
 }
 
-const text = z.string();
-const attrs = z.record(z.string(), z.unknown());
+export const text = z.string();
+export const attrs = z.record(z.string(), z.unknown());
 
 export const approachSchema = z.enum(["active", "passive"]);
 
@@ -46,7 +46,7 @@ export const TYPE_FIELD_CODES = {
   role: "layout-rejected",
 } as const;
 
-const typeSchema = z.object({
+export const typeSchema = z.object({
   label: optional(typeFields.label),
   rank: typeFields.rank.optional().catch(0),
   shape: optional(typeFields.shape),
@@ -57,38 +57,62 @@ const typeSchema = z.object({
   role: optional(typeFields.role),
 });
 
-const predicateSchema = z.object({
-  label: optional(text),
-  category: optional(text),
-  inverse: optional(text),
-  role: optional(z.literal("containment").nullable()),
+export const predicateFields = {
+  label: text,
+  category: text,
+  inverse: text,
+  role: z.literal("containment").nullable(),
+};
+
+export const predicateSchema = z.object({
+  label: optional(predicateFields.label),
+  category: optional(predicateFields.category),
+  inverse: optional(predicateFields.inverse),
+  role: optional(predicateFields.role),
 });
 
-const fieldSchema = z.object({
-  label: optional(text),
-  slot: optional(text),
-  why: optional(text),
+export const fieldFields = { label: text, slot: text, why: text };
+
+export const fieldSchema = z.object({
+  label: optional(fieldFields.label),
+  slot: optional(fieldFields.slot),
+  why: optional(fieldFields.why),
 });
+
+export const vocabularyRowFields = {
+  name: text,
+  description: text,
+  category: text,
+  inverse_predicate: text.nullable(),
+  is_system: z.boolean(),
+  is_active: z.boolean(),
+};
 
 const vocabularyRow = z.looseObject({
-  name: optional(text),
-  description: optional(text),
-  category: optional(text),
-  inverse_predicate: optional(text.nullable()),
-  is_system: optional(z.boolean()),
-  is_active: optional(z.boolean()),
+  name: optional(vocabularyRowFields.name),
+  description: optional(vocabularyRowFields.description),
+  category: optional(vocabularyRowFields.category),
+  inverse_predicate: optional(vocabularyRowFields.inverse_predicate),
+  is_system: optional(vocabularyRowFields.is_system),
+  is_active: optional(vocabularyRowFields.is_active),
 });
 
+export const edgeConstraintFields = {
+  predicate: text,
+  subject_node_type: text,
+  object_node_type: text,
+};
+
 const edgeConstraintRow = z.looseObject({
-  predicate: optional(text),
-  subject_node_type: optional(text),
-  object_node_type: optional(text),
+  predicate: optional(edgeConstraintFields.predicate),
+  subject_node_type: optional(edgeConstraintFields.subject_node_type),
+  object_node_type: optional(edgeConstraintFields.object_node_type),
 });
 
 const vocabularySchema = z.looseObject({
-  nodeTypes: optional(z.array(vocabularyRow)),
-  predicates: optional(z.array(vocabularyRow)),
-  edgeConstraints: optional(z.array(edgeConstraintRow)),
+  nodeTypes: optional(z.array(optional(vocabularyRow))),
+  predicates: optional(z.array(optional(vocabularyRow))),
+  edgeConstraints: optional(z.array(optional(edgeConstraintRow))),
 });
 
 export const viewFields = {
@@ -131,32 +155,52 @@ export const shapeHint = z
 
 export const inferredField = z.record(z.string(), text);
 
+export const nodeFields = {
+  type: text,
+  label: text,
+  attrs,
+  globalId: text,
+  nodeType: text,
+  physicalName: text,
+  logicalName: text,
+  isWritable: z.boolean(),
+  attributes: attrs,
+};
+
 export const nodeObject = z.looseObject({
   id: optional(text),
-  type: optional(text),
-  label: optional(text),
-  attrs: optional(attrs),
+  type: optional(nodeFields.type),
+  label: optional(nodeFields.label),
+  attrs: optional(nodeFields.attrs),
   _inferred: optional(inferredField),
-  globalId: optional(text),
-  nodeType: optional(text),
-  physicalName: optional(text),
-  logicalName: optional(text),
-  isWritable: optional(z.boolean()),
-  attributes: optional(attrs),
+  globalId: optional(nodeFields.globalId),
+  nodeType: optional(nodeFields.nodeType),
+  physicalName: optional(nodeFields.physicalName),
+  logicalName: optional(nodeFields.logicalName),
+  isWritable: optional(nodeFields.isWritable),
+  attributes: optional(nodeFields.attributes),
 });
+
+export const edgeFields = {
+  predicate: text,
+  isActive: z.boolean(),
+  valid_from: text,
+  valid_to: text,
+  attrs,
+};
 
 const edgeObject = z.looseObject({
   subject: optional(text),
-  predicate: optional(text),
+  predicate: optional(edgeFields.predicate),
   object: optional(text),
   source: optional(text),
   target: optional(text),
   subjectNodeId: optional(text),
   objectNodeId: optional(text),
-  isActive: optional(z.boolean()),
-  valid_from: optional(text),
-  valid_to: optional(text),
-  attrs: optional(attrs),
+  isActive: optional(edgeFields.isActive),
+  valid_from: optional(edgeFields.valid_from),
+  valid_to: optional(edgeFields.valid_to),
+  attrs: optional(edgeFields.attrs),
 });
 
 // why: PRD FR-DATA-3 — a record that is neither an object nor a tuple is a record without

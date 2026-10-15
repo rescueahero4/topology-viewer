@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { checkCounts } from "./caps";
+import { fieldIssues } from "./fieldIssues";
 import {
   edgeSchema,
   inferredField,
@@ -15,35 +16,18 @@ import {
   type Issue,
   type RenderInput,
 } from "./input";
+import { at, isRecord, own, type Path, type Raw } from "./raw";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
 type Node = z.infer<typeof nodeSchema>;
 type Edge = z.infer<typeof edgeSchema>;
 type View = z.infer<typeof viewSchema>;
-type Path = Issue["path"];
-type Raw = Record<string, unknown>;
 
 const TOP_KEYS = new Set(Object.keys(renderInputSchema.shape));
 const NODE_KEYS = new Set(Object.keys(nodeObject.shape));
 const VIEW_KEYS = new Set(Object.keys(viewSchema.shape));
 const NODE_LISTS: Path[] = [["nodes"], ["neighborhood", "nodes"]];
 const EDGE_LISTS: Path[] = [["edges"], ["links"], ["neighborhood", "edges"]];
-
-function isRecord(value: unknown): value is Raw {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-// why: STORY-001-02 T2.4 — read own keys only, so a prototype key never feeds a value
-function own(record: Raw, key: string): unknown {
-  return Object.hasOwn(record, key) ? record[key] : undefined;
-}
-
-function at(raw: Raw, path: Path): unknown {
-  const [first, second] = path.map(String);
-  const value = own(raw, first);
-  if (second === undefined) return value;
-  return isRecord(value) ? own(value, second) : undefined;
-}
 
 function length(raw: Raw, lists: Path[]): number {
   return lists.reduce((sum, path) => {
@@ -181,6 +165,7 @@ function collectIssues(raw: Raw, rawTree: boolean): Issue[] {
     ...inferredIssues(raw),
     ...typeIssues(raw),
     ...viewIssues(raw),
+    ...fieldIssues(raw),
   ];
 }
 
@@ -228,6 +213,10 @@ function cleanView(view: View): View {
   });
 }
 
+function rows<T extends object>(list: (T | undefined)[] | undefined) {
+  return list?.filter((row): row is T => row !== undefined).map(present);
+}
+
 function clean(input: RenderInput): RenderInput {
   // why: PRD FR-DATA-8 — an absent or unknown version reads as the current one (S25)
   const { schemaVersion = SCHEMA_VERSION, ...rest } = input;
@@ -261,9 +250,9 @@ function clean(input: RenderInput): RenderInput {
     vocabulary: vocabulary
       ? present({
           ...vocabulary,
-          nodeTypes: vocabulary.nodeTypes?.map(present),
-          predicates: vocabulary.predicates?.map(present),
-          edgeConstraints: vocabulary.edgeConstraints?.map(present),
+          nodeTypes: rows(vocabulary.nodeTypes),
+          predicates: rows(vocabulary.predicates),
+          edgeConstraints: rows(vocabulary.edgeConstraints),
         })
       : undefined,
     view: view ? cleanView(view) : undefined,
