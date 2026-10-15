@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { approachSchema } from "./input";
+import { warningCodeSchema } from "./notices/codes";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
 const count = z.number().int().min(0);
@@ -16,7 +17,7 @@ export const structuredContentSchema = z.strictObject({
 });
 
 export const warningEntrySchema = z.strictObject({
-  code: z.string(),
+  code: warningCodeSchema,
   count,
   ids: z.array(z.string()),
 });

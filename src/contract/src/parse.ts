@@ -16,6 +16,7 @@ import {
   type Issue,
   type RenderInput,
 } from "./input";
+import type { IssueCode } from "./notices/codes";
 import {
   at,
   EDGE_LISTS,
@@ -52,7 +53,7 @@ function checkStructure(raw: Raw): Issue | null {
   if (neighborhood !== undefined && !isRecord(neighborhood)) {
     return { code: "not-object", path: ["neighborhood"] };
   }
-  const lists: [string, Path[]][] = [
+  const lists: [IssueCode, Path[]][] = [
     ["nodes-not-array", NODE_LISTS],
     ["edges-not-array", EDGE_LISTS],
   ];
@@ -71,7 +72,7 @@ function rejected(
   owner: Raw,
   key: string,
   prefix: Path,
-  code: string,
+  code: IssueCode,
 ): Issue[] {
   const value = own(owner, key);
   if (value === undefined) return [];
@@ -119,7 +120,7 @@ function viewIssues(raw: Raw): Issue[] {
   if (!isRecord(view)) return [];
   const unknown = Object.keys(view)
     .filter((key) => !VIEW_KEYS.has(key))
-    .map((key) => ({ code: "unknown-key", path: ["view", key] }));
+    .map((key): Issue => ({ code: "unknown-key", path: ["view", key] }));
   const values = Object.entries(VIEW_FIELD_CODES).flatMap(([field, code]) =>
     rejected(
       viewFields[field as keyof typeof VIEW_FIELD_CODES],
@@ -157,7 +158,7 @@ function collectIssues(raw: Raw, rawTree: boolean): Issue[] {
     ? []
     : Object.keys(raw)
         .filter((key) => !TOP_KEYS.has(key))
-        .map((key) => ({ code: "unknown-key", path: [key] }));
+        .map((key): Issue => ({ code: "unknown-key", path: [key] }));
   return [
     ...rejected(
       z.literal(SCHEMA_VERSION),
