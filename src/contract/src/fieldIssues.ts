@@ -110,7 +110,10 @@ function entries(raw: Raw): Issue[] {
       if (!isRecord(entry)) return [rejected([key, name])];
       const unknown = Object.keys(entry)
         .filter((item) => !known.has(item))
-        .map((item) => ({ code: "unknown-key", path: [key, name, item] }));
+        .map((item): Issue => ({
+          code: "unknown-key",
+          path: [key, name, item],
+        }));
       return [...badFields(entry, fields, [key, name]), ...unknown];
     });
   });

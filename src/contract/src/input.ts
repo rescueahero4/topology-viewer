@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { issueCodeSchema, type IssueCode } from "./notices/codes";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
 // why: SA §4.1 field-level rule — a bad value falls back and never fails the schema;
@@ -44,7 +45,7 @@ export const TYPE_FIELD_CODES = {
   glyph: "glyph-rejected",
   level: "layout-rejected",
   role: "layout-rejected",
-} as const;
+} as const satisfies Record<string, IssueCode>;
 
 export const typeSchema = z.object({
   label: optional(typeFields.label),
@@ -125,7 +126,7 @@ export const VIEW_FIELD_CODES = {
   root: "root-not-found",
   layout: "layout-rejected",
   budget: "budget-rejected",
-} as const;
+} as const satisfies Record<string, IssueCode>;
 
 export const viewSchema = z.object({
   approach: optional(approachSchema),
@@ -239,7 +240,7 @@ export const renderInputSchema = z.looseObject({
 });
 
 export const issueSchema = z.object({
-  code: z.string(),
+  code: issueCodeSchema,
   path: z.array(z.union([z.string(), z.number()])),
 });
 
