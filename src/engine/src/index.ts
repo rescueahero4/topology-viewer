@@ -44,8 +44,10 @@ export {
   type CanvasState,
   type DrawnId,
   type EdgeKey,
+  type Filters,
   type Grouping,
   type GroupKey,
+  type HiddenEntry,
   type Hint,
   type LayoutName,
   type Point,
@@ -57,14 +59,31 @@ export {
 export {
   drawnIdOf,
   frontier,
-  onCanvas,
   type DrawnEdge,
   type DrawnNode,
   type EntityNode,
   type Frontier,
   type GroupNode,
 } from "./view/frontier";
-export { firstView, transition } from "./view/story";
+export { firstView, hide, transition } from "./view/story";
+export {
+  filterMode,
+  stats,
+  type FamilyRow,
+  type FilterModes,
+  type Mode,
+  type PredicateRow,
+  type Stats,
+  type TypeRow,
+} from "./view/filter";
+export {
+  hiddenList,
+  hiddenOf,
+  onCanvas,
+  type HiddenItem,
+  type HideResult,
+  type OnCanvas,
+} from "./view/hidden";
 export type { Bubble } from "./layout/bubbles";
 export type { IconMetrics, Tier } from "./layout/drawn";
 export { forceConfig, type ForceConfig } from "./layout/force";

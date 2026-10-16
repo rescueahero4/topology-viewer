@@ -15,6 +15,7 @@ import {
   groupsOf,
   idsOf,
   maskOf,
+  offOf,
   topology,
   type Grouper,
   type Topology,
@@ -46,6 +47,7 @@ export type DrawnEdge = {
   predicate: string;
   object: DrawnId;
   count: number;
+  muted: boolean;
 };
 
 export type Frontier = { nodes: DrawnNode[]; edges: DrawnEdge[] };
@@ -69,14 +71,41 @@ function openedOf(top: Topology, state: CanvasState, mask: Uint8Array) {
   return opened;
 }
 
-function moreOf(top: Topology, state: CanvasState, mask: Uint8Array) {
+// why: mockup `offCanvas` (lib/topology.js lines 635-642) — a neighbour of a type that is off is
+// not counted
+function moreOf(
+  top: Topology,
+  state: CanvasState,
+  mask: Uint8Array,
+  off: Uint8Array,
+) {
   return (entity: number) =>
     state.revealed === null
       ? 0
-      : top.neighbours[entity].filter((next) => mask[next] === 0).length;
+      : top.neighbours[entity].filter(
+          (next) => mask[next] === 0 && off[next] === 0,
+        ).length;
 }
 
-function edgesOf(top: Topology, drawnOf: (DrawnId | null)[]) {
+// why: mockup `isMuted` (lib/topology.js line 1047) — a family or predicate filter only styles an
+// edge (FR-FILTER-6)
+function mutedOf(top: Topology, state: CanvasState) {
+  const families = new Set(state.filters.familiesOff);
+  const predicates = new Set(state.filters.predicatesOff);
+  return (predicate: string) => {
+    const family = top.familyOf.get(predicate);
+    return (
+      predicates.has(predicate) ||
+      (family !== undefined && families.has(family))
+    );
+  };
+}
+
+function edgesOf(
+  top: Topology,
+  drawnOf: (DrawnId | null)[],
+  muted: (predicate: string) => boolean,
+) {
   const edges = new Map<EdgeKey, DrawnEdge>();
   for (const link of top.links) {
     const subject = drawnOf[link.subject];
@@ -92,6 +121,7 @@ function edgesOf(top: Topology, drawnOf: (DrawnId | null)[]) {
         predicate: link.predicate,
         object,
         count: link.count,
+        muted: muted(link.predicate),
       });
   }
   return [...edges.values()];
@@ -100,20 +130,21 @@ function edgesOf(top: Topology, drawnOf: (DrawnId | null)[]) {
 // why: epic condition C4 — nodes in canonical entity order (a group at its first member), edges in
 // canonical triple order
 export function drawnView(top: Topology, state: CanvasState): DrawnView {
-  const { mask, drawn } = drawnGrouper(top, state);
+  const { mask, off, drawn } = drawnGrouper(top, state);
   const { groupOf, members } = groupsOf(top, state, drawn);
   const drawnOf = groupOf.map((key, entity) => {
-    if (mask[entity] === 0) return null;
+    if (mask[entity] === 0 || off[entity] === 1) return null;
     return key === null ? entityDrawnId(top.ids[entity]) : groupDrawnId(key);
   });
   const opened = openedOf(top, state, mask);
-  const more = moreOf(top, state, mask);
+  const more = moreOf(top, state, mask, off);
   const nodes: DrawnNode[] = [];
   groupOf.forEach((key, entity) => {
-    if (mask[entity] === 0) return;
+    const id = drawnOf[entity];
+    if (id === null) return;
     if (key === null) {
       nodes.push({
-        id: drawnOf[entity] as DrawnId,
+        id,
         entity: top.ids[entity],
         type: top.types[entity],
         label: top.labels[entity],
@@ -133,7 +164,8 @@ export function drawnView(top: Topology, state: CanvasState): DrawnView {
       opened: 0,
     });
   });
-  return { drawnOf, frontier: { nodes, edges: edgesOf(top, drawnOf) } };
+  const edges = edgesOf(top, drawnOf, mutedOf(top, state));
+  return { drawnOf, frontier: { nodes, edges } };
 }
 
 export function frontier(
@@ -153,21 +185,6 @@ export function drawnIdOf(
   const top = topology(graph, vocab);
   const entity = top.entityOf.get(id);
   return entity === undefined ? null : drawnView(top, state).drawnOf[entity];
-}
-
-// why: PRD FR-TABLE-4 — STORY-002-06 adds `hidden` and STORY-002-08 adds `faded`
-export function onCanvas(
-  state: CanvasState,
-  graph: Graph,
-  id: string,
-): "drawn" | "not-drawn" {
-  const entity = graph.entities.find(
-    (item) => item.id === id || item.records.includes(id),
-  );
-  if (entity === undefined) return "not-drawn";
-  if (state.revealed === null || state.revealed.includes(entity.id))
-    return "drawn";
-  return "not-drawn";
 }
 
 export function mostConnected(top: Topology): number | null {
@@ -234,8 +251,8 @@ export function fill(
   return top.ids.filter((_, entity) => drawn.has(entity));
 }
 
-// why: mockup `explore` (lib/topology.js lines 692-708) — the undrawn neighbours come in with this
-// entity as origin (FR-CANVAS-6)
+// why: mockup `explore` (lib/topology.js lines 692-708) — the undrawn neighbours of a type that is
+// on come in with this entity as origin (FR-CANVAS-6)
 export function explore(
   top: Topology,
   state: CanvasState,
@@ -244,8 +261,11 @@ export function explore(
   const entity = top.entityOf.get(id);
   if (state.revealed === null || entity === undefined) return state;
   const mask = maskOf(top, state.revealed);
-  if (mask[entity] === 0) return state;
-  const added = top.neighbours[entity].filter((next) => mask[next] === 0);
+  const off = offOf(top, state);
+  if (mask[entity] === 0 || off[entity] === 1) return state;
+  const added = top.neighbours[entity].filter(
+    (next) => mask[next] === 0 && off[next] === 0,
+  );
   if (added.length === 0) return state;
   for (const next of added) mask[next] = 1;
   const origin = top.ids[entity];
@@ -260,7 +280,8 @@ export function explore(
 }
 
 // why: mockup `unexplore` (lib/topology.js lines 710-737) — all that this entity brought in, and
-// all that those brought in, leave with their origins
+// all that those brought in, leave with their origins; a hidden child stays on the Hidden list,
+// and a hidden entity collapses nothing, so the drawn set never empties (guardrail 6)
 export function collapse(
   top: Topology,
   state: CanvasState,
@@ -269,8 +290,11 @@ export function collapse(
   const entity = top.entityOf.get(id);
   if (state.revealed === null || entity === undefined) return state;
   const origin = top.ids[entity];
+  const mask = maskOf(top, state.revealed);
+  if (mask[entity] === 0) return state;
   const children = new Map<string, string[]>();
   for (const [child, from] of state.origins) {
+    if (mask[top.entityOf.get(child) as number] === 0) continue;
     const list = children.get(from) ?? [];
     list.push(child);
     children.set(from, list);
@@ -313,10 +337,15 @@ function pathTo(top: Topology, mask: Uint8Array, target: number) {
   return { hit: null, prev };
 }
 
-function reveal(top: Topology, state: CanvasState, target: number) {
-  const mask = maskOf(top, state.revealed);
+// why: mockup `revealPath` (lib/topology.js lines 867-888) — the target arrives alone when no drawn
+// entity is within 4 hops; `mask` and `origins` change in place, so a bulk Show builds them once
+export function revealInto(
+  top: Topology,
+  mask: Uint8Array,
+  origins: [string, string][],
+  target: number,
+) {
   const { hit, prev } = pathTo(top, mask, target);
-  const origins = [...state.origins];
   if (hit === null) mask[target] = 1;
   else
     for (let from = hit, step = prev[hit]; step !== -1; step = prev[step]) {
@@ -324,6 +353,12 @@ function reveal(top: Topology, state: CanvasState, target: number) {
       origins.push([top.ids[step], top.ids[from]]);
       from = step;
     }
+}
+
+function reveal(top: Topology, state: CanvasState, target: number) {
+  const mask = maskOf(top, state.revealed);
+  const origins = [...state.origins];
+  revealInto(top, mask, origins, target);
   return { ...state, revealed: idsOf(top, mask), origins };
 }
 

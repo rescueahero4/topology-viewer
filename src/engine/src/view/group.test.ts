@@ -5,7 +5,8 @@ import { normalize } from "../data/normalize";
 import type { Action, CanvasState } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
-import { drawnIdOf, frontier, onCanvas, type GroupNode } from "./frontier";
+import { drawnIdOf, frontier, type GroupNode } from "./frontier";
+import { onCanvas } from "./hidden";
 import { firstView, transition } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
@@ -191,7 +192,7 @@ describe("S26 model ids that look like drawn ids", () => {
     const ids = run.drawn(state).nodes.map((node) => node.id);
     expect(ids).toEqual(["e:a", fake, "e:grp:x", `e:${fake}`]);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(onCanvas(state, run.graph, "grp:x")).toBe("drawn");
+    expect(onCanvas(state, run.graph, run.vocab, "grp:x")).toBe("drawn");
     expect(drawnIdOf(state, run.graph, run.vocab, "grp:x")).toBe("e:grp:x");
     expect(drawnIdOf(state, run.graph, run.vocab, fake)).toBe(`e:${fake}`);
   });

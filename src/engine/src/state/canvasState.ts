@@ -28,6 +28,19 @@ export type TreeRows = {
   keyCoord: [number, number][];
 };
 
+export type Filters = {
+  typesOff: string[];
+  familiesOff: string[];
+  predicatesOff: string[];
+};
+
+export type HiddenEntry = {
+  key: DrawnId;
+  members: string[];
+  stranded: string[];
+  seq: number;
+};
+
 // why: STORY-002-04 Q16 — plain JSON only: a Set is an array in canonical order, a Map is an
 // array of [key, value] pairs, and no object is keyed by a model id (S-C3)
 export type CanvasState = {
@@ -44,6 +57,8 @@ export type CanvasState = {
   layout: LayoutName;
   positions: [DrawnId, Point][];
   treeRows: TreeRows | null;
+  filters: Filters;
+  hidden: HiddenEntry[];
 };
 
 export type Action =
@@ -56,7 +71,16 @@ export type Action =
   | { kind: "select"; entity: string }
   | { kind: "selectEdge"; edge: EdgeKey; anchor: DrawnId }
   | { kind: "budget"; budget: Budget }
-  | { kind: "reset" };
+  | { kind: "reset" }
+  | { kind: "toggleType"; type: string; on: boolean }
+  | { kind: "showAllTypes" }
+  | { kind: "toggleFamily"; family: string; on: boolean }
+  | { kind: "togglePredicate"; predicate: string; on: boolean }
+  | { kind: "grouping"; grouping: Grouping }
+  | { kind: "hide"; node: DrawnId }
+  | { kind: "hideMany"; ids: string[] }
+  | { kind: "restore"; keys: DrawnId[] }
+  | { kind: "showMany"; ids: string[] };
 
 export type Direction = ">" | "<";
 

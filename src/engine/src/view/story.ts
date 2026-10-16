@@ -23,6 +23,14 @@ import {
   type Frontier,
 } from "./frontier";
 import {
+  NO_FILTERS,
+  setGrouping,
+  showAllTypes,
+  toggleFamily,
+  togglePredicate,
+  toggleType,
+} from "./filter";
+import {
   collapseGroup,
   expandGroup,
   idsOf,
@@ -30,6 +38,14 @@ import {
   topology,
   type Topology,
 } from "./group";
+import {
+  hideMany,
+  hideNode,
+  restore,
+  settled,
+  showMany,
+  type HideResult,
+} from "./hidden";
 
 type View = NonNullable<Payload["view"]>;
 
@@ -114,12 +130,15 @@ function storySelection(top: Topology, state: CanvasState): Selection {
   return node === null ? null : { node };
 }
 
+// why: mockup `initScope` and `setBudget` (lib/topology.js lines 677, 2373) — a new scope clears
+// the Hidden list; only new data clears the filters (line 2308)
 function restart(top: Topology, state: CanvasState): CanvasState {
   const next = scoped(top, {
     ...state,
     origins: [],
     expandedGroups: [],
     selection: null,
+    hidden: [],
   });
   return { ...next, selection: storySelection(top, next) };
 }
@@ -146,6 +165,8 @@ export function firstView(
     layout: view.layout ?? "force",
     positions: [],
     treeRows: null,
+    filters: NO_FILTERS,
+    hidden: [],
   });
 }
 
@@ -156,7 +177,13 @@ function rebudget(top: Topology, state: CanvasState, budget: Budget) {
     (state.scope.root === null
       ? undefined
       : top.entityOf.get(state.scope.root)) ?? mostConnected(top);
-  const base = { ...state, budget, origins: [], expandedGroups: [] };
+  const base = {
+    ...state,
+    budget,
+    origins: [],
+    expandedGroups: [],
+    hidden: [],
+  };
   const root = start === null ? null : top.ids[start];
   const hint = state.scope.hint;
   const next: CanvasState =
@@ -178,15 +205,26 @@ function nodeAfter(top: Topology, view: DrawnView, node: DrawnId): Selection {
   return drawn === null ? null : { node: drawn };
 }
 
+// why: mockup `prune`, `hideMany`, `showMany`, `restore` (lib/topology.js lines 779, 806, 821, 861)
+// re-select the node as an explore does, which clears an edge pick
+const RESHAPE = new Set<Action["kind"]>([
+  "explore",
+  "collapse",
+  "hide",
+  "hideMany",
+  "restore",
+  "showMany",
+]);
+
 // why: STORY-002-04 Context and owner decision D90 — a selection that leaves the drawn set is
-// cleared; a node that goes into a group hands the selection to the group; an explore or a
-// collapse clears an edge pick and keeps its anchor node (mockup `select`, lib/topology.js line 2083)
+// cleared; a node that goes into a group hands the selection to the group; an action of RESHAPE
+// clears an edge pick and keeps its anchor node (mockup `select`, lib/topology.js line 2083)
 function kept(top: Topology, state: CanvasState, action: Step): Selection {
   const { selection } = state;
   if (selection === null) return null;
   const view = drawnView(top, state);
   if (!("edge" in selection)) return nodeAfter(top, view, selection.node);
-  const reshaped = action.kind === "explore" || action.kind === "collapse";
+  const reshaped = RESHAPE.has(action.kind);
   if (!reshaped && view.frontier.edges.some((e) => e.key === selection.edge))
     return selection;
   return nodeAfter(top, view, selection.anchor);
@@ -224,8 +262,20 @@ function select(
 }
 
 type Step = Exclude<Action, { kind: "budget" | "reset" | "selectEdge" }>;
+type Hide = Extract<Action, { kind: "hide" | "hideMany" }>;
 
-function step(top: Topology, state: CanvasState, action: Step): CanvasState {
+function hideStep(top: Topology, state: CanvasState, action: Hide) {
+  return action.kind === "hide"
+    ? hideNode(top, state, action.node)
+    : hideMany(top, state, action.ids);
+}
+
+function step(
+  top: Topology,
+  state: CanvasState,
+  action: Step,
+  vocab: Vocab,
+): CanvasState {
   switch (action.kind) {
     case "explore":
       return explore(top, state, action.id);
@@ -239,7 +289,51 @@ function step(top: Topology, state: CanvasState, action: Step): CanvasState {
       return path(top, state, action.id);
     case "select":
       return select(top, state, action);
+    case "toggleType":
+      return toggleType(state, vocab, action.type, action.on);
+    case "showAllTypes":
+      return showAllTypes(state);
+    case "toggleFamily":
+      return toggleFamily(state, vocab, action.family, action.on);
+    case "togglePredicate":
+      return togglePredicate(state, vocab, action.predicate, action.on);
+    case "grouping":
+      return setGrouping(state, action.grouping);
+    case "hide":
+    case "hideMany":
+      return hideStep(top, state, action).state;
+    case "restore":
+      return restore(top, state, action.keys);
+    case "showMany":
+      return showMany(top, state, action.ids);
   }
+}
+
+// why: STORY-002-06 Context "Restore rule" — an entry whose members are all drawn again leaves the
+// list (mockup line 826), then the selection rule runs
+function finish(
+  top: Topology,
+  before: CanvasState,
+  after: CanvasState,
+  action: Step,
+): CanvasState {
+  const next = settled(top, after);
+  if (next === before) return before;
+  const selection = kept(top, next, action);
+  return selection === next.selection ? next : { ...next, selection };
+}
+
+// why: STORY-002-06 Context "Bulk rules" and question 2 — the same state as `transition`, with the
+// number of entities hidden and the reason of a refusal
+export function hide(
+  state: CanvasState,
+  action: Hide,
+  graph: Graph,
+  vocab: Vocab,
+): HideResult {
+  const top = topology(graph, vocab);
+  const result = hideStep(top, state, action);
+  return { ...result, state: finish(top, state, result.state, action) };
 }
 
 // why: SA §5 Engine — a transition is a pure function of its inputs and returns a new state, so the
@@ -255,8 +349,5 @@ export function transition(
   if (action.kind === "reset") return restart(top, state);
   if (action.kind === "selectEdge")
     return selectEdge(top, state, action.edge, action.anchor);
-  const next = step(top, state, action);
-  if (next === state) return state;
-  const selection = kept(top, next, action);
-  return selection === next.selection ? next : { ...next, selection };
+  return finish(top, state, step(top, state, action, vocab), action);
 }
