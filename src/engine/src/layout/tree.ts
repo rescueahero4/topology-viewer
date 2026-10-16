@@ -18,7 +18,8 @@ type Rows = {
 const LANE_DEPTH = 5;
 const ZONE = 100;
 // why: owner decision D92 (2) and lead item L-1 — a type level above 99 is read as 99, so no model
-// type shares the rows of the curation zone, and -0 is read as 0
+// type shares the rows of the curation zone, and -0 is read as 0; the same cap applies to every
+// row key outside the curation zone
 const LEVEL_CAP = 99;
 
 // why: lead decision D47 — levels, tree roles, `role` and `layoutRole` come from `vocab` only
@@ -193,12 +194,18 @@ function rowKeysOf(frontier: Frontier, vocab: Vocab): number[] {
   );
   const { base, dist: steps } = underLevel(rows, level);
   const chain = chainLength(rows);
-  return keys.map((key, at) => {
+  const keyOf = (key: number | undefined, at: number) => {
     if (key !== undefined) return key;
-    if (rows.role[at] === "curation") return ZONE + (dist[at] ?? 1);
     if (steps[at] > 0) return (base[at] as number) + steps[at];
     return chain[at];
-  });
+  };
+  // why: owner decision D92 (2), lead reading — no row key outside the curation zone passes 99,
+  // also a derived one, so those nodes share row 99
+  return keys.map((key, at) =>
+    key === undefined && rows.role[at] === "curation"
+      ? ZONE + (dist[at] ?? 1)
+      : Math.min(keyOf(key, at), LEVEL_CAP),
+  );
 }
 
 export function treeRowKeys(

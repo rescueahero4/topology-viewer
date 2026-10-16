@@ -131,11 +131,14 @@ describe("deep and wide trees", () => {
     ]),
   });
 
-  it("puts a 2,000-deep containment chain on 2,000 rows", () => {
+  it("puts a 2,000-deep containment chain on rows 0 to 99 (D92)", () => {
     const run = load(chainOf(2000), "off");
     const out = run.lay("tree-h");
-    expect(out.treeRows?.keyCoord).toHaveLength(2000);
-    expect(out.treeRows?.rows.at(-1)).toEqual(["e:n1999", 1999]);
+    expect(out.treeRows?.keyCoord).toHaveLength(100);
+    const rows = new Map(out.treeRows?.rows);
+    expect(rows.get("e:n98")).toBe(98);
+    expect(rows.get("e:n99")).toBe(99);
+    expect(rows.get("e:n1999")).toBe(99);
     expect(run.lay("atomic").positions).toHaveLength(2000);
   }, 30_000);
 

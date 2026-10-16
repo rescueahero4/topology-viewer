@@ -111,3 +111,60 @@ describe("L-1 a level of -0", () => {
       expect(Object.is(n, -0)).toBe(false);
   });
 });
+
+describe("D92 (2) lead reading: derived keys stay at 99", () => {
+  it("keeps a rule (1) container at 99 under a level-99 container", () => {
+    const { tree } = run({
+      nodes: [
+        { id: "a", type: "box" },
+        { id: "b", type: "box" },
+        { id: "c", type: "box" },
+        { id: "k", type: "kpi" },
+      ],
+      edges: [
+        ["a", "contains", "b"],
+        ["b", "contains", "c"],
+        ["k", "relatedTo", "a"],
+      ],
+      types: { box: { level: 99 }, kpi: { role: "curation" } },
+    });
+    expect(tree.treeRows?.rows).toEqual([
+      ["e:a", 99],
+      ["e:b", 99],
+      ["e:c", 99],
+      ["e:k", 101],
+    ]);
+  });
+
+  it("keeps a rule (4) chain and a lane under a level-99 ancestor at 99", () => {
+    const { tree } = run({
+      nodes: [
+        { id: "r", type: "top" },
+        { id: "c1", type: "x" },
+        { id: "c2", type: "x" },
+        { id: "p", type: "property_set" },
+        { id: "k", type: "kpi" },
+      ],
+      edges: [
+        ["r", "contains", "c1"],
+        ["c1", "contains", "c2"],
+        ["r", "relatedTo", "p"],
+        ["k", "relatedTo", "r"],
+      ],
+      types: { top: { level: 99 }, kpi: { role: "curation" } },
+    });
+    expect(new Map(tree.treeRows?.rows)).toEqual(
+      new Map([
+        ["e:r", 99],
+        ["e:c1", 99],
+        ["e:c2", 99],
+        ["e:p", 99],
+        ["e:k", 101],
+      ]),
+    );
+    expect(tree.treeRows?.keyCoord).toEqual([
+      [99, 0],
+      [101, 240],
+    ]);
+  });
+});
