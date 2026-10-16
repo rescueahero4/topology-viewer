@@ -33,3 +33,32 @@ export {
 } from "./vocab/resolve";
 export type { Entry, Slot, Slots, Value } from "./vocab/slots";
 export { guardColor, type Designed, type Visual } from "./vocab/visual";
+export {
+  edgeKey,
+  entityDrawnId,
+  groupDrawnId,
+  groupKey,
+  type Action,
+  type Approach,
+  type Budget,
+  type CanvasState,
+  type DrawnId,
+  type EdgeKey,
+  type Grouping,
+  type GroupKey,
+  type Hint,
+  type Scope,
+  type ScopeMode,
+  type Selection,
+} from "./state/canvasState";
+export {
+  drawnIdOf,
+  frontier,
+  onCanvas,
+  type DrawnEdge,
+  type DrawnNode,
+  type EntityNode,
+  type Frontier,
+  type GroupNode,
+} from "./view/frontier";
+export { firstView, transition } from "./view/story";
