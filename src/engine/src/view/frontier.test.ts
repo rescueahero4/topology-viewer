@@ -10,7 +10,8 @@ import {
 } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
-import { drawnIdOf, frontier, onCanvas } from "./frontier";
+import { drawnIdOf, frontier } from "./frontier";
+import { onCanvas } from "./hidden";
 import { firstView, transition } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
@@ -287,7 +288,7 @@ describe("S27 the canonical graph is never changed", () => {
       state = run.act(state, make(state));
       run.drawn(state);
       drawnIdOf(state, run.graph, run.vocab, "u_20");
-      onCanvas(state, run.graph, "u_20");
+      onCanvas(state, run.graph, run.vocab, "u_20");
     }
     expect(JSON.stringify(run.graph)).toBe(snapshot);
   });

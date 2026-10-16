@@ -5,7 +5,8 @@ import { normalize } from "../data/normalize";
 import type { CanvasState } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
-import { drawnIdOf, frontier, onCanvas } from "./frontier";
+import { drawnIdOf, frontier } from "./frontier";
+import { onCanvas } from "./hidden";
 import { firstView } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
@@ -79,6 +80,7 @@ describe("S33 the exact frontier in canonical order", () => {
           predicate: "p",
           object: "e:b",
           count: 1,
+          muted: false,
         },
         {
           key: '["e:b","p","e:c"]',
@@ -86,6 +88,7 @@ describe("S33 the exact frontier in canonical order", () => {
           predicate: "p",
           object: "e:c",
           count: 1,
+          muted: false,
         },
         {
           key: JSON.stringify(["e:a", "q", G]),
@@ -93,6 +96,7 @@ describe("S33 the exact frontier in canonical order", () => {
           predicate: "q",
           object: G,
           count: 2,
+          muted: false,
         },
         {
           key: '["e:b","q","e:l9"]',
@@ -100,6 +104,7 @@ describe("S33 the exact frontier in canonical order", () => {
           predicate: "q",
           object: "e:l9",
           count: 1,
+          muted: false,
         },
       ],
     });
@@ -113,10 +118,10 @@ describe("S34 record ids of a merged entity", () => {
     const state: CanvasState = { ...run.first(), grouping: "off" };
     for (const id of ["u_0", "u_20", "u_40", "u_60"]) {
       expect(drawnIdOf(state, run.graph, run.vocab, id)).toBe("e:u_0");
-      expect(onCanvas(state, run.graph, id)).toBe("drawn");
+      expect(onCanvas(state, run.graph, run.vocab, id)).toBe("drawn");
     }
     expect(drawnIdOf(state, run.graph, run.vocab, "nope")).toBeNull();
-    expect(onCanvas(state, run.graph, "nope")).toBe("not-drawn");
+    expect(onCanvas(state, run.graph, run.vocab, "nope")).toBe("not-drawn");
     const view = {
       approach: "active",
       root: "t_FCT_REVENUE",

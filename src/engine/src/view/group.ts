@@ -26,6 +26,7 @@ export type Topology = {
   incident: number[][];
   neighbours: number[][];
   degree: number[];
+  familyOf: Map<string, string>;
 };
 
 function linksOf(graph: Graph, entityOf: Map<string, number>): Link[] {
@@ -85,7 +86,21 @@ export function topology(graph: Graph, vocab: Vocab): Topology {
     entityOf,
     links,
     ...adjacency(graph.entities.length, links),
+    familyOf: new Map(
+      [...vocab.predicates.values()].map((item) => [item.name, item.family]),
+    ),
   };
+}
+
+// why: mockup `computeView` (lib/topology.js line 558) — an entity of a type that is off stays in
+// the drawn set but is not drawn (FR-FILTER-6); `null` is the row of the entities with no type (D93 (1))
+export function offOf(top: Topology, state: CanvasState): Uint8Array {
+  const off = new Set(state.filters.typesOff);
+  const mask = new Uint8Array(top.ids.length);
+  top.types.forEach((type, entity) => {
+    if (off.has(type)) mask[entity] = 1;
+  });
+  return mask;
 }
 
 export type Grouper = {
@@ -256,11 +271,12 @@ export function idsOf(top: Topology, mask: Uint8Array): string[] {
 
 export function drawnGrouper(top: Topology, state: CanvasState) {
   const mask = maskOf(top, state.revealed);
+  const off = offOf(top, state);
   const drawn = grouper(top, state.grouping);
   mask.forEach((bit, entity) => {
-    if (bit === 1) drawn.add(entity);
+    if (bit === 1 && off[entity] === 0) drawn.add(entity);
   });
-  return { mask, drawn };
+  return { mask, off, drawn };
 }
 
 // why: mockup `expand` (lib/topology.js lines 2122-2132) — only a drawn group opens
