@@ -153,10 +153,11 @@ export function checkSlotFields(p: Shape, { fail }: Checker) {
 
 // why: PRD FR-QDIC-7 — "built-in" is for what QDIC ships but does not manage as a system entry
 export function checkBuiltIn(p: Shape, { fail }: Checker) {
-  const lists = [
+  type Flagged = { builtIn?: true; isSystem: boolean };
+  const lists: [string, Record<string, Flagged>][] = [
     ["nodeTypes", p.nodeTypes],
     ["predicates", p.predicates],
-  ] as const;
+  ];
   for (const [list, record] of lists)
     for (const [name, entry] of Object.entries(record))
       if (entry.builtIn && entry.isSystem)
@@ -164,9 +165,7 @@ export function checkBuiltIn(p: Shape, { fail }: Checker) {
 }
 
 export function checkTypeMenu(p: Shape, { fail }: Checker) {
-  const categories = new Set(
-    Object.values(p.nodeTypes).map((t) => t.category),
-  );
+  const categories = new Set(Object.values(p.nodeTypes).map((t) => t.category));
   p.typeMenuCategories.order.forEach((name, j, order) => {
     if (!categories.has(name) || order.indexOf(name) !== j)
       fail(

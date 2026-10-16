@@ -10,7 +10,7 @@ const encoder = new TextEncoder();
 function items(raw: Raw, lists: Path[]): unknown[] {
   return lists.flatMap((path) => {
     const list = at(raw, path);
-    return Array.isArray(list) ? list : [];
+    return Array.isArray(list) ? (list as unknown[]) : [];
   });
 }
 

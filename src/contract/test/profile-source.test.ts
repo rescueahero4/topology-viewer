@@ -59,14 +59,11 @@ function failure(raw: unknown) {
 }
 
 function entries(p: typeof profile) {
-  const all: {
-    path: string;
-    source: { doc: string; section: string } | undefined;
-  }[] = [];
-  const add = (
-    path: string,
-    entry: { source?: { doc: string; section: string } },
-  ) => all.push({ path, source: entry.source });
+  type Source = { doc: string; section: string; note?: string };
+  const all: { path: string; source: Source | undefined }[] = [];
+  const add = (path: string, entry: { source?: Source }) =>
+    all.push({ path, source: entry.source });
+  add("typeMenuCategories", p.typeMenuCategories);
   for (const [k, v] of Object.entries(p.nodeTypes)) add(`nodeTypes.${k}`, v);
   for (const [k, v] of Object.entries(p.predicates)) add(`predicates.${k}`, v);
   for (const [k, v] of Object.entries(p.inverses)) add(`inverses.${k}`, v);
@@ -179,7 +176,7 @@ function sourceErrors(p: typeof profile) {
 
 describe("QDIC profile sources", () => {
   it("S4 cites a heading, or an allow-listed PRD requirement, for every entry", () => {
-    expect(entries(profile)).toHaveLength(157);
+    expect(entries(profile)).toHaveLength(158);
     expect(sourceErrors(profile)).toEqual([]);
   });
 
@@ -243,6 +240,91 @@ describe("QDIC profile sources", () => {
       doc: "SA-Intro",
       section: "Reference",
     });
+  });
+});
+
+const REFERENCE = ["SA-Intro", "Reference"];
+const GV_PREDICATES = ["GV", "Predicates"];
+const FR_DATA_10 = ["PRD", "FR-DATA-10"];
+
+// why: STORY-002-09 T3 source-note table — doc and section of each entry on `dev` 163f676
+const NEW_FIELDS: [string, string[], string[]][] = [
+  [
+    "slots.physical_name",
+    ["labelFallback"],
+    ["SA-Intro", "Browsing before you write anything"],
+  ],
+  [
+    "slots.logical_name",
+    ["strong", "assetOnlyKeys"],
+    ["SA-Intro", "Scenario A: Classify CUSTOMER_EMAIL as PII"],
+  ],
+  ["slots.owners", ["strong", "itemName"], GV_PREDICATES],
+  ["slots.tags", ["strong", "assetOnlyKeys", "itemName"], GV_PREDICATES],
+  ["slots.path", ["strong"], GV_PREDICATES],
+  ["slots.ddl_comment", ["strong"], ["GV", "Not yet included"]],
+  ["slots.parent_owners", ["edge", "itemName"], GV_PREDICATES],
+  ["slots.asset_groups", ["itemName"], GV_PREDICATES],
+  ["attributeSets.asset.8", ["lost"], ["GV", "Attributes"]],
+  ["predicates.contains", ["role", "layoutRole"], GV_PREDICATES],
+  ["predicates.broader", ["layoutRole"], GV_PREDICATES],
+  ["predicates.derivedFrom", ["layoutRole"], GV_PREDICATES],
+  ["predicates.definedBy", ["layoutRole"], GV_PREDICATES],
+  ["predicates.dependsOn", ["layoutRole"], GV_PREDICATES],
+  ["predicates.mapsTo", ["layoutRole"], GV_PREDICATES],
+  ["predicates.relatedTo", ["builtIn"], GV_PREDICATES],
+  ["predicates.synonymOf", ["builtIn"], GV_PREDICATES],
+  ["predicates.classifiedAs", ["builtIn"], REFERENCE],
+  ["predicates.governedBy", ["builtIn"], REFERENCE],
+  ["predicates.calculatedFrom", ["builtIn"], REFERENCE],
+  ["predicates.sourcedFrom", ["builtIn"], REFERENCE],
+  ["nodeTypes.classification", ["builtIn"], REFERENCE],
+  ["nodeTypes.domain", ["builtIn"], REFERENCE],
+  ["nodeTypes.policy", ["builtIn"], REFERENCE],
+  ["nodeTypes.metric", ["builtIn"], REFERENCE],
+  ["nodeTypes.external_system", ["builtIn"], REFERENCE],
+  ["nodeTypes.model", ["builtIn"], REFERENCE],
+  ["shapeHeuristics.0", ["predicate", "hintDefault"], FR_DATA_10],
+  ["shapeHeuristics.1", ["predicate"], FR_DATA_10],
+  ["shapeHeuristics.2", ["predicate"], FR_DATA_10],
+  ["shapeHeuristics.3", ["predicate"], GV_PREDICATES],
+  ["shapeHeuristics.4", ["predicate"], FR_DATA_10],
+  ["shapeHeuristics.5", ["predicate", "labelKeys", "hintDefault"], FR_DATA_10],
+];
+
+type Entry = Record<string, unknown> & {
+  source: { doc: string; section: string; note?: string };
+};
+
+function entryAt(path: string): Entry | undefined {
+  const [list, name, index] = path.split(".");
+  if (list === "slots") return profile.slots.find((s) => s.slot === name);
+  if (list === "attributeSets")
+    return profile.attributeSets[name]?.[Number(index)];
+  if (list === "shapeHeuristics") return profile.shapeHeuristics[Number(name)];
+  if (list === "predicates") return profile.predicates[name];
+  return profile.nodeTypes[name];
+}
+
+describe("STORY-002-09 sources of the new fields", () => {
+  it("S28 keeps each source and names each new field in its note", () => {
+    expect(NEW_FIELDS).toHaveLength(33);
+    for (const [path, fields, [doc, section]] of NEW_FIELDS) {
+      const entry = entryAt(path);
+      expect(entry?.source, path).toMatchObject({ doc, section });
+      for (const field of fields) {
+        expect(entry?.[field], `${path} ${field}`).toBeDefined();
+        expect(entry?.source.note, `${path} ${field}`).toMatch(
+          new RegExp(`\\b${field}\\b`),
+        );
+      }
+    }
+    expect(profile.slots.filter((s) => s.source.doc === "PRD")).toEqual([]);
+    const withFr = entries(profile).filter(
+      ({ path, source }) =>
+        !prdAllowed.has(path) && (source?.note?.includes("FR-") ?? false),
+    );
+    expect(withFr).toEqual([]);
   });
 });
 

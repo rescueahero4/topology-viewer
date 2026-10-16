@@ -27,7 +27,9 @@ export function matchShapeHeuristic(first: unknown): number | null {
 
 function idLess(item: unknown): boolean {
   return (
-    isRecord(item) && !Object.hasOwn(item, "id") && !Object.hasOwn(item, "globalId")
+    isRecord(item) &&
+    !Object.hasOwn(item, "id") &&
+    !Object.hasOwn(item, "globalId")
   );
 }
 
