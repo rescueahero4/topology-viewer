@@ -121,7 +121,19 @@ function marked() {
   };
 }
 
-const ENUMS = new Set(["active", "passive", "ai", "auto", "all", "custom"]);
+const ENUMS = new Set([
+  "active",
+  "passive",
+  "ai",
+  "auto",
+  "all",
+  "custom",
+  "force",
+  "atomic",
+  "bubbles",
+  "tree-h",
+  "tree-v",
+]);
 
 function stringsOf(value: unknown): string[] {
   if (typeof value === "string") return [value];

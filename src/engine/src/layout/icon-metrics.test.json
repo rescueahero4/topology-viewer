@@ -1,0 +1,20 @@
+{
+  "data_source": { "w": 56, "h": 56, "tier": "source" },
+  "asset_group": { "w": 44, "h": 44, "tier": "group" },
+  "bigroup": { "w": 44, "h": 44, "tier": "group" },
+  "database": { "w": 38, "h": 36, "tier": "container" },
+  "schema": { "w": 24, "h": 24, "tier": "asset" },
+  "schema_lg": { "w": 38, "h": 36, "tier": "container" },
+  "table": { "w": 24, "h": 24, "tier": "asset" },
+  "view": { "w": 32, "h": 32, "tier": "asset" },
+  "column": { "w": 24, "h": 24, "tier": "leaf" },
+  "dashboard": { "w": 24, "h": 24, "tier": "asset" },
+  "report": { "w": 24, "h": 24, "tier": "leaf" },
+  "etl": { "w": 24, "h": 24, "tier": "asset" },
+  "user": { "w": 20, "h": 20, "tier": "leaf" },
+  "user_group": { "w": 38, "h": 38, "tier": "group" },
+  "tag": { "w": 27, "h": 24, "tier": "leaf" },
+  "tag_group": { "w": 38, "h": 38, "tier": "group" },
+  "property": { "w": 27, "h": 24, "tier": "leaf" },
+  "property_set": { "w": 29, "h": 29, "tier": "group" }
+}
