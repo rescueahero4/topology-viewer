@@ -50,11 +50,15 @@ export {
   type HiddenEntry,
   type Hint,
   type LayoutName,
+  type MoveItem,
+  type NudgeEntry,
   type Point,
   type Scope,
   type ScopeMode,
   type Selection,
+  type ShiftEntry,
   type TreeRows,
+  type TreeShift,
 } from "./state/canvasState";
 export {
   drawnIdOf,
@@ -94,3 +98,4 @@ export {
   type LayoutResult,
 } from "./layout/layout";
 export { treeRowKeys } from "./layout/tree";
+export { place, type PlaceChange, type PlaceResult } from "./layout/place";
