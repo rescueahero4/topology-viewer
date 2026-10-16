@@ -269,14 +269,12 @@ function run(input: unknown, now: string): Normalized {
   const empty = noValidNodes(records, issues, nodeLists(data, false), !!made);
   if (empty) return empty;
   const ids = new Set(records.map((record) => record.id));
-  const from = made ? itemCount(edgeLists(data)) : Number.POSITIVE_INFINITY;
   const read = readEdges(
     edgeLists(shaped.input),
     ids,
     data.defaults,
     now,
     issues,
-    from,
   );
   const { graph: merged, map } = merge(
     records,

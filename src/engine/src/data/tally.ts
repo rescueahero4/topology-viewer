@@ -9,20 +9,26 @@ export type Path = Issue["path"];
 export type Cell = string | number | boolean;
 export type Columns = Record<string, unknown>;
 
+// why: lead decision D32 — the engine-internal fields of a shaped record have symbol keys, so no
+// input key (a JSON key is a string) can hide or replace them (QA S1 fix loop 1)
+export const REASON = Symbol("shaped reason");
+export const KEYS_PATH = Symbol("keys path");
+
 export type ShapedNode = {
   id: string;
   type: string;
   label?: string;
-  attrs?: Record<string, Cell>;
+  attrs?: Columns;
   _inferred: { type: string };
+  [KEYS_PATH]?: Path;
 };
 
 export type ShapedEdge = {
   subject: string;
   predicate: string;
   object: string;
-  attrs?: Record<string, Cell>;
-  _inferred: { predicate: string };
+  attrs?: Columns;
+  [REASON]: string;
 };
 
 export type ShapeFatal = {
@@ -33,11 +39,11 @@ export type ShapeFatal = {
 
 export type Tally = { nodes: number; edges: number };
 
-const REASON = "shaped from ";
+const REASON_TEXT = "shaped from ";
 // why: STORY-002-02 open question 4 — the key in a reason is data: bounded, with no control or
 // bidi characters (SA §11 Untrusted input)
 const KEY_LIMIT = 64;
-const HIDDEN = /[\p{Cc}؜‎‏‪-‮⁦-⁩]/gu;
+const HIDDEN = /[\p{Cc}\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/gu;
 
 export const notAGraph = (path: Path): ShapeFatal => ({
   code: "not-a-graph",
@@ -55,7 +61,7 @@ export function own(record: Columns, key: string): unknown {
 
 export function reason(key: string): string {
   const clean = Array.from(key.replace(HIDDEN, ""));
-  return REASON + clean.slice(0, KEY_LIMIT).join("");
+  return REASON_TEXT + clean.slice(0, KEY_LIMIT).join("");
 }
 
 export function isCell(value: unknown): value is Cell {
@@ -92,14 +98,30 @@ export function parsedColumns(node: Columns): Columns {
   ]);
 }
 
-// why: STORY-002-02 question 9 (d) and the rows rules — an object or array value is left out
+export function reasonOf(item: object): string | undefined {
+  const value: unknown = (item as { [REASON]?: unknown })[REASON];
+  return typeof value === "string" ? value : undefined;
+}
+
+export function keysPathOf(item: object): Path | undefined {
+  const value: unknown = (item as { [KEYS_PATH]?: unknown })[KEYS_PATH];
+  return Array.isArray(value) ? (value as Path) : undefined;
+}
+
+// why: the rows rule leaves out only an object or array cell, so `null` stays (PRD FR-DATA-1)
+export function isRowAttribute(value: unknown): boolean {
+  return typeof value !== "object" || value === null;
+}
+
+// why: question 9 (d) names the values that a tree object keeps: string, finite number, boolean
 export function cellsOf(
   columns: Columns,
   used: ReadonlySet<string>,
-): Record<string, Cell> {
-  const kept: [string, Cell][] = [];
+  keep: (value: unknown) => boolean,
+): Columns {
+  const kept: [string, unknown][] = [];
   for (const [key, value] of Object.entries(columns))
-    if (!used.has(key) && isCell(value)) kept.push([key, value]);
+    if (!used.has(key) && keep(value)) kept.push([key, value]);
   return nullRecord(kept);
 }
 

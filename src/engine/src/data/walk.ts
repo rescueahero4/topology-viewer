@@ -4,10 +4,13 @@ import {
   addNode,
   cellText,
   cellsOf,
+  isCell,
   isRecord,
+  KEYS_PATH,
   notAGraph,
   nullRecord,
   own,
+  REASON,
   reason,
   type Columns,
   type Path,
@@ -28,6 +31,7 @@ export type TreePlan = {
 export type Roots = {
   items: readonly unknown[];
   path: (index: number) => Path;
+  keys: (index: number) => Path;
   read: (value: unknown) => Columns | null;
 };
 
@@ -38,6 +42,7 @@ export type Walked =
 type Item = {
   value: unknown;
   path: Path;
+  keys: Path;
   pathId: string;
   level: number;
   parent?: string;
@@ -73,7 +78,14 @@ function labelOf(
   return null;
 }
 
-function nodeOf(columns: Columns, id: string, plan: TreePlan): ShapedNode {
+// why: SA §4.1 field-level rule — `KEYS_PATH` is the input path of the keys of the object, so an
+// issue on one of its attributes names the exact input path
+function nodeOf(
+  item: Item,
+  columns: Columns,
+  id: string,
+  plan: TreePlan,
+): ShapedNode {
   const used = new Set([plan.children]);
   if (plan.id !== undefined) used.add(plan.id);
   const label = labelOf(columns, plan.label);
@@ -82,8 +94,9 @@ function nodeOf(columns: Columns, id: string, plan: TreePlan): ShapedNode {
     id,
     type: plan.type,
     ...(label === null ? {} : { label: label[1] }),
-    attrs: cellsOf(columns, used),
+    attrs: cellsOf(columns, used, isCell),
     _inferred: { type: reason(plan.children) },
+    [KEYS_PATH]: item.keys,
   };
 }
 
@@ -99,13 +112,17 @@ function frameOf(
   return {
     items: list,
     next: 0,
-    item: (value, index) => ({
-      value,
-      path: [...item.path, plan.children, index],
-      pathId: `${item.pathId}.${index}`,
-      level: item.level + 1,
-      parent,
-    }),
+    item: (value, index) => {
+      const path = [...item.path, plan.children, index];
+      return {
+        value,
+        path,
+        keys: path,
+        pathId: `${item.pathId}.${index}`,
+        level: item.level + 1,
+        parent,
+      };
+    },
   };
 }
 
@@ -126,13 +143,13 @@ function visit(
   const fatal =
     addNode(tally) ?? (item.parent === undefined ? null : addEdge(tally));
   if (fatal !== null) return { fatal };
-  out.nodes.push(nodeOf(columns, id, plan));
+  out.nodes.push(nodeOf(item, columns, id, plan));
   if (item.parent !== undefined)
     out.edges.push({
       subject: item.parent,
       predicate: plan.predicate,
       object: id,
-      _inferred: { predicate: reason(plan.children) },
+      [REASON]: reason(plan.children),
     });
   return { fatal: null, id };
 }
@@ -148,6 +165,7 @@ export function walk(roots: Roots, plan: TreePlan, tally: Tally): Walked {
       item: (value, index) => ({
         value,
         path: roots.path(index),
+        keys: roots.keys(index),
         pathId: String(index),
         level: 1,
       }),

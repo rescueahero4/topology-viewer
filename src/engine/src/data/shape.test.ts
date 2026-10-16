@@ -78,6 +78,18 @@ describe("S1 rows with a hint and the default predicate", () => {
     expect(result.shaped).toEqual({ kind: "rows", count: 3 });
     expect(count(result, "unknown-type")).toBe(0);
   });
+
+  it("keeps the reason and the cells _inferred and null (fix loop 1)", () => {
+    const mixed = run({
+      nodes: [{ from: "a", to: "b", note: null, attrs: { _inferred: "x" } }],
+      shape: ROWS,
+    });
+    expect(reasons(mixed)).toEqual(["shaped from from"]);
+    expect({ ...mixed.graph.triples[0].attrs }).toStrictEqual({
+      _inferred: "x",
+      note: null,
+    });
+  });
 });
 
 describe("S2 a predicate key and a type literal", () => {

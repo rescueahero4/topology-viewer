@@ -80,6 +80,7 @@ function forestRoots(nodes: readonly unknown[]): Roots {
   return {
     items: nodes,
     path: (index) => ["nodes", index],
+    keys: (index) => ["nodes", index, "attrs"],
     read: (value) => (isRecord(value) ? parsedColumns(value) : null),
   };
 }
@@ -88,6 +89,7 @@ function treeRoots(data: RenderInput): Roots {
   return {
     items: [data],
     path: () => [],
+    keys: () => [],
     read: (value) => (isRecord(value) ? rootColumns(value) : null),
   };
 }

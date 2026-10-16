@@ -6,7 +6,7 @@ import {
 } from "@qdic-topology/contract";
 import { guardDepth, type Attrs } from "./hash";
 import type { EdgeRecord, NodeRecord, Triple } from "./merge";
-import { isRecord, nullRecord, own } from "./tally";
+import { keysPathOf, nullRecord, reasonOf } from "./tally";
 
 export type Path = Issue["path"];
 
@@ -84,7 +84,7 @@ function shapeOf(item: NonNullable<NodeItem>, path: Path): Shape {
     type: item.type ?? item.nodeType,
     label: item.label ?? item.physicalName,
     attrs: { ...item.attributes, ...item.attrs },
-    attrsPath: [...path, "attrs"],
+    attrsPath: keysPathOf(item) ?? [...path, "attrs"],
     inferred: item._inferred,
     logicalName: item.logicalName,
     isWritable: item.isWritable,
@@ -253,16 +253,10 @@ function folded(subject: string, predicate: string, object: string) {
 type ShapedRecord = EdgeRecord & Pick<Triple, "inferred">;
 
 // why: lead decision D32 — the reason of a shaped predicate goes into the Triple `inferred`; only
-// an edge that `data/shape` made carries it, so a model-sent edge `_inferred` stays an attribute
-function splitReason(attrs: Attrs): {
-  attrs: Attrs;
-  inferred?: Triple["inferred"];
-} {
-  const { [INFERRED]: raw, ...rest } = attrs;
-  const predicate = isRecord(raw) ? own(raw, "predicate") : undefined;
-  return typeof predicate === "string"
-    ? { attrs: rest, inferred: nullRecord([["predicate", predicate]]) }
-    : { attrs: rest };
+// `data/shape` writes it, under a symbol key that no input key can replace
+function inferredOf(item: EdgeItem): Triple["inferred"] {
+  const reason = item === null ? undefined : reasonOf(item);
+  return reason === undefined ? undefined : nullRecord([["predicate", reason]]);
 }
 
 export function readEdges(
@@ -271,7 +265,6 @@ export function readEdges(
   defaults: Defaults,
   now: string,
   issues: Issue[],
-  shapedFrom: number,
 ): { edges: ShapedRecord[]; paths: Path[] } {
   const edges: ShapedRecord[] = [];
   const paths: Path[] = [];
@@ -288,16 +281,14 @@ export function readEdges(
       const predicate =
         ends.predicate ?? defaults?.predicate ?? DEFAULT_PREDICATE;
       const { isActive, validTo } = ends.rest;
-      const split =
-        id >= shapedFrom ? splitReason(ends.attrs) : { attrs: ends.attrs };
       edges.push(
         present({
           id,
           ...folded(ends.subject as string, predicate, ends.object as string),
-          attrs: guarded(split.attrs, ends.attrsPath, issues),
+          attrs: guarded(ends.attrs, ends.attrsPath, issues),
           ...ends.rest,
           retired: isActive === false || before(validTo, now),
-          inferred: split.inferred,
+          inferred: inferredOf(item),
         }),
       );
     });

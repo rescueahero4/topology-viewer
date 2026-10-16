@@ -164,3 +164,77 @@ describe("tree forms (mixed and build-time rules)", () => {
     expect(result.shaped).toEqual({ kind: "rows", count: 0 });
   });
 });
+
+describe("fix loop 1: reserved keys and null as cells", () => {
+  const cells = { attrs: { _inferred: "spoof" }, note: null };
+  const forms = [
+    ["the hint default", ROWS, "relatedTo", "shaped from from"],
+    ["a heuristic match", undefined, "relatedTo", "shaped from from"],
+    ["a rel cell", { ...ROWS, predicate: "rel" }, "feeds", "shaped from rel"],
+    [
+      "a literal predicate",
+      { ...ROWS, predicate: "P" },
+      "P",
+      "shaped from shape.predicate",
+    ],
+  ] as const;
+
+  it.each(forms)("%s keeps its reason and the cells", (_n, hint, p, why) => {
+    for (const spoof of ["spoof", 5, true]) {
+      const row = { from: "a", to: "b", rel: "feeds", ...cells };
+      const result = run({
+        nodes: [{ ...row, attrs: { _inferred: spoof } }],
+        ...(hint === undefined ? {} : { shape: hint }),
+      });
+      const [triple] = result.graph.triples;
+      expect([triple.predicate, triple.inferred?.predicate]).toEqual([p, why]);
+      expect(triple.attrs._inferred).toBe(spoof);
+      expect(Object.hasOwn(triple.attrs, "note")).toBe(true);
+      expect(triple.attrs.note).toBeNull();
+      expect(result.graph.shapedSet.triples).toHaveLength(
+        p === "feeds" ? 0 : 1,
+      );
+    }
+  });
+
+  it("matches a model edge with the same attrs", () => {
+    const shaped = run({ nodes: [{ from: "a", to: "b", ...cells }] });
+    const model = run({
+      nodes: [{ id: "a" }, { id: "b" }],
+      edges: [{ subject: "a", predicate: "relatedTo", object: "b", ...cells }],
+    });
+    expect({ ...shaped.graph.triples[0].attrs }).toStrictEqual({
+      ...model.graph.triples[0].attrs,
+    });
+  });
+
+  it("keeps the tree reason and names the input path of _inferred", () => {
+    const result = run({
+      name: "r",
+      _inferred: "spoof",
+      children: [{ name: "c", _inferred: 5, note: null }],
+    });
+    for (const record of result.graph.records)
+      expect(record.inferred.type).toBe("shaped from children");
+    expect(
+      result.issues.filter((issue) => issue.code === "inferred-rejected"),
+    ).toEqual([
+      { code: "inferred-rejected", path: ["_inferred"] },
+      { code: "inferred-rejected", path: ["children", 0, "_inferred"] },
+    ]);
+    expect(result.graph.triples[0].inferred?.predicate).toBe(
+      "shaped from children",
+    );
+  });
+
+  it("names the input path of _inferred on a root of a nodes list", () => {
+    const result = run({
+      nodes: [{ name: "a", attrs: { _inferred: "x" }, children: [] }],
+    });
+    expect(
+      result.issues.filter((issue) => issue.code === "inferred-rejected"),
+    ).toEqual([
+      { code: "inferred-rejected", path: ["nodes", 0, "attrs", "_inferred"] },
+    ]);
+  });
+});
