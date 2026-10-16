@@ -170,6 +170,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "passive", "selected": null },
     "notice": null,
-    "warnings": {}
+    "warnings": { "unknown-type": 3, "constraint-violation": 6 }
   }
 }

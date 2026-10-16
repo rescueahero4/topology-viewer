@@ -2,6 +2,7 @@ import type { z } from "zod";
 import {
   approachSchema,
   attrs,
+  defaultsSchema,
   edgeConstraintFields,
   edgeFields,
   fieldFields,
@@ -51,6 +52,11 @@ const ENTRIES: [string, z.ZodObject, Fields][] = [
   ["predicates", predicateSchema, predicateFields],
   ["fields", fieldSchema, fieldFields],
 ];
+const DEFAULT_FIELDS: Fields = {
+  type: nodeFields.type,
+  predicate: edgeFields.predicate,
+};
+const DEFAULT_KEYS = new Set(Object.keys(defaultsSchema.shape));
 const VOCABULARY_LISTS: [string, Fields][] = [
   ["nodeTypes", vocabularyRowFields],
   ["predicates", vocabularyRowFields],
@@ -151,9 +157,14 @@ function shapeKeys(raw: Raw): Issue[] {
     .map((key) => ({ code: "unknown-key", path: ["shape", key] }));
 }
 
+// why: epic decision D1 — the issue path is `["defaults"]`, so the model's key text is never echoed
 function defaults(raw: Raw): Issue[] {
   const value = container(raw, "defaults");
-  return Array.isArray(value) ? value : [];
+  if (Array.isArray(value)) return value;
+  const unknown = Object.keys(value)
+    .filter((key) => !DEFAULT_KEYS.has(key))
+    .map((): Issue => ({ code: "unknown-key", path: ["defaults"] }));
+  return [...badFields(value, DEFAULT_FIELDS, ["defaults"]), ...unknown];
 }
 
 export function fieldIssues(raw: Raw): Issue[] {

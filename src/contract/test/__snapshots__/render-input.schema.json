@@ -445,10 +445,15 @@
     },
     "defaults": {
       "type": "object",
-      "propertyNames": {
-        "type": "string"
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "predicate": {
+          "type": "string"
+        }
       },
-      "additionalProperties": {}
+      "additionalProperties": false
     },
     "types": {
       "type": "object",

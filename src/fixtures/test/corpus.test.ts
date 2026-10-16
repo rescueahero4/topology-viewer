@@ -5,10 +5,12 @@ import { describe, expect, it } from "vitest";
 import { createCorpus, datasets, fixtures, loadFixture } from "../src";
 import { datasetFiles, qdicFiles, scenarioFiles } from "../src/files";
 import {
+  constraintViolationCount,
   firstPaintOf,
   isRecord,
   nodesOf,
   skipCounts,
+  unknownTypeCount,
   type Raw,
 } from "./payload";
 
@@ -174,8 +176,90 @@ describe("S6 s-dirty", () => {
       "no-id": 1,
       "duplicate-id": 1,
       "dangling-edge": 3,
+      "unknown-type": 1,
     });
     expect(outcome.schema).toBe("pass");
+  });
+});
+
+function declared(code: NoticeCode, counter: (input: unknown) => number) {
+  const counts: Record<string, number> = {};
+  for (const key of Object.keys(fixtures)) {
+    const { input, expect: outcome } = loadFixture(key);
+    const count = outcome.warnings[code as keyof typeof outcome.warnings];
+    if (count !== undefined) counts[key] = count;
+    if (outcome.schema === "pass" && outcome.notice === null)
+      expect(count ?? 0, `${key} ${code}`).toBe(counter(input));
+  }
+  return counts;
+}
+
+describe("STORY-002-09 T5 warning counts", () => {
+  it("S39 declares unknown-type per node on exactly 7 fixtures", () => {
+    expect(declared("unknown-type", unknownTypeCount)).toEqual({
+      "s-undeclared": 11,
+      "s-custom-active": 29,
+      "s-custom-passive": 29,
+      "s-mixed": 9,
+      "s-many-preds": 3,
+      "s-extend": 1,
+      "s-dirty": 1,
+    });
+  });
+
+  it("S48 declares constraint-violation per relationship on exactly 12 fixtures", () => {
+    expect(declared("constraint-violation", constraintViolationCount)).toEqual({
+      "s-access": 2,
+      "s-badroot": 6,
+      "s-lineage": 6,
+      "s-vague": 6,
+      "s-chain": 13,
+      "s-extend": 1,
+      "s-islands": 2,
+      "s-many-preds": 6,
+      "s-mixed": 6,
+      "s-mixed-designed": 6,
+      "s-undeclared": 6,
+      "s-vocab-meta": 1,
+    });
+  });
+
+  it("S47 keeps the QDIC fixtures free of warnings", () => {
+    for (const key of QDIC_KEYS) {
+      const { input, expect: outcome } = loadFixture(key);
+      expect(outcome.warnings, key).toEqual({});
+      expect(constraintViolationCount(input), key).toBe(0);
+    }
+  });
+
+  it("S41 names exactly 10 of the 23 SA §4.2 codes", () => {
+    const issueCodes = notices.codes.filter(
+      (code) =>
+        notices.severity[code] === "warning" ||
+        notices.severity[code] === "fatal",
+    );
+    expect(issueCodes).toHaveLength(23);
+    const named = new Set(
+      Object.values(fixtures).flatMap(({ expect: outcome }) => [
+        ...Object.keys(outcome.warnings),
+        outcome.notice,
+        outcome.schema,
+      ]),
+    );
+    expect(issueCodes.filter((code) => named.has(code)).sort()).toEqual(
+      [
+        "no-id",
+        "duplicate-id",
+        "dangling-edge",
+        "root-not-found",
+        "unknown-type",
+        "constraint-violation",
+        "no-valid-nodes",
+        "not-object",
+        "nodes-not-array",
+        "too-large",
+      ].sort(),
+    );
   });
 });
 

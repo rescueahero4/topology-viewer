@@ -1,5 +1,7 @@
+import type { z } from "zod";
 import type { NoticeCode, NoticeText } from "./codes";
 import { AI_SHAPE } from "./en";
+import type { valueTextsSchema } from "./values";
 
 const SKIP_AI =
   "すべてのノードに一意の `id` を付けてください。また、エッジの `source` または `target` が指すすべてのノードを含めてください。";
@@ -109,11 +111,11 @@ export const ja = {
   },
   "unknown-key": {
     title: "不明なキーがあります",
-    body: "このチャートが認識できない {count} 個のキーを無視しました。対象は、トップレベル、`view`、`types`・`predicates`・`fields` の各エントリー内、または `shape` ヒント内のキーです。",
+    body: "このチャートが認識できない {count} 個のキーを無視しました。対象は、トップレベル、`view`、`defaults`、`types`・`predicates`・`fields` の各エントリー内、または `shape` ヒント内のキーです。",
     user: [
       "チャートは描画されています。詳細をコピーし、これらのキーを含めずに結果を再送信するよう AI クライアントに依頼してください。",
     ],
-    ai: "文書化されたキーだけを使ってください。トップレベル: `schemaVersion`、`nodes`、`edges`、`links`、`neighborhood`、`defaults`、`types`、`predicates`、`fields`、`vocabulary`、`view`、`shape`。`view`: `approach`、`root`、`reveal`、`layout`、`budget`。`types[t]`: `label`、`rank`、`shape`、`color`、`abbr`、`glyph`、`level`、`role`。`predicates[p]`: `label`、`category`、`inverse`、`role`。`fields[k]`: `label`、`slot`、`why`。これらのエントリー内または `shape` ヒント内の不明なキーは削除され、このコードで報告されます。`title` キーはありません。タイトルやその他のテキストは返信に書いてください。ノード内の不明なキーは、そのノードの属性として残ります。",
+    ai: "文書化されたキーだけを使ってください。トップレベル: `schemaVersion`、`nodes`、`edges`、`links`、`neighborhood`、`defaults`、`types`、`predicates`、`fields`、`vocabulary`、`view`、`shape`。`view`: `approach`、`root`、`reveal`、`layout`、`budget`。`types[t]`: `label`、`rank`、`shape`、`color`、`abbr`、`glyph`、`level`、`role`。`predicates[p]`: `label`、`category`、`inverse`、`role`。`fields[k]`: `label`、`slot`、`why`。`defaults`: `type`、`predicate`。これらのエントリー内、`defaults` 内、または `shape` ヒント内の不明なキーは削除され、このコードで報告されます。`title` キーはありません。タイトルやその他のテキストは返信に書いてください。ノード内の不明なキーは、そのノードの属性として残ります。",
   },
   "root-not-found": {
     title: "選択されたルートがデータにありません",
@@ -235,3 +237,25 @@ export const ja = {
     ai: "結果を再送信してください。結果が大きい場合は、最も関連性の高い部分を先に送信してください (例: 最大 500 ノード)。",
   },
 } satisfies Record<NoticeCode, NoticeText>;
+
+// why: STORY-002-09 T1 — the measures follow the approved `too-large` text and the kinds follow HINTS
+export const jaValues = {
+  got: {
+    array: "リスト",
+    string: "テキスト",
+    number: "数値",
+    boolean: "true/false",
+    null: "null",
+    object: "オブジェクト",
+    missing: "なし (フィールドがありません)",
+  },
+  measure: {
+    nodes: "{count} ノード",
+    edges: "{count} エッジ",
+    kb: "{count} KB",
+  },
+  kind: {
+    rows: "フラットな行のリスト",
+    tree: "ネストしたオブジェクト",
+  },
+} satisfies z.infer<typeof valueTextsSchema>;

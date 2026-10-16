@@ -145,6 +145,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "t_DIM_CUSTOMER" },
     "notice": null,
-    "warnings": {}
+    "warnings": { "unknown-type": 9, "constraint-violation": 6 }
   }
 }

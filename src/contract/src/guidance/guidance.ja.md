@@ -119,7 +119,7 @@ QDIC のノードタイプには専用のアイコンがあります。宣言し
 `budget-rejected`: `view.budget` は 10、20、50、`"all"` のいずれかです。
 `schema-version-unknown`: `schemaVersion: "1"` を送信するか、`schemaVersion` を省略してください。
 `inferred-rejected`: `_inferred` は、フィールド名を短い理由に対応付けるオブジェクトです (例: `{ "description": "summarised from the DDL comment" }`)。
-`unknown-key`: 文書化されたキーだけを使ってください。トップレベル: `schemaVersion`、`nodes`、`edges`、`links`、`neighborhood`、`defaults`、`types`、`predicates`、`fields`、`vocabulary`、`view`、`shape`。`view`: `approach`、`root`、`reveal`、`layout`、`budget`。`types[t]`: `label`、`rank`、`shape`、`color`、`abbr`、`glyph`、`level`、`role`。`predicates[p]`: `label`、`category`、`inverse`、`role`。`fields[k]`: `label`、`slot`、`why`。これらのエントリー内または `shape` ヒント内の不明なキーは削除され、このコードで報告されます。`title` キーはありません。タイトルやその他のテキストは返信に書いてください。ノード内の不明なキーは、そのノードの属性として残ります。
+`unknown-key`: 文書化されたキーだけを使ってください。トップレベル: `schemaVersion`、`nodes`、`edges`、`links`、`neighborhood`、`defaults`、`types`、`predicates`、`fields`、`vocabulary`、`view`、`shape`。`view`: `approach`、`root`、`reveal`、`layout`、`budget`。`types[t]`: `label`、`rank`、`shape`、`color`、`abbr`、`glyph`、`level`、`role`。`predicates[p]`: `label`、`category`、`inverse`、`role`。`fields[k]`: `label`、`slot`、`why`。`defaults`: `type`、`predicate`。これらのエントリー内、`defaults` 内、または `shape` ヒント内の不明なキーは削除され、このコードで報告されます。`title` キーはありません。タイトルやその他のテキストは返信に書いてください。ノード内の不明なキーは、そのノードの属性として残ります。
 `root-not-found`: `view.root` には `nodes` にあるノードの `id` を設定してください。
 `reveal-not-found`: `view.reveal` には `nodes` にあるノードの `id` 値だけを入れてください。
 `shaped-from`: チャートは `shape` ヒントまたは組み込みのルールでデータを整形しました。結果を制御するには、`nodes` と `edges`、または `shape` ヒントを送信してください。フラットな行のリストには `{ kind: "rows", subject, object, predicate?, type? }`、ネストしたオブジェクトには `{ kind: "tree", children, label, id? }` を使います。各値はデータ内のキーの名前です。

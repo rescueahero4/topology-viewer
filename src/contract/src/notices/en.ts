@@ -1,4 +1,6 @@
+import type { z } from "zod";
 import type { NoticeCode, NoticeText } from "./codes";
+import type { valueTextsSchema } from "./values";
 
 export const AI_SHAPE =
   '{ "nodes": [{ "id", "type", "label" }], "edges": [{ "source", "target", "predicate" }] }';
@@ -111,11 +113,11 @@ export const en = {
   },
   "unknown-key": {
     title: "Some keys are not known",
-    body: "{count} key(s) that this chart doesn't know were ignored: at the top level, in `view`, or inside an entry of `types`, `predicates` or `fields` or inside the `shape` hint.",
+    body: "{count} key(s) that this chart doesn't know were ignored: at the top level, in `view` or `defaults`, or inside an entry of `types`, `predicates` or `fields` or inside the `shape` hint.",
     user: [
       "The chart is drawn. Copy the details and ask the AI client to resend the result without these keys.",
     ],
-    ai: "Use only the documented keys. Top level: `schemaVersion`, `nodes`, `edges`, `links`, `neighborhood`, `defaults`, `types`, `predicates`, `fields`, `vocabulary`, `view`, `shape`. `view`: `approach`, `root`, `reveal`, `layout`, `budget`. `types[t]`: `label`, `rank`, `shape`, `color`, `abbr`, `glyph`, `level`, `role`. `predicates[p]`: `label`, `category`, `inverse`, `role`. `fields[k]`: `label`, `slot`, `why`. An unknown key inside one of these entries or inside the `shape` hint is dropped and reported with this code. There is no `title` key: put the title and all other text in your reply. Unknown keys inside a node are kept as its attributes.",
+    ai: "Use only the documented keys. Top level: `schemaVersion`, `nodes`, `edges`, `links`, `neighborhood`, `defaults`, `types`, `predicates`, `fields`, `vocabulary`, `view`, `shape`. `view`: `approach`, `root`, `reveal`, `layout`, `budget`. `types[t]`: `label`, `rank`, `shape`, `color`, `abbr`, `glyph`, `level`, `role`. `predicates[p]`: `label`, `category`, `inverse`, `role`. `fields[k]`: `label`, `slot`, `why`. `defaults`: `type`, `predicate`. An unknown key inside one of these entries, inside `defaults` or inside the `shape` hint is dropped and reported with this code. There is no `title` key: put the title and all other text in your reply. Unknown keys inside a node are kept as its attributes.",
   },
   "root-not-found": {
     title: "The chosen root is not in the data",
@@ -235,3 +237,26 @@ export const en = {
     ai: "Resend the result. If it is large, send the most relevant part first (for example up to 500 nodes).",
   },
 } satisfies Record<NoticeCode, NoticeText>;
+
+// why: STORY-002-09 T1 — the `got` texts are the mockup `kindOf` strings (lib/topology.js line 336),
+// the measures follow the approved `too-large` text and the kinds follow HINTS
+export const enValues = {
+  got: {
+    array: "a list",
+    string: "text",
+    number: "a number",
+    boolean: "true/false",
+    null: "null",
+    object: "an object",
+    missing: "nothing (the field is missing)",
+  },
+  measure: {
+    nodes: "{count} nodes",
+    edges: "{count} edges",
+    kb: "{count} KB",
+  },
+  kind: {
+    rows: "a list of flat rows",
+    tree: "a nested object",
+  },
+} satisfies z.infer<typeof valueTextsSchema>;

@@ -190,6 +190,12 @@ export const edgeFields = {
   attrs,
 };
 
+// why: PRD FR-DATA-9 and epic condition C2 — `defaults` takes only the two fields it fills
+export const defaultsSchema = z.object({
+  type: optional(nodeFields.type),
+  predicate: optional(edgeFields.predicate),
+});
+
 const edgeObject = z.looseObject({
   subject: optional(text),
   predicate: optional(edgeFields.predicate),
@@ -230,7 +236,7 @@ export const renderInputSchema = z.looseObject({
       edges: z.array(edgeSchema).optional(),
     })
     .optional(),
-  defaults: optional(attrs),
+  defaults: optional(defaultsSchema),
   types: optional(z.record(z.string(), optional(typeSchema))),
   predicates: optional(z.record(z.string(), optional(predicateSchema))),
   fields: optional(z.record(z.string(), optional(fieldSchema))),

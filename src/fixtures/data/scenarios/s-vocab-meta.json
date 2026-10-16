@@ -64,6 +64,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "tb" },
     "notice": null,
-    "warnings": {}
+    "warnings": { "constraint-violation": 1 }
   }
 }

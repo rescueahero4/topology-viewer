@@ -38,6 +38,11 @@
     "schema": "pass",
     "firstPaint": { "approach": "passive", "selected": null },
     "notice": null,
-    "warnings": { "no-id": 1, "duplicate-id": 1, "dangling-edge": 3 }
+    "warnings": {
+      "no-id": 1,
+      "duplicate-id": 1,
+      "dangling-edge": 3,
+      "unknown-type": 1
+    }
   }
 }

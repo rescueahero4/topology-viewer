@@ -1,5 +1,7 @@
 export { CAPS, checkCounts, checkSize } from "./caps";
+export { copyBytes } from "./copyBytes";
 export {
+  inferredField,
   issueSchema,
   renderInputSchema,
   type Issue,
@@ -30,7 +32,14 @@ export {
   type Severity,
   type WarningCode,
 } from "./notices";
-export { parseRenderInput } from "./parse";
+export {
+  fatalInfoSchema,
+  shapedKindSchema,
+  type FatalInfo,
+  type GotToken,
+  type Measure,
+} from "./notices/values";
+export { parseRenderInput, rawCounts } from "./parse";
 export { loadProfile, profile, profileSchema, type Profile } from "./profile";
 export {
   structuredContentSchema,
@@ -39,3 +48,4 @@ export {
   type WarningEntry,
 } from "./result";
 export { SCHEMA_VERSION } from "./schemaVersion";
+export { matchShapeHeuristic, sendsToShape } from "./shapeTrigger";

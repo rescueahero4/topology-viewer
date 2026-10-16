@@ -27,7 +27,7 @@ const base: Doc = {
       ["m0", "has", "m1", { k: "v" }],
     ],
   },
-  defaults: { color: "red" },
+  defaults: { type: "t", predicate: "p" },
   types: { t: { label: "T" }, u: { label: "U" } },
   predicates: {
     p: { label: "P", category: "c", inverse: "q", role: "containment" },
@@ -138,6 +138,8 @@ for (const [list, key] of ROW_KEYS)
 add("vocabulary field", ["vocabulary", "nodeTypes", 1, "is_system"], word());
 add("vocabulary field", ["vocabulary", "nodeTypes", 1, "is_active"], word());
 add("defaults", ["defaults"], word());
+add("defaults type", ["defaults", "type"], num());
+add("defaults predicate", ["defaults", "predicate"], num());
 add("view", ["view"], word());
 add("view approach", ["view", "approach"], word());
 

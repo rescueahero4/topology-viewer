@@ -31,6 +31,7 @@ const nodeTypeSchema = z.strictObject({
     .regex(/^[A-Z]{2}$/)
     .optional(),
   design: designSchema.optional(),
+  builtIn: z.literal(true).optional(),
   source: sourceSchema,
 });
 
@@ -40,6 +41,9 @@ const predicateSchema = z.strictObject({
   direction: z.enum(["out", "in", "both"]),
   isSystem: z.boolean(),
   status: z.literal("proposed").optional(),
+  builtIn: z.literal(true).optional(),
+  role: z.literal("containment").optional(),
+  layoutRole: z.enum(["lineage", "structure"]).optional(),
   source: sourceSchema,
 });
 
@@ -66,6 +70,7 @@ const writeRuleSchema = z.strictObject({
 const attributeSchema = z.strictObject({
   key: text,
   resolves: z.array(z.tuple([text, text])).optional(),
+  lost: z.literal(true).optional(),
   source: sourceSchema,
 });
 
@@ -76,6 +81,12 @@ const notYetIncludedSchema = z.strictObject({
   source: sourceSchema,
 });
 
+// why: STORY-002-09 T3 — the mockup list readers (`personName`, `tagName`) as data, own keys only
+const itemNameSchema = z.strictObject({
+  paths: z.array(z.array(text).min(1)).min(1),
+  join: z.string(),
+});
+
 const slotSchema = z.strictObject({
   slot: text,
   keys: z.array(text).min(1),
@@ -83,12 +94,24 @@ const slotSchema = z.strictObject({
   edge: text.optional(),
   edgeObject: text.optional(),
   derive: z.enum(["path", "source", "parent-owners"]).optional(),
+  assetOnlyKeys: z.array(text).min(1).optional(),
+  strong: z.literal(true).optional(),
+  labelFallback: z.literal(true).optional(),
+  itemName: z.array(itemNameSchema).min(1).optional(),
   source: sourceSchema,
 });
 
 const shapeHeuristicSchema = z.strictObject({
   kind: z.enum(["rows", "tree"]),
   columns: z.array(text).min(1),
+  predicate: text,
+  labelKeys: z.array(text).min(1).optional(),
+  hintDefault: z.literal(true).optional(),
+  source: sourceSchema,
+});
+
+const typeMenuCategoriesSchema = z.strictObject({
+  order: z.array(text).min(1),
   source: sourceSchema,
 });
 
@@ -100,6 +123,7 @@ const globalIdPrefixSchema = z.strictObject({
 
 export const profileShapeSchema = z.strictObject({
   categoryOrder: z.array(text).min(1),
+  typeMenuCategories: typeMenuCategoriesSchema,
   nodeTypes: z.record(text, nodeTypeSchema),
   predicates: z.record(text, predicateSchema),
   inverses: z.record(text, inverseSchema),

@@ -282,6 +282,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "reg_eu_battery" },
     "notice": null,
-    "warnings": {}
+    "warnings": { "unknown-type": 29 }
   }
 }

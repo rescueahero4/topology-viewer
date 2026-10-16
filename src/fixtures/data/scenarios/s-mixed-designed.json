@@ -173,6 +173,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "t_DIM_CUSTOMER" },
     "notice": null,
-    "warnings": {}
+    "warnings": { "constraint-violation": 6 }
   }
 }
