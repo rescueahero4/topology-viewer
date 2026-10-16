@@ -10,7 +10,7 @@ import type {
   NudgeEntry,
   Point,
 } from "../state/canvasState";
-import { frontier, type DrawnNode } from "../view/frontier";
+import { frontier, type DrawnNode, type Frontier } from "../view/frontier";
 import { firstView, transition } from "../view/story";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab, type Vocab } from "../vocab/resolve";
@@ -319,9 +319,9 @@ function world(seed: number) {
 }
 type World = ReturnType<typeof world>;
 
-function act(w: World, s: CanvasState): Action | null {
+function act(w: World, s: CanvasState, view: Frontier): Action | null {
   const { r } = w;
-  const nodes = w.view(s).nodes;
+  const nodes = view.nodes;
   const some = () => w.ids.filter(() => r.int(4) === 0);
   const of = <T>(l: T[], make: (x: T) => Action) =>
     l.length ? make(r.pick(l)) : null;
@@ -371,7 +371,8 @@ describe("place equals the reference model after each random step", () => {
       const w = world(seed);
       let s = w.state;
       for (let k = 0; k < STEPS; k++) {
-        const action = act(w, s);
+        const before = w.view(s);
+        const action = act(w, s, before);
         if (action === null || action.kind === "reset") {
           s = w.lay(
             action === null ? s : transition(s, action, w.graph, w.vocab),
@@ -379,7 +380,7 @@ describe("place equals the reference model after each random step", () => {
           continue;
         }
         const next = transition(s, action, w.graph, w.vocab);
-        const change = { action, before: w.view(s), after: w.view(next) };
+        const change = { action, before, after: w.view(next) };
         const got = place(next, change, w.vocab, METRICS);
         s = got.state;
         // why: `place-model-undo.test.ts` holds the model of a collapse

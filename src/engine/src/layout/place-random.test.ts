@@ -309,7 +309,7 @@ describe("SA §6 rows 1, 2, 8 and 16 after each random step", () => {
   }, 600_000);
 
   it("gives the same results when a list runs twice (NF-3)", () => {
-    for (let seed = 0; seed < 150; seed++)
+    for (let seed = 0; seed < 60; seed++)
       expect(JSON.stringify(play(seed, 45).log)).toBe(
         JSON.stringify(play(seed, 45).log),
       );

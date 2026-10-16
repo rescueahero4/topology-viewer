@@ -75,11 +75,19 @@ export function grid<T extends Point>(): Grid<T> {
       if (list === undefined) cells.set(key, [item]);
       else list.push(item);
     },
+    // why: the cell of `p` first, because a blocked candidate meets its blocker there most often;
+    // the order of the visits changes no result (a test of all items, or hits that the caller sorts)
     scan(p, rx, ry, stop) {
+      const cx = cell(p.x);
+      const cy = cell(p.y);
+      const visit = (gx: number, gy: number) => {
+        const list = cells.get(keyOf(gx, gy));
+        return list !== undefined && list.some(stop);
+      };
+      if (visit(cx, cy)) return true;
       for (let gx = cell(p.x - rx); gx <= cell(p.x + rx); gx++)
         for (let gy = cell(p.y - ry); gy <= cell(p.y + ry); gy++)
-          for (const item of cells.get(keyOf(gx, gy)) ?? [])
-            if (stop(item)) return true;
+          if ((gx !== cx || gy !== cy) && visit(gx, gy)) return true;
       return false;
     },
   };
