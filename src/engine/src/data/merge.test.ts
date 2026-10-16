@@ -23,7 +23,7 @@ function passesOf(input: { nodes: Raw[]; edges: Edge[] }): number {
     attrs: {},
     retired: false,
   }));
-  return merge(records, edges, undefined).passes;
+  return merge(records, edges, undefined, new Set()).passes;
 }
 
 const labelsOf = (result: ReturnType<typeof run>, type: string) =>
@@ -110,6 +110,18 @@ describe("S15 containment keeps namesakes apart", () => {
       { globalId: "clmn-2", nodeType: "column", physicalName: "ID" },
     ];
     expect(columnEntities({ nodes: qdic })).toBe(2);
+  });
+
+  it("not across two different globalId values when an id is also sent", () => {
+    const both = [
+      { id: "a", globalId: "g1", type: "t0", label: "L" },
+      { id: "b", globalId: "g2", type: "t0", label: "L" },
+    ];
+    const result = run({ nodes: both });
+    expect(result.graph.entities.map((e) => e.records)).toEqual([["a"], ["b"]]);
+    expect(result.graph.records.map((r) => r.idSource)).toEqual(["id", "id"]);
+    expect(result.counts.merged).toBe(0);
+    expect(result.issues).toEqual([]);
   });
 });
 

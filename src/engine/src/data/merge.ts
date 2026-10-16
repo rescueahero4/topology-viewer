@@ -115,6 +115,7 @@ function runPasses(
   records: NodeRecord[],
   edges: EdgeRecord[],
   contains: Set<string>,
+  identities: ReadonlySet<string>,
 ) {
   const canon = new Map<string, string>();
   const find = finder(canon);
@@ -124,8 +125,9 @@ function runPasses(
     const first = new Map<string, string>();
     let merged = 0;
     for (const record of records) {
-      // why: PRD FR-QDIC-6 — a record with a `globalId` is a hard identity and never merges
-      if (record.idSource === "globalId" || canon.has(record.id)) continue;
+      // why: PRD FR-QDIC-6 — a record that arrived with a `globalId` is a hard identity and
+      // never merges, also when its `id` is the record id
+      if (identities.has(record.id) || canon.has(record.id)) continue;
       const key = mergeKey(record, parents.get(record.id));
       const earlier = first.get(key);
       if (earlier === undefined) first.set(key, record.id);
@@ -205,8 +207,10 @@ export function merge(
   records: NodeRecord[],
   edges: EdgeRecord[],
   predicates: Predicates,
+  identities: ReadonlySet<string>,
 ): { graph: Merged; map: Map<string, string>; passes: number } {
-  const { find, passes } = runPasses(records, edges, containment(predicates));
+  const contains = containment(predicates);
+  const { find, passes } = runPasses(records, edges, contains, identities);
   const { entities, map } = entitiesOf(records, find);
   return {
     graph: { records, entities, triples: triplesOf(edges, map) },

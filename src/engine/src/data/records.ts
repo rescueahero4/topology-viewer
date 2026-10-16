@@ -56,6 +56,7 @@ type Shape = {
   id?: string;
   idField: string | number;
   idSource: "id" | "globalId";
+  globalId: boolean;
   type?: string;
   label?: string;
   attrs: Attrs;
@@ -72,6 +73,7 @@ function shapeOf(item: NonNullable<NodeItem>, path: Path): Shape {
       id,
       idField: 0,
       idSource: "id",
+      globalId: false,
       type,
       label,
       attrs: attrs ?? {},
@@ -83,6 +85,7 @@ function shapeOf(item: NonNullable<NodeItem>, path: Path): Shape {
     id: item.id ?? item.globalId,
     idField: fromGlobal ? "globalId" : "id",
     idSource: fromGlobal ? "globalId" : "id",
+    globalId: item.globalId !== undefined,
     type: item.type ?? item.nodeType,
     label: item.label ?? item.physicalName,
     attrs: { ...item.attributes, ...item.attrs },
@@ -151,8 +154,9 @@ export function readNodes(
   lists: NodeList[],
   defaults: Defaults,
   issues: Issue[],
-): NodeRecord[] {
+): { records: NodeRecord[]; identities: Set<string> } {
   const records: NodeRecord[] = [];
+  const identities = new Set<string>();
   const seen = new Set<string>();
   let position = 0;
   for (const list of lists) {
@@ -168,6 +172,7 @@ export function readNodes(
         });
       else {
         seen.add(shape.id);
+        if (shape.globalId) identities.add(shape.id);
         const fill = list.defaults ? defaults?.type : undefined;
         records.push(
           nodeRecord({ ...shape, id: shape.id }, fill, position, issues),
@@ -176,7 +181,7 @@ export function readNodes(
       position++;
     });
   }
-  return records;
+  return { records, identities };
 }
 
 type Ends = {

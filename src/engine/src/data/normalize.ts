@@ -228,7 +228,7 @@ function run(input: unknown, now: string): Normalized {
   const payload = payloadOf(data);
   const issues: Issue[] = [...parsed.issues];
   const lists = nodeLists(data, input);
-  const records = readNodes(lists, data.defaults, issues);
+  const { records, identities } = readNodes(lists, data.defaults, issues);
   if (records.length === 0 && issues.some((issue) => issue.code === "no-id")) {
     const info: FatalInfo = {
       code: "no-valid-nodes",
@@ -238,7 +238,12 @@ function run(input: unknown, now: string): Normalized {
   }
   const ids = new Set(records.map((record) => record.id));
   const read = readEdges(edgeLists(data), ids, data.defaults, now, issues);
-  const { graph: merged, map } = merge(records, read.edges, payload.predicates);
+  const { graph: merged, map } = merge(
+    records,
+    read.edges,
+    payload.predicates,
+    identities,
+  );
   issues.push(...constraintIssues(merged, payload, read.paths));
   issues.push(...viewIssues(input, map));
   const graph: Graph = { ...merged, shapedSet: { records: [], triples: [] } };
