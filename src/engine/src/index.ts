@@ -47,9 +47,12 @@ export {
   type Grouping,
   type GroupKey,
   type Hint,
+  type LayoutName,
+  type Point,
   type Scope,
   type ScopeMode,
   type Selection,
+  type TreeRows,
 } from "./state/canvasState";
 export {
   drawnIdOf,
@@ -62,3 +65,13 @@ export {
   type GroupNode,
 } from "./view/frontier";
 export { firstView, transition } from "./view/story";
+export type { Bubble } from "./layout/bubbles";
+export type { IconMetrics, Tier } from "./layout/drawn";
+export { forceConfig, type ForceConfig } from "./layout/force";
+export {
+  layout,
+  recenter,
+  setLayout,
+  type LayoutResult,
+} from "./layout/layout";
+export { treeRowKeys } from "./layout/tree";

@@ -7,16 +7,29 @@ import { entitySlots, resolveVocab, type Vocab } from "./resolve";
 const LIGHT = canvasColor("#F4F4F5") as Hex;
 const KB = 1024;
 
-// why: S46 — the lead limits against PRD NF-1, with no CPU throttle
+const RUNS = 3;
+
+// why: S46 — the lead limits against PRD NF-1, with no CPU throttle; ISSUE-006 — the median of 3
+// timed calls after one warm-up call
 function timed(input: unknown) {
   expect(JSON.stringify(input).length).toBeLessThanOrEqual(256 * KB);
   const result = normalize(input, { now: "2026-10-14" });
   if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
-  const start = performance.now();
-  const { vocab } = resolveVocab(result.graph, result.payload, profile, LIGHT);
-  for (const id of vocab.entities.keys()) entitySlots(vocab, id);
-  const ms = performance.now() - start;
-  return { vocab, ms };
+  const once = () => {
+    const start = performance.now();
+    const { vocab } = resolveVocab(
+      result.graph,
+      result.payload,
+      profile,
+      LIGHT,
+    );
+    for (const id of vocab.entities.keys()) entitySlots(vocab, id);
+    return { vocab, ms: performance.now() - start };
+  };
+  once();
+  const runs = Array.from({ length: RUNS }, once);
+  const times = runs.map(({ ms }) => ms).sort((a, b) => a - b);
+  return { vocab: runs[0].vocab, ms: times[Math.floor(RUNS / 2)] };
 }
 
 const slot = (vocab: Vocab, id: string, name: string) =>

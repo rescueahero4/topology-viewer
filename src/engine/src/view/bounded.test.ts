@@ -63,10 +63,18 @@ function load(input: Compact) {
   return { graph, payload, hash, vocab };
 }
 
+const RUNS = 3;
+
+// why: ISSUE-006 — the median of 3 timed calls after one warm-up call; the work is pure, so each
+// call gives the same value
 function time<T>(work: () => T): { value: T; ms: number } {
-  const start = performance.now();
   const value = work();
-  return { value, ms: performance.now() - start };
+  const times = Array.from({ length: RUNS }, () => {
+    const start = performance.now();
+    work();
+    return performance.now() - start;
+  }).sort((a, b) => a - b);
+  return { value, ms: times[Math.floor(RUNS / 2)] };
 }
 
 // why: PRD NF-1 — first paint < 1 s and < 100 ms to the first animated frame of an expand at

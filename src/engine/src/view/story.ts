@@ -143,6 +143,9 @@ export function firstView(
     expandedGroups: [],
     selection: null,
     seq: 0,
+    layout: view.layout ?? "force",
+    positions: [],
+    treeRows: null,
   });
 }
 

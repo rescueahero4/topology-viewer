@@ -18,6 +18,16 @@ export type Scope = {
 export type Selection =
   { node: DrawnId } | { edge: EdgeKey; anchor: DrawnId } | null;
 
+export type LayoutName = "force" | "atomic" | "bubbles" | "tree-h" | "tree-v";
+
+export type Point = { x: number; y: number };
+
+export type TreeRows = {
+  vertical: boolean;
+  rows: [DrawnId, number][];
+  keyCoord: [number, number][];
+};
+
 // why: STORY-002-04 Q16 — plain JSON only: a Set is an array in canonical order, a Map is an
 // array of [key, value] pairs, and no object is keyed by a model id (S-C3)
 export type CanvasState = {
@@ -31,6 +41,9 @@ export type CanvasState = {
   expandedGroups: GroupKey[];
   selection: Selection;
   seq: number;
+  layout: LayoutName;
+  positions: [DrawnId, Point][];
+  treeRows: TreeRows | null;
 };
 
 export type Action =

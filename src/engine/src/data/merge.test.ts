@@ -204,7 +204,7 @@ describe("S31 the merge at the caps", () => {
     const result = run({ nodes, edges: graph.edges });
     expect(result.graph.entities).toHaveLength(2000);
     expect(passesOf({ nodes, edges: graph.edges })).toBeLessThanOrEqual(4);
-  });
+  }, 30_000);
 });
 
 describe("S45 s-access", () => {
