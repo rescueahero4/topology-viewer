@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { checkCounts } from "./caps";
+import { CAPS, checkCounts } from "./caps";
+import { copyBytes } from "./copyBytes";
 import { fieldIssues } from "./fieldIssues";
 import {
   edgeSchema,
@@ -27,6 +28,7 @@ import {
   type Raw,
 } from "./raw";
 import { SCHEMA_VERSION } from "./schemaVersion";
+import { countedNodeLists } from "./shapeTrigger";
 
 type Node = z.infer<typeof nodeSchema>;
 type Edge = z.infer<typeof edgeSchema>;
@@ -41,6 +43,16 @@ function length(raw: Raw, lists: Path[]): number {
     const list = at(raw, path);
     return sum + (Array.isArray(list) ? list.length : 0);
   }, 0);
+}
+
+// why: ISSUE-003 and lead decision D39 — the one count rule of the caps; a list that SA §4.1
+// sends to `data/shape` is counted there after expansion
+export function rawCounts(raw: unknown): { nodes: number; edges: number } {
+  if (!isRecord(raw)) return { nodes: 0, edges: 0 };
+  return {
+    nodes: length(raw, countedNodeLists(raw)),
+    edges: length(raw, EDGE_LISTS),
+  };
 }
 
 function fail(fatal: Issue) {
@@ -64,7 +76,8 @@ function checkStructure(raw: Raw): Issue | null {
     });
     if (bad) return { code, path: bad };
   }
-  return checkCounts(length(raw, NODE_LISTS), length(raw, EDGE_LISTS));
+  const counts = rawCounts(raw);
+  return checkCounts(counts.nodes, counts.edges);
 }
 
 function rejected(
@@ -232,6 +245,7 @@ function clean(input: RenderInput): RenderInput {
     edges,
     links,
     neighborhood,
+    defaults,
     types,
     predicates,
     fields,
@@ -251,6 +265,7 @@ function clean(input: RenderInput): RenderInput {
           edges: neighborhood.edges?.map(cleanEdge),
         })
       : undefined,
+    defaults: defaults ? present(defaults) : undefined,
     types: types ? presentRecord(types) : undefined,
     predicates: predicates ? presentRecord(predicates) : undefined,
     fields: fields ? presentRecord(fields) : undefined,
@@ -270,6 +285,9 @@ function parse(raw: unknown) {
   if (!isRecord(raw)) return fail({ code: "not-object", path: [] });
   const structural = checkStructure(raw);
   if (structural) return fail(structural);
+  const copied = copyBytes(raw);
+  if (copied.path !== null && copied.sum > CAPS.bytes)
+    return fail({ code: "too-large", path: copied.path });
   const rawTree =
     at(raw, ["nodes"]) === undefined && at(raw, ["neighborhood"]) === undefined;
   // why: PRD FR-DATA-10 step 1 and FR-DATA-4 — a hint that cannot apply to a raw payload stops it

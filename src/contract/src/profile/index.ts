@@ -1,11 +1,16 @@
 import { z } from "zod";
 import qdic from "./qdic.json";
 import {
+  checkAssetOnlyKeys,
+  checkBuiltIn,
+  checkHeuristics,
   checkNodeTypes,
   checkPairings,
   checkPredicates,
   checkReferences,
+  checkSlotFields,
   checkSlots,
+  checkTypeMenu,
   makeChecker,
 } from "./checks";
 import { profileShapeSchema } from "./types";
@@ -17,6 +22,11 @@ export const profileSchema = profileShapeSchema.superRefine((p, ctx) => {
   checkPairings(p, checker);
   checkSlots(p, checker);
   checkReferences(p, checker);
+  checkAssetOnlyKeys(p, checker);
+  checkSlotFields(p, checker);
+  checkBuiltIn(p, checker);
+  checkTypeMenu(p, checker);
+  checkHeuristics(p, checker);
 });
 
 export type Profile = z.infer<typeof profileSchema>;

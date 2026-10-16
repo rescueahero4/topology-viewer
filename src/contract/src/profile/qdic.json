@@ -7,6 +7,18 @@
     "Ownership & Access",
     "Other"
   ],
+  "typeMenuCategories": {
+    "order": [
+      "Catalog structure",
+      "People & access",
+      "Tagging",
+      "Annotation concepts"
+    ],
+    "source": {
+      "doc": "SA-Intro",
+      "section": "Node types you get out of the box"
+    }
+  },
   "nodeTypes": {
     "database": {
       "category": "Catalog structure",
@@ -270,9 +282,11 @@
       "color": "#815937",
       "abbr": "CL",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "domain": {
@@ -286,9 +300,11 @@
       "color": "#523781",
       "abbr": "DM",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "policy": {
@@ -302,9 +318,11 @@
       "color": "#813743",
       "abbr": "PL",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "metric": {
@@ -318,9 +336,11 @@
       "color": "#377481",
       "abbr": "MT",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "external_system": {
@@ -334,9 +354,11 @@
       "color": "#375681",
       "abbr": "ES",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "model": {
@@ -350,9 +372,11 @@
       "color": "#813781",
       "abbr": "MD",
       "design": "owner-accepted-2026-10-14",
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Node types you get out of the box\", which lists \"Annotation concepts (editable)\": QDIC ships this type, but it is not a system type."
       }
     },
     "keyword": {
@@ -394,9 +418,12 @@
       "inverse": "partOf",
       "direction": "out",
       "isSystem": true,
+      "role": "containment",
+      "layoutRole": "structure",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field role is containment because GV Predicates says that contains is \"Derived from the asset hierarchy\" (lead decision D12). The field layoutRole is structure: the mockup lib/topology.js lines 24 and 1500 put this predicate in the structure family (lead decision D37)."
       }
     },
     "broader": {
@@ -404,9 +431,11 @@
       "inverse": "narrower",
       "direction": "out",
       "isSystem": true,
+      "layoutRole": "structure",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field layoutRole is structure: the mockup lib/topology.js lines 24 and 1500 put this predicate in the structure family (lead decision D37)."
       }
     },
     "derivedFrom": {
@@ -414,9 +443,11 @@
       "inverse": null,
       "direction": "in",
       "isSystem": true,
+      "layoutRole": "lineage",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field layoutRole is lineage: the mockup lib/topology.js line 1544 puts this predicate in LINEAGE_PREDICATES, which orders the nodes in a tree row (lead decision D13x)."
       }
     },
     "definedBy": {
@@ -424,9 +455,11 @@
       "inverse": null,
       "direction": "in",
       "isSystem": true,
+      "layoutRole": "lineage",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field layoutRole is lineage: the mockup lib/topology.js line 1544 puts this predicate in LINEAGE_PREDICATES, which orders the nodes in a tree row (lead decision D13x)."
       }
     },
     "dependsOn": {
@@ -434,9 +467,11 @@
       "inverse": null,
       "direction": "in",
       "isSystem": true,
+      "layoutRole": "lineage",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field layoutRole is lineage: the mockup lib/topology.js line 1544 puts this predicate in LINEAGE_PREDICATES, which orders the nodes in a tree row (lead decision D13x)."
       }
     },
     "mapsTo": {
@@ -444,9 +479,11 @@
       "inverse": null,
       "direction": "in",
       "isSystem": true,
+      "layoutRole": "lineage",
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field layoutRole is lineage: the mockup lib/topology.js line 1544 puts this predicate in LINEAGE_PREDICATES, which orders the nodes in a tree row (lead decision D13x)."
       }
     },
     "sharedWith": {
@@ -495,9 +532,11 @@
       "inverse": null,
       "direction": "both",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "synonymOf": {
@@ -505,9 +544,11 @@
       "inverse": null,
       "direction": "both",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "classifiedAs": {
@@ -515,9 +556,11 @@
       "inverse": null,
       "direction": "out",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "governedBy": {
@@ -525,9 +568,11 @@
       "inverse": null,
       "direction": "out",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "calculatedFrom": {
@@ -535,9 +580,11 @@
       "inverse": null,
       "direction": "out",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "sourcedFrom": {
@@ -545,9 +592,11 @@
       "inverse": null,
       "direction": "out",
       "isSystem": false,
+      "builtIn": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Reference"
+        "section": "Reference",
+        "note": "The field builtIn comes from SA-Intro \"Predicates you get out of the box\", which marks this predicate (editable): QDIC ships it, but it is not a system predicate (STORY-002-09 open question 10, PO ruling)."
       }
     },
     "ownedBy": {
@@ -1164,9 +1213,11 @@
       },
       {
         "key": "is_lost",
+        "lost": true,
         "source": {
           "doc": "GV",
-          "section": "Attributes"
+          "section": "Attributes",
+          "note": "The field lost marks the attribute of the lost mark: the mockup app.js line 780 shows \"No longer seen by the scanner\" for it (lead decision D11)."
         }
       }
     ],
@@ -1435,9 +1486,11 @@
         "asset_name",
         "name"
       ],
+      "labelFallback": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Browsing before you write anything"
+        "section": "Browsing before you write anything",
+        "note": "Design: the field labelFallback comes from the mockup app.js line 658 (the physical name falls back to the node label), ddr-0050 and ddr-0053."
       }
     },
     {
@@ -1447,12 +1500,14 @@
         "logicalName",
         "business_name",
         "display_name",
-        "displayName",
-        "title"
+        "displayName"
       ],
+      "assetOnlyKeys": ["title"],
+      "strong": true,
       "source": {
         "doc": "SA-Intro",
-        "section": "Scenario A: Classify CUSTOMER_EMAIL as PII"
+        "section": "Scenario A: Classify CUSTOMER_EMAIL as PII",
+        "note": "Design: the field strong comes from the mockup app.js SLOTS line 582, ddr-0050 and ddr-0053. The field assetOnlyKeys comes from ddr-0053 and ruling 5: a broad alias such as title applies only to asset types."
       }
     },
     {
@@ -1467,28 +1522,73 @@
       "slot": "owners",
       "keys": ["owners", "owner", "data_owner"],
       "edge": "ownedBy",
+      "strong": true,
+      "itemName": [
+        {
+          "paths": [["given_name"], ["family_name"]],
+          "join": " "
+        },
+        {
+          "paths": [["name"]],
+          "join": ""
+        },
+        {
+          "paths": [["label"]],
+          "join": ""
+        },
+        {
+          "paths": [["email"]],
+          "join": ""
+        },
+        {
+          "paths": [["email_address"]],
+          "join": ""
+        }
+      ],
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "Design: the fields strong and itemName come from the mockup app.js SLOTS line 584 and personName line 569, ddr-0050 and ddr-0053. The itemName alternative email comes from GV Node Types, user: \"email\"."
       }
     },
     {
       "slot": "tags",
-      "keys": ["tags", "labels", "keywords"],
+      "keys": ["tags", "keywords"],
       "edge": "taggedWith",
+      "assetOnlyKeys": ["labels"],
+      "strong": true,
+      "itemName": [
+        {
+          "paths": [
+            ["parent_tag", "label"],
+            ["child_tag", "label"]
+          ],
+          "join": " / "
+        },
+        {
+          "paths": [["label"]],
+          "join": ""
+        },
+        {
+          "paths": [["name"]],
+          "join": ""
+        }
+      ],
       "source": {
         "doc": "GV",
-        "section": "Predicates"
+        "section": "Predicates",
+        "note": "Design: the fields strong and itemName come from the mockup app.js SLOTS line 586 and tagName line 570, ddr-0050 and ddr-0053. The field assetOnlyKeys comes from ddr-0053 and ruling 5: a broad alias such as labels applies only to asset types."
       }
     },
     {
       "slot": "path",
       "keys": ["directory_path", "path", "qualified_name", "fqn"],
       "derive": "path",
+      "strong": true,
       "source": {
         "doc": "GV",
         "section": "Predicates",
-        "note": "Derived. The asset hierarchy is the contains predicate (database to schema, schema to table, table to column). The path is the chain of containers that you find when you follow contains in the inbound direction."
+        "note": "Derived. The asset hierarchy is the contains predicate (database to schema, schema to table, table to column). The path is the chain of containers that you find when you follow contains in the inbound direction. Design: the field strong comes from the mockup app.js SLOTS line 587, ddr-0050 and ddr-0053."
       }
     },
     {
@@ -1505,12 +1605,35 @@
     {
       "slot": "parent_owners",
       "keys": ["parent_owners"],
+      "derive": "parent-owners",
+      "edge": "ownedBy",
+      "itemName": [
+        {
+          "paths": [["given_name"], ["family_name"]],
+          "join": " "
+        },
+        {
+          "paths": [["name"]],
+          "join": ""
+        },
+        {
+          "paths": [["label"]],
+          "join": ""
+        },
+        {
+          "paths": [["email"]],
+          "join": ""
+        },
+        {
+          "paths": [["email_address"]],
+          "join": ""
+        }
+      ],
       "source": {
         "doc": "GV",
         "section": "Predicates",
-        "note": "Derived. The native parent_owners key comes first. If it is not present, the owners are the ownedBy objects of the nearest container, found when you follow contains in the inbound direction."
-      },
-      "derive": "parent-owners"
+        "note": "Derived. The native parent_owners key comes first. If it is not present, the owners are the ownedBy objects of the nearest container, found when you follow contains in the inbound direction. The field edge names the predicate that the engine reads on that nearest container, never on the node itself. The field itemName comes from the mockup app.js line 585 and personName line 569. The itemName alternative email comes from GV Node Types, user: \"email\"."
+      }
     },
     {
       "slot": "data_type",
@@ -1523,20 +1646,29 @@
     {
       "slot": "ddl_comment",
       "keys": ["ddl_comment", "comment_on_ddl"],
+      "strong": true,
       "source": {
         "doc": "GV",
-        "section": "Not yet included"
+        "section": "Not yet included",
+        "note": "Design: the field strong comes from the mockup app.js SLOTS line 590, ddr-0050 and ddr-0053."
       }
     },
     {
       "slot": "asset_groups",
       "keys": ["asset_groups"],
       "edge": "groupedIn",
+      "edgeObject": "asset_group",
+      "itemName": [
+        {
+          "paths": [["name"]],
+          "join": ""
+        }
+      ],
       "source": {
         "doc": "GV",
-        "section": "Predicates"
-      },
-      "edgeObject": "asset_group"
+        "section": "Predicates",
+        "note": "Design: the field itemName comes from the mockup app.js SLOTS line 591."
+      }
     },
     {
       "slot": "updated",
@@ -1559,50 +1691,64 @@
     {
       "kind": "rows",
       "columns": ["source", "target"],
+      "predicate": "relatedTo",
+      "hintDefault": true,
       "source": {
         "doc": "PRD",
-        "section": "FR-DATA-10"
+        "section": "FR-DATA-10",
+        "note": "The field predicate is relatedTo: PRD FR-DATA-10 names relatedTo and contains as the predicates that the shaper makes, and epic Q6 gives this predicate to each edge that the entry makes. The field hintDefault makes this entry the default of a rows hint with no predicate (STORY-002-09 open question 12)."
       }
     },
     {
       "kind": "rows",
       "columns": ["from", "to"],
+      "predicate": "relatedTo",
       "source": {
         "doc": "PRD",
-        "section": "FR-DATA-10"
+        "section": "FR-DATA-10",
+        "note": "The field predicate is relatedTo: PRD FR-DATA-10 names relatedTo, and epic Q6 gives this predicate to each edge that the entry makes."
       }
     },
     {
       "kind": "rows",
       "columns": ["parent", "child"],
+      "predicate": "contains",
       "source": {
         "doc": "PRD",
-        "section": "FR-DATA-10"
+        "section": "FR-DATA-10",
+        "note": "The field predicate is contains: PRD FR-DATA-10 names contains, and epic Q6 gives this predicate to each edge that the entry makes."
       }
     },
     {
       "kind": "rows",
       "columns": ["subject", "object"],
+      "predicate": "relatedTo",
       "source": {
         "doc": "GV",
         "section": "Predicates",
-        "note": "Derived. GV lists each pairing as Subject to Object, and SA-Intro Scenario A calls createEdge with subjectNodeId and objectNodeId. Thus subject and object name the two ends of an edge."
+        "note": "Derived. GV lists each pairing as Subject to Object, and SA-Intro Scenario A calls createEdge with subjectNodeId and objectNodeId. Thus subject and object name the two ends of an edge. The field predicate is relatedTo: GV Predicates defines relatedTo, and epic Q6 (PO decision 5) gives this predicate to each edge that the entry makes."
       }
     },
     {
       "kind": "rows",
       "columns": ["*_id"],
+      "predicate": "relatedTo",
       "source": {
         "doc": "PRD",
-        "section": "FR-DATA-10"
+        "section": "FR-DATA-10",
+        "note": "The field predicate is relatedTo: PRD FR-DATA-10 names relatedTo, and epic Q6 gives this predicate to each edge that the entry makes."
       }
     },
     {
       "kind": "tree",
       "columns": ["children", "items"],
+      "predicate": "contains",
+      "labelKeys": ["name", "label", "title"],
+      "hintDefault": true,
       "source": {
         "doc": "PRD",
-        "section": "FR-DATA-10"
+        "section": "FR-DATA-10",
+        "note": "The field predicate is contains: PRD FR-DATA-10 makes parent to child contains. The field labelKeys comes from epic Q7: the label is the first own string key of name, label and title. The field hintDefault makes this entry the default of each tree hint (STORY-002-09 open question 12)."
       }
     }
   ],

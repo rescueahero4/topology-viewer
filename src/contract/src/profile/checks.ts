@@ -118,3 +118,78 @@ export function checkReferences(p: Shape, { needType }: Checker) {
       needType(["globalIdPrefixes", prefix, "type"], entry.type);
   }
 }
+
+// why: PRD FR-DATA-7 — an asset-only key is one more alias of one slot, never a plain key
+export function checkAssetOnlyKeys(p: Shape, { fail }: Checker) {
+  const plain = new Set(p.slots.flatMap((s) => [...s.keys, ...(s.late ?? [])]));
+  const lists = new Map<string, number>();
+  for (const key of p.slots.flatMap((s) => s.assetOnlyKeys ?? []))
+    lists.set(key, (lists.get(key) ?? 0) + 1);
+  p.slots.forEach((s, i) => {
+    s.assetOnlyKeys?.forEach((key, j) => {
+      if (plain.has(key) || (lists.get(key) ?? 0) > 1)
+        fail(
+          ["slots", i, "assetOnlyKeys", j],
+          `key "${key}" is also a plain key or in another assetOnlyKeys list`,
+        );
+    });
+  });
+}
+
+// why: PRD FR-INSPECT-4 rule (d) — Parent owners reads an edge on the nearest container
+export function checkSlotFields(p: Shape, { fail }: Checker) {
+  p.slots.forEach((s, i) => {
+    if (s.derive === "parent-owners" && s.edge === undefined)
+      fail(["slots", i, "edge"], "a parent-owners slot needs an edge");
+    s.itemName?.forEach((alternative, j) => {
+      if (alternative.paths.length > 1 && alternative.join === "")
+        fail(
+          ["slots", i, "itemName", j, "join"],
+          "an alternative with two or more paths needs a join text",
+        );
+    });
+  });
+}
+
+// why: PRD FR-QDIC-7 — "built-in" is for what QDIC ships but does not manage as a system entry
+export function checkBuiltIn(p: Shape, { fail }: Checker) {
+  const lists = [
+    ["nodeTypes", p.nodeTypes],
+    ["predicates", p.predicates],
+  ] as const;
+  for (const [list, record] of lists)
+    for (const [name, entry] of Object.entries(record))
+      if (entry.builtIn && entry.isSystem)
+        fail([list, name, "builtIn"], "a system entry is not built-in");
+}
+
+export function checkTypeMenu(p: Shape, { fail }: Checker) {
+  const categories = new Set(
+    Object.values(p.nodeTypes).map((t) => t.category),
+  );
+  p.typeMenuCategories.order.forEach((name, j, order) => {
+    if (!categories.has(name) || order.indexOf(name) !== j)
+      fail(
+        ["typeMenuCategories", "order", j],
+        `category "${name}" is repeated or no node type has it`,
+      );
+  });
+}
+
+// why: PRD FR-DATA-10 — each kind has one default entry, and only a tree entry reads label keys
+export function checkHeuristics(p: Shape, { fail, needPredicate }: Checker) {
+  const defaults = new Set<string>();
+  p.shapeHeuristics.forEach((h, k) => {
+    const at = ["shapeHeuristics", k];
+    needPredicate([...at, "predicate"], h.predicate);
+    if ((h.kind === "tree") !== (h.labelKeys !== undefined))
+      fail([...at, "labelKeys"], "labelKeys is set for tree entries only");
+    if (h.hintDefault === undefined) return;
+    if (defaults.has(h.kind))
+      fail([...at, "hintDefault"], `a second hintDefault for kind "${h.kind}"`);
+    defaults.add(h.kind);
+  });
+  for (const kind of new Set(p.shapeHeuristics.map((h) => h.kind)))
+    if (!defaults.has(kind))
+      fail(["shapeHeuristics"], `no hintDefault entry for kind "${kind}"`);
+}

@@ -239,7 +239,7 @@ describe("QDIC profile sources", () => {
       profile.pairings.find((p) => p.predicate === "permissionedTo")?.source
         .section,
     ).toBe("System pairings");
-    expect(profile.nodeTypes.classification?.source).toEqual({
+    expect(profile.nodeTypes.classification?.source).toMatchObject({
       doc: "SA-Intro",
       section: "Reference",
     });
