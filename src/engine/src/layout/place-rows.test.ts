@@ -198,6 +198,23 @@ describe("S26 a row that a later node joins shifts back with it (D64)", () => {
     expect(cp.state.treeShifts).toEqual([]);
     expect(cp.state.nudges).toEqual([]);
   });
+
+  // why: rule (d) — a bulk Show inserts its rows with shift 0 (the rows squeeze) and keeps no shift
+  it("gives the same three rows shift 0 for a bulk Show", () => {
+    const { run, state } = s26();
+    const out = run.act(state, { kind: "showMany", ids: ["b1", "c1", "d1"] });
+    for (const [id, p] of state.positions) expect(at(out.state, id)).toEqual(p);
+    expect(out.state.treeRows?.keyCoord).toEqual([
+      [1, 0],
+      [2, 37.5],
+      [3, 75],
+      [4, 112.5],
+      [5, 150],
+      [6, 300],
+    ]);
+    expect(out.state.treeShifts).toEqual([]);
+    expect(out.state.nudges).toEqual([]);
+  });
 });
 
 // why: memo item — the catalog first view draws columns, so the view of this test draws the table

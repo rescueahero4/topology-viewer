@@ -173,6 +173,20 @@ describe("S22 a crowded group expand nudges and collapses back", () => {
     },
     SLOW,
   );
+
+  // why: SA §6 row 16 and rule (b) — a crowded expand in Bubbles nudges nothing
+  it(
+    "moves no drawn node in Bubbles",
+    () => {
+      const run = s22();
+      const state: CanvasState = { ...run.state, layout: "bubbles" };
+      const open = run.act(state, { kind: "expandGroup", group: G });
+      expect(open.crowded).toBe(true);
+      expect(open.state.nudges).toEqual([]);
+      expect(moved(state, open.state)).toEqual([[G, { x: 40, y: 25 }]]);
+    },
+    SLOW,
+  );
 });
 
 describe("S23 two crowded group expands, both collapse orders", () => {

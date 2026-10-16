@@ -310,19 +310,22 @@ describe("the engine tree search and nudge give the reference result", () => {
     SLOW,
   );
 
+  // why: a dense room gives a mover three hits or more, where the sum order of the pushes can change
+  // the last bits; the engine adds them in the order of the newcomers, as the mockup does
   it(
-    "the nudge on 400 random rooms",
+    "the nudge on 800 random rooms, sparse and dense",
     () => {
-      for (let seed = 0; seed < 400; seed++) {
+      for (let seed = 0; seed < 800; seed++) {
         const r = random(4000 + seed);
+        const size = seed % 2 === 0 ? 150 : 30;
         const movers = Array.from({ length: 1 + r.int(40) }, (_, i) => ({
           id: `p${i}`,
-          at: { x: r.real(150), y: r.real(150) },
+          at: { x: r.real(size), y: r.real(size) },
           room: r.pick([100, 100, 60, 7, 0]),
         }));
         const push = Array.from({ length: 1 + r.int(12) }, () => ({
-          x: r.real(150),
-          y: r.real(150),
+          x: r.real(size),
+          y: r.real(size),
         }));
         const at = new Map(movers.map((m) => [m.id, m.at]));
         const rooms = new Map(movers.map((m) => [m.id, m.room]));

@@ -16,7 +16,7 @@ import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
 import type { IconMetrics } from "./drawn";
 import { place, type PlaceResult } from "./place";
-import { undoEntries } from "./undo";
+import { undoEntries, undoRows } from "./undo";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
 const METRICS: IconMetrics = {
@@ -105,6 +105,33 @@ describe("S29 a second moveOut of a target with a home (D70)", () => {
   });
 });
 
+describe("a collapse undoes the events of its removed set from the latest (D54, D65)", () => {
+  // why: two events (seq 1 of X, seq 2 of Y, which X brought) moved `a`; only the order "Y, then X"
+  // finds `a` at each coordinate the event wrote and gives 0.1 back exactly (the other order: 0.09…98)
+  it("writes back the coordinate before the earliest event", () => {
+    const { state, act } = s29();
+    const a1 = 0.1 + 0.2;
+    const both: CanvasState = {
+      ...state,
+      seq: 2,
+      revealed: ["X", "Y", "u", "a"],
+      origins: [["Y", "X"]],
+      positions: [
+        ...state.positions,
+        ["e:u", { x: 410, y: 0 }],
+        ["e:a", { x: 0.7, y: 500 }],
+      ],
+      nudges: [
+        ["e:X", 1, [["e:a", 0.1, 500, a1, 500]]],
+        ["e:Y", 2, [["e:a", a1, 500, 0.7, 500]]],
+      ],
+    };
+    const end = act(both, { kind: "collapse", id: "X" });
+    expect(at(end.state, "e:a")).toEqual({ x: 0.1, y: 500 });
+    expect(end.state.nudges).toEqual([]);
+  });
+});
+
 const shift = (vertical: boolean, seq: number): ShiftEntry => [
   "e:k",
   seq,
@@ -172,5 +199,34 @@ describe("undoEntries (rule (a), D79, D83-D85)", () => {
     expect(undoEntries([["e:a", { x: 0.7, y: 0 }]], [rows, together])).toEqual([
       ["e:a", { x: 0.1, y: 0 }],
     ]);
+  });
+
+  // why: 100.1 - (100.1 - 0.1) is 0.09999999999999432, so only the write-back gives 0.1 exactly
+  it("writes back a row coordinate, a joined node and a row key (D21, D64)", () => {
+    const moved: ShiftEntry = [
+      "e:k",
+      1,
+      {
+        vertical: true,
+        shiftOf: [[5, 0.1, 100.1]],
+        inserted: [7],
+        moved: [["e:a", 0.1, 100.1]],
+      },
+    ];
+    expect(undoEntries([["e:a", { x: 3, y: 100.1 }]], [moved])).toEqual([
+      ["e:a", { x: 3, y: 0.1 }],
+    ]);
+    const at = new Map([["e:b", { x: 9, y: 100.1 }]]);
+    const rows = {
+      vertical: true,
+      keyOf: new Map([["e:b", 5]]),
+      coord: new Map([
+        [5, 100.1],
+        [7, 50],
+      ]),
+    };
+    undoRows(at, rows, moved[2], ["e:b"]);
+    expect(at.get("e:b")).toEqual({ x: 9, y: 0.1 });
+    expect([...rows.coord]).toEqual([[5, 0.1]]);
   });
 });
