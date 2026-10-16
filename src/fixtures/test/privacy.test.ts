@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { generate } from "../src";
 import { datasetFiles, qdicFiles, scenarioFiles } from "../src/files";
 
 const EMAIL = /[\w.+-]+@([\w-]+(?:\.[\w-]+)+)/g;
@@ -10,14 +11,20 @@ const BARE_HOST =
 const TENANT_ID = /^[a-z]+-[0-9a-f]{8,}(?:-|$)/;
 const ALLOWED_HOSTS = ["example.com", "console.cloud.google.com"];
 
-function strings(value: unknown, out: string[] = []): string[] {
-  if (typeof value === "string") out.push(value);
-  else if (Array.isArray(value)) value.forEach((item) => strings(item, out));
-  else if (typeof value === "object" && value !== null)
-    Object.entries(value).forEach(([key, item]) => {
-      out.push(key);
-      strings(item, out);
-    });
+// why: an explicit stack, so the 10,000-level generator tree does not overflow (STORY-002-01 S37)
+function strings(value: unknown): string[] {
+  const out: string[] = [];
+  const stack = [value];
+  while (stack.length > 0) {
+    const item = stack.pop();
+    if (typeof item === "string") out.push(item);
+    else if (Array.isArray(item)) stack.push(...(item as unknown[]));
+    else if (typeof item === "object" && item !== null)
+      for (const [key, child] of Object.entries(item)) {
+        out.push(key);
+        stack.push(child);
+      }
+  }
   return out;
 }
 
@@ -94,5 +101,34 @@ describe("S15 negative cases", () => {
     ).toEqual(["tableau.acme.com"]);
     expect(TENANT_ID.test("tbl-0123456789abcdef-x")).toBe(true);
     expect(TENANT_ID.test("node-8f3a")).toBe(false);
+  });
+});
+
+describe("S37 the generator output is synthetic", () => {
+  const graphs = [
+    generate.grid(27, 45),
+    generate.chain(20),
+    generate.star(500),
+    generate.random(2000, 4000, 42),
+  ];
+  const output = [
+    ...graphs,
+    generate.tree(2, { width: 5000 }),
+    generate.tree(10000),
+  ].flatMap((value) => strings(value));
+
+  it("holds no e-mail address, URL or host name", () => {
+    expect(output.length).toBeGreaterThan(10000);
+    expect(output.flatMap((text) => hostsIn(text, EMAIL))).toEqual([]);
+    expect(output.flatMap((text) => hostsIn(text, URL_HOST))).toEqual([]);
+    expect(output.flatMap((text) => hostsIn(text, BARE_HOST))).toEqual([]);
+  });
+
+  it("gives only ids of the form n0, n1, …", () => {
+    const ids = graphs.flatMap((graph) => [
+      ...graph.nodes.map((node) => node.id),
+      ...graph.edges.flatMap((edge) => [edge.subject, edge.object]),
+    ]);
+    expect(ids.filter((id) => !/^[a-z]+[0-9.]*$/.test(id))).toEqual([]);
   });
 });
