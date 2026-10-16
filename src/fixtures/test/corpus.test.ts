@@ -208,22 +208,20 @@ describe("STORY-002-09 T5 warning counts", () => {
   });
 
   it("S48 declares constraint-violation per relationship on exactly 12 fixtures", () => {
-    expect(declared("constraint-violation", constraintViolationCount)).toEqual(
-      {
-        "s-access": 2,
-        "s-badroot": 6,
-        "s-lineage": 6,
-        "s-vague": 6,
-        "s-chain": 13,
-        "s-extend": 1,
-        "s-islands": 2,
-        "s-many-preds": 6,
-        "s-mixed": 6,
-        "s-mixed-designed": 6,
-        "s-undeclared": 6,
-        "s-vocab-meta": 1,
-      },
-    );
+    expect(declared("constraint-violation", constraintViolationCount)).toEqual({
+      "s-access": 2,
+      "s-badroot": 6,
+      "s-lineage": 6,
+      "s-vague": 6,
+      "s-chain": 13,
+      "s-extend": 1,
+      "s-islands": 2,
+      "s-many-preds": 6,
+      "s-mixed": 6,
+      "s-mixed-designed": 6,
+      "s-undeclared": 6,
+      "s-vocab-meta": 1,
+    });
   });
 
   it("S47 keeps the QDIC fixtures free of warnings", () => {
