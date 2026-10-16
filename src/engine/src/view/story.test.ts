@@ -117,3 +117,85 @@ describe("S30 a root inside a group", () => {
     expect(state.selection).toEqual({ node: group });
   });
 });
+
+describe("S37 a root that is not a string or not found", () => {
+  const graph = {
+    nodes: [{ id: "a" }, { id: "b" }, { id: "c" }],
+    edges: [{ subject: "a", predicate: "p", object: "b" }],
+  };
+  const runs = [7, null, {}, ["a"], true, "zzz"].map((root) => {
+    const result = normalize(
+      { ...graph, view: { root } },
+      { now: "2026-10-14" },
+    );
+    if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
+    const { vocab } = resolveVocab(
+      result.graph,
+      result.payload,
+      profile,
+      LIGHT,
+    );
+    const state = firstView(result.graph, vocab, result.payload, result.hash);
+    return { root, result, state };
+  });
+  const last = runs[runs.length - 1];
+
+  it.each(runs.map((run) => [JSON.stringify(run.root), run] as const))(
+    "root %s gives one root-not-found and opens Active",
+    (_, { result, state }) => {
+      const found = result.issues.filter((i) => i.code === "root-not-found");
+      expect(found).toEqual([
+        { code: "root-not-found", path: ["view", "root"] },
+      ]);
+      expect(state.approach).toBe("active");
+      expect(state.selection).toEqual({ node: "e:a" });
+      expect(state).toStrictEqual(last.state);
+      expect(result.hash).toBe(last.result.hash);
+    },
+  );
+
+  it("keeps a sent approach and adds none with no root", () => {
+    const passive = normalize(
+      { ...graph, view: { root: 7, approach: "passive" } },
+      { now: "2026-10-14" },
+    );
+    const none = normalize({ ...graph, view: {} }, { now: "2026-10-14" });
+    if (!passive.ok || !none.ok) throw new Error("fatal");
+    expect(passive.payload.view).toStrictEqual({ approach: "passive" });
+    expect(none.payload.view).toStrictEqual({});
+  });
+});
+
+describe("S38 explore and collapse clear an edge selection", () => {
+  const run = load({
+    nodes: ["a", "b", "c", "d"].map((id) => ({ id, type: "t0" })),
+    edges: [
+      { subject: "a", predicate: "p", object: "b" },
+      { subject: "b", predicate: "p", object: "c" },
+      { subject: "c", predicate: "p", object: "d" },
+    ],
+    view: { root: "a", reveal: ["b"], approach: "active" },
+  });
+  const edge = '["e:a","p","e:b"]';
+  const pick = (state: CanvasState) =>
+    run.act(state, { kind: "selectEdge", edge, anchor: "e:b" });
+
+  it("keeps the anchor node and drops the edge", () => {
+    const picked = pick(run.first());
+    expect(picked.selection).toEqual({ edge, anchor: "e:b" });
+    const open = run.act(picked, { kind: "explore", id: "b" });
+    expect(run.drawn(open).edges.map((e) => e.key)).toContain(edge);
+    expect(open.selection).toEqual({ node: "e:b" });
+    const shut = run.act(pick(open), { kind: "collapse", id: "b" });
+    expect(run.drawn(shut).edges.map((e) => e.key)).toContain(edge);
+    expect(shut.selection).toEqual({ node: "e:b" });
+    const node = run.act(pick(shut), { kind: "select", node: "e:a" });
+    expect(node.selection).toEqual({ node: "e:a" });
+  });
+
+  it("keeps the edge for a path that leaves it drawn", () => {
+    const far = run.act(pick(run.first()), { kind: "path", id: "d" });
+    expect(far.revealed).toEqual(["a", "b", "c", "d"]);
+    expect(far.selection).toEqual({ edge, anchor: "e:b" });
+  });
+});

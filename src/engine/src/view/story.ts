@@ -175,14 +175,16 @@ function nodeAfter(top: Topology, view: DrawnView, node: DrawnId): Selection {
   return drawn === null ? null : { node: drawn };
 }
 
-// why: STORY-002-04 Context — a selection that leaves the drawn set is cleared; a member that goes
-// into a group hands the selection to the group (mockup `collapse`, lib/topology.js line 2146)
-function kept(top: Topology, state: CanvasState): Selection {
+// why: STORY-002-04 Context and owner decision D90 — a selection that leaves the drawn set is
+// cleared; a node that goes into a group hands the selection to the group; an explore or a
+// collapse clears an edge pick and keeps its anchor node (mockup `select`, lib/topology.js line 2083)
+function kept(top: Topology, state: CanvasState, action: Step): Selection {
   const { selection } = state;
   if (selection === null) return null;
   const view = drawnView(top, state);
   if (!("edge" in selection)) return nodeAfter(top, view, selection.node);
-  if (view.frontier.edges.some((edge) => edge.key === selection.edge))
+  const reshaped = action.kind === "explore" || action.kind === "collapse";
+  if (!reshaped && view.frontier.edges.some((e) => e.key === selection.edge))
     return selection;
   return nodeAfter(top, view, selection.anchor);
 }
@@ -252,6 +254,6 @@ export function transition(
     return selectEdge(top, state, action.edge, action.anchor);
   const next = step(top, state, action);
   if (next === state) return state;
-  const selection = kept(top, next);
+  const selection = kept(top, next, action);
   return selection === next.selection ? next : { ...next, selection };
 }

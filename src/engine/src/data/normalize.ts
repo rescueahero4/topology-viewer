@@ -177,6 +177,17 @@ function viewIssues(input: unknown, map: Map<string, string>): Issue[] {
   return issues;
 }
 
+// why: lead decision D89 — a root that the contract dropped is still a sent root, and an unknown
+// root opens Active (PRD FR-CANVAS-13)
+function viewOf(input: unknown, payload: Payload): Payload {
+  const view = at(input, ["view"]);
+  const sent =
+    typeof view === "object" && view !== null && Object.hasOwn(view, "root");
+  if (!sent || payload.view?.root !== undefined) return payload;
+  if (payload.view?.approach !== undefined) return payload;
+  return { ...payload, view: { ...payload.view, approach: "active" } };
+}
+
 function constraintIssues(
   graph: Graph,
   payload: Payload,
@@ -263,7 +274,7 @@ function run(input: unknown, now: string): Normalized {
   const shaped = shape(input, data, profile);
   if (!shaped.ok) return { ok: false, fatal: shaped.fatal };
   const made = "shaped" in shaped ? shaped : undefined;
-  const payload = payloadOf(data);
+  const payload = viewOf(input, payloadOf(data));
   const issues: Issue[] = [...parsed.issues, ...shaped.issues];
   if (made) issues.push({ code: "shaped-from", path: ["shape"] });
   const lists = nodeLists(shaped.input, made !== undefined);
