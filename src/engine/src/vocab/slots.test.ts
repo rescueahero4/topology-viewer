@@ -181,6 +181,21 @@ describe("S25 every record of a merged entity", () => {
       { value: "Gold", from: "taggedWith" },
     ]);
   });
+
+  it("(b) reads the Tags of an edge sent from record 2, through normalize", () => {
+    const vocab = resolved({
+      nodes: [
+        { id: "r1", type: "table", label: "T", attrs: { owner: "Bob" } },
+        { id: "r2", type: "table", label: "T", attrs: { owner: "Bob" } },
+        { id: "g", type: "tag", label: "Gold" },
+      ],
+      edges: [{ subject: "r2", predicate: "taggedWith", object: "g" }],
+    });
+    expect(entitySlots(vocab, "r2")).toBeNull();
+    expect(slot(vocab, "r1", "tags")).toEqual([
+      { value: "Gold", from: "taggedWith" },
+    ]);
+  });
 });
 
 describe("S26 unknown slots and plain strings", () => {

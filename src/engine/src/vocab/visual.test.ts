@@ -309,3 +309,26 @@ describe("S44 q-full-vocabulary icons and icon-less types", () => {
       });
   });
 });
+
+describe("guardColor channels (Security minor (a))", () => {
+  it("refuses a channel that is not an integer 0-255", () => {
+    for (const rgb of [
+      [NaN, 1, 2],
+      [1.5, 0, 0],
+      [-1, 0, 0],
+      [256, 0, 0],
+      [Infinity, 0, 0],
+    ] as unknown as Rgb[])
+      expect(() => guardColor(rgb, LIGHT)).toThrow(RangeError);
+    expect(() => guardColor([1, 2] as unknown as Rgb, LIGHT)).toThrow(
+      RangeError,
+    );
+    expect(() => guardColor([0, 0, 0], "#zzzzzz" as Hex)).toThrow(RangeError);
+    for (const rgb of [
+      [0, 0, 0],
+      [255, 255, 255],
+      [12, 200, 99],
+    ] as Rgb[])
+      expect(guardColor(rgb, LIGHT)).toMatch(HEX);
+  });
+});

@@ -173,3 +173,36 @@ describe("S43 strong and labelFallback from the profile", () => {
     expect(slot(without("labelFallback"), "t9", "physical_name")).toEqual([]);
   });
 });
+
+describe("S45 empty labels give no entry", () => {
+  it('drops the value "" from every label step', () => {
+    const vocab = resolved({
+      nodes: [
+        { id: "ds", type: "data_source", label: "" },
+        { id: "db", type: "database", label: "DB" },
+        { id: "t", type: "table", label: "" },
+        { id: "c", type: "column", label: "C" },
+        { id: "u", type: "user", label: "" },
+      ],
+      edges: [
+        ["ds", "contains", "db"],
+        ["db", "contains", "t"],
+        ["t", "contains", "c"],
+        ["t", "ownedBy", "u"],
+        ["c", "ownedBy", "u"],
+      ],
+    });
+    expect(slot(vocab, "t", "physical_name")).toEqual([]);
+    expect(slot(vocab, "t", "owners")).toEqual([]);
+    expect(slot(vocab, "t", "data_source")).toEqual([]);
+    expect(slot(vocab, "c", "parent_owners")).toEqual([]);
+    expect(slot(vocab, "c", "data_source")).toEqual([]);
+    const all = [...vocab.entities.keys()].flatMap(
+      (id) => entitySlots(vocab, id)?.slots.flatMap((s) => s.entries) ?? [],
+    );
+    expect(all.some((entry) => entry.value === "")).toBe(false);
+    expect(slot(vocab, "c", "physical_name")).toEqual([
+      { value: "C", from: "label" },
+    ]);
+  });
+});

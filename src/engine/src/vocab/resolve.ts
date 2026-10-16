@@ -1,10 +1,5 @@
 import type { Issue, Profile, RenderInput } from "@qdic-topology/contract";
-import {
-  containment,
-  type Entity,
-  type NodeRecord,
-  type Triple,
-} from "../data/merge";
+import { containment, type Entity, type NodeRecord } from "../data/merge";
 import type { Graph, Payload } from "../data/normalize";
 import type { Hex } from "./colors";
 import {
@@ -21,6 +16,9 @@ import {
 } from "./predicates";
 import {
   chainsOf,
+  edgeIndex,
+  mappingsOf,
+  nativeKeysOf,
   slotsOf,
   type Slot,
   type SlotContext,
@@ -239,16 +237,8 @@ function writableOf(records: NodeRecord[], profile: Profile) {
     : undefined;
 }
 
-function outOf(triples: Triple[]): Map<string, Triple[]> {
-  const out = new Map<string, Triple[]>();
-  for (const triple of triples) {
-    const list = out.get(triple.subject) ?? [];
-    list.push(triple);
-    out.set(triple.subject, list);
-  }
-  return out;
-}
-
+// why: Security blocking item (1) — each index is built once for each call, so the slot work
+// stays near-linear in the input size (S46)
 function slotContext(
   graph: Graph,
   payload: Payload,
@@ -258,10 +248,12 @@ function slotContext(
 ): SlotContext {
   return {
     profile: ctx.profile,
-    fields: entriesOf(payload.fields),
+    native: nativeKeysOf(ctx.profile),
+    mappings: mappingsOf(entriesOf(payload.fields)),
     records: ctx.records,
     labels: new Map(graph.entities.map((entity) => [entity.id, entity.label])),
-    out: outOf(graph.triples),
+    out: edgeIndex(graph.triples),
+    owners: new Map(),
     chains: chainsOf(
       graph.entities,
       graph.triples,

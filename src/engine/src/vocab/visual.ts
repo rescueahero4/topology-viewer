@@ -102,10 +102,17 @@ export function contrast(a: Rgb, b: Rgb): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
 }
 
+const isChannel = (value: number) =>
+  Number.isInteger(value) && value >= 0 && value <= 255;
+
 // why: mockup `guardColor` (lib/topology.js lines 221-228) as it is, then question 2: the
 // lightness floor on a light canvas, and lighten steps on a dark canvas (D16)
 export function guardHsl(rgb: Rgb, canvas: Hex): Hsl {
   const back = rgbOfHex(canvas);
+  // why: SA §5 and Security minor (a) — a channel that is not an integer 0–255 is a programmer
+  // error (the engine passes only parsed colours), so the output is always `#rrggbb`
+  if (rgb.length !== 3 || ![...rgb, ...back].every(isChannel))
+    throw new RangeError("The guard takes channels that are integers 0-255.");
   const [h, sat, start] = rgbHsl(rgb);
   const s = Math.min(sat, MAX_SATURATION);
   const reads = (l: number) =>
