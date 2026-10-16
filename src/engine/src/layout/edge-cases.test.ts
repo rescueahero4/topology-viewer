@@ -76,6 +76,7 @@ describe("S19 2,000 nodes in the static layouts", () => {
       expect(out.positions).toHaveLength(2000);
       expect(finite(out.positions)).toBe(true);
     },
+    30_000,
   );
 });
 

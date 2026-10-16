@@ -17,6 +17,9 @@ type Rows = {
 // lib/topology.js line 1562), the curation zone starts at 100 (line 1581)
 const LANE_DEPTH = 5;
 const ZONE = 100;
+// why: owner decision D92 (2) and lead item L-1 — a type level above 99 is read as 99, so no model
+// type shares the rows of the curation zone, and -0 is read as 0
+const LEVEL_CAP = 99;
 
 // why: lead decision D47 — levels, tree roles, `role` and `layoutRole` come from `vocab` only
 function rowsInput(frontier: Frontier, vocab: Vocab): Rows {
@@ -42,7 +45,11 @@ function rowsInput(frontier: Frontier, vocab: Vocab): Rows {
   }
   return {
     n: types.length,
-    level: types.map((type) => type?.level),
+    level: types.map((type) =>
+      type?.level === undefined
+        ? undefined
+        : Math.min(Math.max(type.level, 0), LEVEL_CAP),
+    ),
     role: types.map((type) => type?.treeRole),
     sameType: (a, b) => frontier.nodes[a].type === frontier.nodes[b].type,
     near,
@@ -65,27 +72,32 @@ function levelled(rows: Rows): (number | undefined)[] {
   return level;
 }
 
-// why: rule (2), mockup lines 1558-1572 — the smallest level an attribute hangs off, and the
-// steps to it; each round reads the values of the round before, so the edge order does not matter
+// why: rule (2), mockup lines 1558-1572, owner decision D92 (1) — the smallest level an attribute
+// hangs off, with the v56 update inside one round: a value changed in a round is read again in the
+// same round; the canonical edge order makes the result repeatable (NF-3)
 function lane(rows: Rows, level: readonly (number | undefined)[]) {
   const from: (number | undefined)[] = [...level];
   const depth: number[] = [];
   let front = level.flatMap((l, at) => (l === undefined ? [] : [at]));
   for (let step = 1; front.length > 0 && step <= LANE_DEPTH; step++) {
-    const found = new Map<number, number>();
-    for (const at of front)
-      for (const next of rows.near[at]) {
-        if (rows.role[next] !== "attribute" || level[next] !== undefined)
-          continue;
-        const l = from[at] as number;
-        const best = found.get(next) ?? from[next];
-        if (best === undefined || l < best) found.set(next, l);
+    const next: number[] = [];
+    const read = new Map<number, number>();
+    for (const at of front) {
+      const l = from[at] as number;
+      // why: a second read of an unchanged value changes nothing, so it is skipped (bounded work)
+      if (read.get(at) === l) continue;
+      read.set(at, l);
+      for (const m of rows.near[at]) {
+        if (rows.role[m] !== "attribute" || level[m] !== undefined) continue;
+        const cur = from[m];
+        if (cur === undefined || l < cur || (l === cur && step < depth[m])) {
+          from[m] = l;
+          depth[m] = step;
+          next.push(m);
+        }
       }
-    for (const [at, l] of found) {
-      from[at] = l;
-      depth[at] = step;
     }
-    front = [...found.keys()];
+    front = next;
   }
   return { from, depth };
 }

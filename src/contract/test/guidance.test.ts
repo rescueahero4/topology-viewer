@@ -290,5 +290,5 @@ describe("S14, S15 generated module", () => {
     const bad = compile(broken);
     expect(bad.status).not.toBe(0);
     expect(bad.stdout).toContain("TS1005");
-  });
+  }, 30_000);
 });

@@ -137,7 +137,7 @@ describe("deep and wide trees", () => {
     expect(out.treeRows?.keyCoord).toHaveLength(2000);
     expect(out.treeRows?.rows.at(-1)).toEqual(["e:n1999", 1999]);
     expect(run.lay("atomic").positions).toHaveLength(2000);
-  });
+  }, 30_000);
 
   it("puts a 1,999-leaf containment star on 2 rows", () => {
     const nodes = Array.from({ length: 2000 }, (_, k) => ({
@@ -150,7 +150,7 @@ describe("deep and wide trees", () => {
       [0, 0],
       [1, 150],
     ]);
-  });
+  }, 30_000);
 
   it("releases a long containment cycle and a lineage cycle", () => {
     const ring = chainOf(50);

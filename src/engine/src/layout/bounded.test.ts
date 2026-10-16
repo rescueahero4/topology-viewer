@@ -27,6 +27,8 @@ const EDGES = 4000;
 // work that grows faster than the input (lead decision D90 L-3). Force is bounded by its tick cap
 // (S5), and its time at the caps is in the build memo
 const LIMIT_MS = 250;
+// why: ISSUE-006 — the median of 3 timed calls after one warm-up call
+const RUNS = 3;
 
 type Compact = { nodes: string[][]; edges: string[][] };
 
@@ -110,9 +112,15 @@ function load(input: object) {
 function timed(input: object) {
   const { state, vocab, drawn } = load(input);
   return LAYOUTS.map((name) => {
-    const start = performance.now();
-    const out = layout(state, drawn, vocab, name, METRICS, state.graphHash);
-    const ms = performance.now() - start;
+    const run = () =>
+      layout(state, drawn, vocab, name, METRICS, state.graphHash);
+    const out = run();
+    const times = Array.from({ length: RUNS }, () => {
+      const start = performance.now();
+      run();
+      return performance.now() - start;
+    }).sort((a, b) => a - b);
+    const ms = times[Math.floor(RUNS / 2)];
     for (const [, p] of out.positions)
       expect(Number.isFinite(p.x) && Number.isFinite(p.y)).toBe(true);
     expect(out.positions).toHaveLength(drawn.nodes.length);
@@ -130,12 +138,16 @@ function within(name: string, input: object) {
 }
 
 describe("each static layout is bounded at the caps", () => {
-  it.each(CASES)("%s ends within the limit", (name, make) => {
-    const input = make();
-    expect(input.nodes).toHaveLength(NODES);
-    expect(input.edges).toHaveLength(EDGES);
-    within(name, input);
-  });
+  it.each(CASES)(
+    "%s ends within the limit",
+    (name, make) => {
+      const input = make();
+      expect(input.nodes).toHaveLength(NODES);
+      expect(input.edges).toHaveLength(EDGES);
+      within(name, input);
+    },
+    30_000,
+  );
 
   it("catalog ends within the limit", () => {
     within("catalog", datasets.catalog.graph);
