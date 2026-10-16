@@ -7,6 +7,7 @@ export {
   type Payload,
 } from "./data/normalize";
 export type { EdgeRecord, Entity, NodeRecord, Triple } from "./data/merge";
+export type { Shaped } from "./data/shape";
 export {
   canvasNotice,
   copyMessage,

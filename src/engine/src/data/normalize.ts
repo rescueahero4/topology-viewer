@@ -2,8 +2,8 @@ import {
   CAPS,
   copyBytes,
   parseRenderInput,
+  profile,
   rawCounts,
-  sendsToShape,
   type FatalInfo,
   type GotToken,
   type Issue,
@@ -12,7 +12,7 @@ import {
 } from "@qdic-topology/contract";
 import { violations } from "./constraints";
 import { fnv1a, stableJson } from "./hash";
-import { merge, type EdgeRecord, type Merged } from "./merge";
+import { merge, type EdgeRecord, type Merged, type NodeRecord } from "./merge";
 import { warningEntries } from "./notices";
 import {
   readEdges,
@@ -21,6 +21,7 @@ import {
   type NodeList,
   type Path,
 } from "./records";
+import { shape, type Shaped, type ShapedSet } from "./shape";
 
 export type Payload = Pick<
   RenderInput,
@@ -53,6 +54,7 @@ export type Normalized =
       counts: Counts;
       hash: number;
       payload: Payload;
+      shaped?: Shaped;
     }
   | { ok: false; fatal: Fatal };
 
@@ -132,12 +134,13 @@ function payloadOf(data: RenderInput): Payload {
   return payload;
 }
 
-function nodeLists(data: RenderInput, input: unknown): NodeList[] {
+// why: lead decision D38 — a shaped record takes no `defaults` value
+function nodeLists(data: RenderInput, shaped: boolean): NodeList[] {
   return [
     {
       path: ["nodes"],
       items: data.nodes ?? [],
-      defaults: !sendsToShape(input),
+      defaults: !shaped,
     },
     {
       path: ["neighborhood", "nodes"],
@@ -211,8 +214,38 @@ function countsOf(graph: Merged, edges: EdgeRecord[], issues: Issue[]): Counts {
   };
 }
 
-function rawNodes(lists: NodeList[]): number {
+function itemCount(lists: { items: unknown[] }[]): number {
   return lists.reduce((sum, list) => sum + list.items.length, 0);
+}
+
+// why: lead decision D41 — only the records and triples that `data/shape` chose are in the set
+function shapedSetOf(merged: Merged, set: ShapedSet | undefined) {
+  const nodes = new Set(set?.nodes);
+  const edges = new Set(set?.edges);
+  return {
+    records: merged.records
+      .filter((record) => nodes.has(record.id))
+      .map((record) => record.id),
+    triples: merged.triples
+      .filter((triple) => edges.has(triple.records[0]))
+      .map((triple) => triple.key),
+  };
+}
+
+// why: PRD FR-DATA-3 and lead decision D40 — no node with an id is fatal, also when `shape` made
+// no node from its raw items
+function noValidNodes(
+  records: NodeRecord[],
+  issues: Issue[],
+  raw: NodeList[],
+  shaped: boolean,
+): Normalized | null {
+  if (records.length > 0) return null;
+  const count = itemCount(raw);
+  if (!issues.some((issue) => issue.code === "no-id") && !(shaped && count > 0))
+    return null;
+  const info: FatalInfo = { code: "no-valid-nodes", rawNodes: count };
+  return { ok: false, fatal: { code: info.code, path: ["nodes"], info } };
 }
 
 function run(input: unknown, now: string): Normalized {
@@ -225,19 +258,24 @@ function run(input: unknown, now: string): Normalized {
     };
   }
   const { data } = parsed;
+  const shaped = shape(input, data, profile);
+  if (!shaped.ok) return { ok: false, fatal: shaped.fatal };
+  const made = "shaped" in shaped ? shaped : undefined;
   const payload = payloadOf(data);
-  const issues: Issue[] = [...parsed.issues];
-  const lists = nodeLists(data, input);
+  const issues: Issue[] = [...parsed.issues, ...shaped.issues];
+  if (made) issues.push({ code: "shaped-from", path: ["shape"] });
+  const lists = nodeLists(shaped.input, made !== undefined);
   const { records, identities } = readNodes(lists, data.defaults, issues);
-  if (records.length === 0 && issues.some((issue) => issue.code === "no-id")) {
-    const info: FatalInfo = {
-      code: "no-valid-nodes",
-      rawNodes: rawNodes(lists),
-    };
-    return { ok: false, fatal: { code: info.code, path: ["nodes"], info } };
-  }
+  const empty = noValidNodes(records, issues, nodeLists(data, false), !!made);
+  if (empty) return empty;
   const ids = new Set(records.map((record) => record.id));
-  const read = readEdges(edgeLists(data), ids, data.defaults, now, issues);
+  const read = readEdges(
+    edgeLists(shaped.input),
+    ids,
+    data.defaults,
+    now,
+    issues,
+  );
   const { graph: merged, map } = merge(
     records,
     read.edges,
@@ -246,15 +284,19 @@ function run(input: unknown, now: string): Normalized {
   );
   issues.push(...constraintIssues(merged, payload, read.paths));
   issues.push(...viewIssues(input, map));
-  const graph: Graph = { ...merged, shapedSet: { records: [], triples: [] } };
+  const graph: Graph = {
+    ...merged,
+    shapedSet: shapedSetOf(merged, made?.shapedSet),
+  };
   return {
     ok: true,
     graph,
     issues,
-    warnings: warningEntries(issues),
+    warnings: warningEntries(issues, made?.shaped),
     counts: countsOf(merged, read.edges, issues),
     hash: hashOf(graph),
     payload,
+    ...(made ? { shaped: made.shaped } : {}),
   };
 }
 

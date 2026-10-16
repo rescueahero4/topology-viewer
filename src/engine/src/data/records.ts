@@ -5,7 +5,8 @@ import {
   type RenderInput,
 } from "@qdic-topology/contract";
 import { guardDepth, type Attrs } from "./hash";
-import type { EdgeRecord, NodeRecord } from "./merge";
+import type { EdgeRecord, NodeRecord, Triple } from "./merge";
+import { keysPathOf, nullRecord, reasonOf } from "./tally";
 
 export type Path = Issue["path"];
 
@@ -46,12 +47,6 @@ function defaultPredicate(): string {
 
 const DEFAULT_PREDICATE = defaultPredicate();
 
-function nullRecord<T>(entries: [string, T][]): Record<string, T> {
-  const record = Object.create(null) as Record<string, T>;
-  for (const [key, value] of entries) record[key] = value;
-  return record;
-}
-
 type Shape = {
   id?: string;
   idField: string | number;
@@ -89,7 +84,7 @@ function shapeOf(item: NonNullable<NodeItem>, path: Path): Shape {
     type: item.type ?? item.nodeType,
     label: item.label ?? item.physicalName,
     attrs: { ...item.attributes, ...item.attrs },
-    attrsPath: [...path, "attrs"],
+    attrsPath: keysPathOf(item) ?? [...path, "attrs"],
     inferred: item._inferred,
     logicalName: item.logicalName,
     isWritable: item.isWritable,
@@ -255,14 +250,23 @@ function folded(subject: string, predicate: string, object: string) {
   };
 }
 
+type ShapedRecord = EdgeRecord & Pick<Triple, "inferred">;
+
+// why: lead decision D32 — the reason of a shaped predicate goes into the Triple `inferred`; only
+// `data/shape` writes it, under a symbol key that no input key can replace
+function inferredOf(item: EdgeItem): Triple["inferred"] {
+  const reason = item === null ? undefined : reasonOf(item);
+  return reason === undefined ? undefined : nullRecord([["predicate", reason]]);
+}
+
 export function readEdges(
   lists: EdgeList[],
   ids: Set<string>,
   defaults: Defaults,
   now: string,
   issues: Issue[],
-): { edges: EdgeRecord[]; paths: Path[] } {
-  const edges: EdgeRecord[] = [];
+): { edges: ShapedRecord[]; paths: Path[] } {
+  const edges: ShapedRecord[] = [];
   const paths: Path[] = [];
   for (const list of lists) {
     list.items.forEach((item, index) => {
@@ -284,6 +288,7 @@ export function readEdges(
           attrs: guarded(ends.attrs, ends.attrsPath, issues),
           ...ends.rest,
           retired: isActive === false || before(validTo, now),
+          inferred: inferredOf(item),
         }),
       );
     });

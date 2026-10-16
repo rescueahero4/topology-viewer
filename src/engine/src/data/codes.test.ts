@@ -46,8 +46,8 @@ function fatalCase(code: string, input: Record<string, unknown>): Case {
   };
 }
 
-// why: decision D3 — the 13 codes that no corpus fixture names, plus a second producer of
-// `constraint-violation`; case 14 (`shaped-from`) comes with STORY-002-02
+// why: decision D3 — the 14 codes that no corpus fixture names, plus a second producer of
+// `constraint-violation`
 const CASES: Record<number, Case> = {
   1: graphCase("constraint-violation", {
     types: { ...TYPES, t1: { label: "T1", rank: 0 } },
@@ -89,6 +89,18 @@ const CASES: Record<number, Case> = {
     items: [{ name: "a" }],
     shape: { kind: "graph" },
   }),
+  14: {
+    input: {
+      nodes: [{ from: "n0", to: "n1" }],
+      shape: { kind: "rows", subject: "from", object: "to" },
+    },
+    expect: expectSchema.parse({
+      schema: "pass",
+      firstPaint: PASSIVE,
+      notice: null,
+      warnings: { "shaped-from": 1 },
+    }),
+  },
 };
 
 // why: SA v0.12 §4.2 — the 23 codes, each with its producer; a string is a corpus fixture and a
@@ -121,7 +133,6 @@ const PRODUCERS: Record<string, string | number> = {
 
 // why: these codes are checked in the engine result by the story that produces them
 const CHECKED_LATER: Record<string, string> = {
-  "shaped-from": "STORY-002-02 (case 14, data/shape)",
   "unknown-type": "STORY-002-03 S30 (vocab/resolve)",
 };
 
@@ -159,8 +170,9 @@ describe("T8 the in-test code cases", () => {
 describe("S37 the code cases are synthetic", () => {
   it.each(Object.entries(CASES))("case %s", (_number, { input }) => {
     const ids = [
-      ...((input.nodes as { id?: string }[] | undefined) ?? []).map(
-        (node) => node.id,
+      ...((input.nodes as Record<string, string>[] | undefined) ?? []).flatMap(
+        (node) =>
+          [node.id, node.from, node.to].filter((id) => id !== undefined),
       ),
       ...(Array.isArray(input.edges)
         ? (input.edges as Record<string, string>[])
@@ -197,9 +209,23 @@ describe("S38 each of the 23 codes has a producer", () => {
     expect(produced(normalize(input, NOW))).toContain(code);
   });
 
-  it("checks 21 codes in the engine result now", () => {
+  it("checks 22 codes in the engine result now", () => {
     expect(
       Object.keys(PRODUCERS).length - Object.keys(CHECKED_LATER).length,
-    ).toBe(21);
+    ).toBe(22);
+  });
+});
+
+describe("S26 case 14 of STORY-002-02", () => {
+  it("gives shaped-from with count 1 in the result and the record", () => {
+    const { input, expect: outcome } = CASES[14];
+    const result = normalize(input, NOW);
+    if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
+    expect(result.warnings).toEqual([
+      { code: "shaped-from", count: 1, ids: ["shape"] },
+    ]);
+    expect(outcome.warnings).toEqual({ "shaped-from": 1 });
+    expect(Object.hasOwn(outcome.warnings, "unknown-type")).toBe(false);
+    expect(outcome.firstPaint).toEqual(PASSIVE);
   });
 });
