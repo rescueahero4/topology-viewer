@@ -7,6 +7,7 @@ import {
   type WarningCode,
   type WarningEntry,
 } from "@qdic-topology/contract";
+import type { Shaped } from "./shape";
 
 export type Lang = "en" | "ja";
 export type Info = Readonly<Record<string, unknown>>;
@@ -50,7 +51,14 @@ function cut(text: string, limit: number): string {
   return points.length > limit ? points.slice(0, limit).join("") : text;
 }
 
-export function warningEntries(issues: readonly Issue[]): WarningEntry[] {
+const SHAPED_FROM = "shaped-from";
+
+// why: STORY-002-02 Context — the contract `Issue` has no count, so the `shaped-from` count is the
+// number of shaped edges that `shape` returns beside its issues
+export function warningEntries(
+  issues: readonly Issue[],
+  shaped?: Shaped,
+): WarningEntry[] {
   return notices.codes.filter(isWarning).flatMap((code) => {
     const found = issues.filter((issue) => issue.code === code);
     if (found.length === 0) return [];
@@ -60,7 +68,11 @@ export function warningEntries(issues: readonly Issue[]): WarningEntry[] {
         return last === undefined ? [] : [cut(String(last), ID_LIMIT)];
       })
       .slice(0, ID_COUNT);
-    return [{ code, count: found.length, ids }];
+    const count =
+      code === SHAPED_FROM && shaped !== undefined
+        ? shaped.count
+        : found.length;
+    return [{ code, count, ids }];
   });
 }
 

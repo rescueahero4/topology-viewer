@@ -5,7 +5,8 @@ import {
   type RenderInput,
 } from "@qdic-topology/contract";
 import { guardDepth, type Attrs } from "./hash";
-import type { EdgeRecord, NodeRecord } from "./merge";
+import type { EdgeRecord, NodeRecord, Triple } from "./merge";
+import { isRecord, nullRecord, own } from "./tally";
 
 export type Path = Issue["path"];
 
@@ -45,12 +46,6 @@ function defaultPredicate(): string {
 }
 
 const DEFAULT_PREDICATE = defaultPredicate();
-
-function nullRecord<T>(entries: [string, T][]): Record<string, T> {
-  const record = Object.create(null) as Record<string, T>;
-  for (const [key, value] of entries) record[key] = value;
-  return record;
-}
 
 type Shape = {
   id?: string;
@@ -255,14 +250,30 @@ function folded(subject: string, predicate: string, object: string) {
   };
 }
 
+type ShapedRecord = EdgeRecord & Pick<Triple, "inferred">;
+
+// why: lead decision D32 — the reason of a shaped predicate goes into the Triple `inferred`; only
+// an edge that `data/shape` made carries it, so a model-sent edge `_inferred` stays an attribute
+function splitReason(attrs: Attrs): {
+  attrs: Attrs;
+  inferred?: Triple["inferred"];
+} {
+  const { [INFERRED]: raw, ...rest } = attrs;
+  const predicate = isRecord(raw) ? own(raw, "predicate") : undefined;
+  return typeof predicate === "string"
+    ? { attrs: rest, inferred: nullRecord([["predicate", predicate]]) }
+    : { attrs: rest };
+}
+
 export function readEdges(
   lists: EdgeList[],
   ids: Set<string>,
   defaults: Defaults,
   now: string,
   issues: Issue[],
-): { edges: EdgeRecord[]; paths: Path[] } {
-  const edges: EdgeRecord[] = [];
+  shapedFrom: number,
+): { edges: ShapedRecord[]; paths: Path[] } {
+  const edges: ShapedRecord[] = [];
   const paths: Path[] = [];
   for (const list of lists) {
     list.items.forEach((item, index) => {
@@ -277,13 +288,16 @@ export function readEdges(
       const predicate =
         ends.predicate ?? defaults?.predicate ?? DEFAULT_PREDICATE;
       const { isActive, validTo } = ends.rest;
+      const split =
+        id >= shapedFrom ? splitReason(ends.attrs) : { attrs: ends.attrs };
       edges.push(
         present({
           id,
           ...folded(ends.subject as string, predicate, ends.object as string),
-          attrs: guarded(ends.attrs, ends.attrsPath, issues),
+          attrs: guarded(split.attrs, ends.attrsPath, issues),
           ...ends.rest,
           retired: isActive === false || before(validTo, now),
+          inferred: split.inferred,
         }),
       );
     });
