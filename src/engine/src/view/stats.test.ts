@@ -184,6 +184,15 @@ describe("S25 the row of the entities with no type (D93 (1))", () => {
       expect(onCanvas(off, run.graph, run.vocab, id)).toBe("not-drawn");
     const back = run.act(off, { kind: "toggleType", type: null, on: true });
     expect(run.drawn(back)).toStrictEqual(run.drawn(state));
+    const entities = (drawn: ReturnType<typeof run.drawn>) =>
+      drawn.nodes.flatMap((node) =>
+        "members" in node ? node.members : [node.entity],
+      );
+    for (const id of untyped) {
+      expect(entities(run.drawn(state))).toContain(id);
+      expect(entities(run.drawn(off))).not.toContain(id);
+      expect(entities(run.drawn(back))).toContain(id);
+    }
   });
 
   it("keeps a row for each type name, declared or not", () => {
@@ -204,5 +213,21 @@ describe("S25 the row of the entities with no type (D93 (1))", () => {
         [null, 2],
       ].sort((x, y) => Number(y[1]) - Number(x[1])),
     );
+  });
+
+  it("puts a tied row at its first appearance, like any type (QA F-7)", () => {
+    const rows = (nodes: string[][]) => {
+      const run = load({ nodes, edges: [] });
+      return stats(run.vocab, run.first()).types.map((row) => row.type);
+    };
+    expect(rows([["a"], ["b", "t1"], ["c"], ["d", "t1"]])).toEqual([
+      null,
+      "t1",
+    ]);
+    expect(rows([["b", "t1"], ["a"], ["d", "t1"], ["c"]])).toEqual([
+      "t1",
+      null,
+    ]);
+    expect(rows([["b", "t1"], ["a"], ["c", "t2"]])).toEqual(["t1", null, "t2"]);
   });
 });

@@ -5,7 +5,6 @@ import type { Action, CanvasState, DrawnId } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { entityType, resolveVocab } from "../vocab/resolve";
 import { frontier, type Frontier } from "./frontier";
-import { hiddenList, hiddenOf, onCanvas } from "./hidden";
 import { firstView, hide, transition } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
@@ -129,8 +128,9 @@ function hideSome(w: World, m: Model, ids: string[]): Model {
   const drawn = new Set(all(w, m));
   const list = [...new Set(ids)].filter((id) => drawn.has(id));
   const size = shownOf(w, m, drawn).length;
-  const pool = size > 0 ? list.filter((id) => !off(w, m, id)) : list;
-  const cut = pool.length > 0 && pool.length >= (size || drawn.size);
+  if (size === 0) return { ...m, refused: "last-drawn" };
+  const pool = list.filter((id) => !off(w, m, id));
+  const cut = pool.length >= size;
   if (cut) list.splice(list.indexOf(pool[0]), 1);
   if (list.length === 0) return cut ? { ...m, refused: "last-drawn" } : m;
   for (const id of list) drawn.delete(id);
@@ -329,53 +329,6 @@ function check(w: World, m: Model, state: CanvasState) {
   expect(state.filters.typesOff).toStrictEqual(m.typesOff);
   expect(state.hidden).toStrictEqual(m.hidden.map((e) => ({ ...e, seq: 0 })));
   expect(state.origins).toStrictEqual(m.origins);
-  const keys = state.origins.map(([child]) => child);
-  expect(new Set(keys).size).toBe(keys.length);
-  for (const pair of state.origins)
-    for (const id of pair) expect(drawn.has(id)).toBe(true);
-  expect(drawn.size).toBeGreaterThan(0);
-  expect(hiddenList(state).map((item) => item.key)).toEqual(
-    [...m.hidden].reverse().map((entry) => entry.key),
-  );
-  const keyOf = (id: string) =>
-    m.hidden.find((entry) => entry.members.includes(id))?.key ??
-    m.hidden.find((entry) => entry.stranded.includes(id))?.key ??
-    null;
-  for (const id of w.order) {
-    const key = drawn.has(id) ? null : keyOf(id);
-    expect(hiddenOf(state, w.graph, id)).toBe(key);
-    const want = drawn.has(id)
-      ? off(w, m, id)
-        ? "not-drawn"
-        : "drawn"
-      : key === null
-        ? "not-drawn"
-        : "hidden";
-    expect(onCanvas(state, w.graph, w.vocab, id)).toBe(want);
-  }
-  const view = frontier(state, w.graph, w.vocab);
-  for (const node of view.nodes) {
-    if (!("entity" in node)) continue;
-    expect(off(w, m, node.entity)).toBe(false);
-    const more = w
-      .neighbours(node.entity)
-      .filter((x) => !drawn.has(x) && !off(w, m, x)).length;
-    expect(node.more).toBe(m.revealed === null ? 0 : more);
-  }
-}
-
-// why: SA §6 row 2 — an explore then a collapse of a node that opened nothing gives the same
-// frontier (QA finding F-2)
-function reversible(w: World, state: CanvasState) {
-  const view = frontier(state, w.graph, w.vocab);
-  const node = view.nodes.find(
-    (item) => "entity" in item && item.more > 0 && item.opened === 0,
-  );
-  if (node === undefined || !("entity" in node)) return;
-  const act = (s: CanvasState, kind: "explore" | "collapse") =>
-    transition(s, { kind, id: node.entity }, w.graph, w.vocab);
-  const back = act(act(state, "explore"), "collapse");
-  expect(frontier(back, w.graph, w.vocab)).toStrictEqual(view);
 }
 
 function walk(seed: number) {
@@ -413,11 +366,11 @@ function walk(seed: number) {
     }
     expect(state.positions).toBe(positions);
     check(w, m, state);
-    reversible(w, state);
   }
   return { state, actions };
 }
 
+// why: the read functions and the state invariants are in `hidden-invariants.test.ts`
 describe("an independent model of the type filter, strand, bulk and restore rules", () => {
   it(`agrees with the engine after every step of ${RUNS} random runs`, () => {
     for (let seed = 1; seed <= RUNS; seed++) {

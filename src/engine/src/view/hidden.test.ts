@@ -370,4 +370,20 @@ describe("S24 a hide that leaves no entity of a type that is on (QA F-3)", () =>
     );
     expect(run.drawn(state).nodes.map((node) => node.id)).toEqual(["e:a"]);
   });
+
+  it("refuses a bulk Hide when no drawn entity is of a type that is on (QA F-5)", () => {
+    const run = graphOf(["a", "b", "c"], ["a-b", "b-c"]);
+    const state = run.act(run.first(), {
+      kind: "toggleType",
+      type: "t",
+      on: false,
+    });
+    expect(run.drawn(state).nodes).toEqual([]);
+    for (const ids of [["a"], ["a", "b", "c"], []])
+      expect(run.hide(state, { kind: "hideMany", ids })).toStrictEqual({
+        state,
+        hidden: 0,
+        refused: "last-drawn",
+      });
+  });
 });

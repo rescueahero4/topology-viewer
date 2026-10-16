@@ -152,14 +152,15 @@ export function hideNode(
 
 // why: mockup `hideMany` (lib/topology.js lines 783-808) — every listed entity leaves first, then
 // the strand rule runs per entity in call order; the first listed entity of a type that is on stays
-// when all of them would go (D93 (4)); with none drawn, the first listed entity stays (line 786), so
-// the drawn set never empties
+// when all of them would go, and with no such entity drawn the call is refused (D93 (4), STORY-002-06
+// Context "Bulk rules")
 export function hideMany(
   top: Topology,
   state: CanvasState,
   ids: string[],
 ): HideResult {
   const set = drawnSet(top, state);
+  if (set.size === 0) return { state, hidden: 0, refused: "last-drawn" };
   const seen = new Uint8Array(top.ids.length);
   const list: number[] = [];
   for (const id of ids) {
@@ -168,11 +169,9 @@ export function hideMany(
     seen[entity] = 1;
     if (set.mask[entity] === 1) list.push(entity);
   }
-  const total = set.mask.reduce((sum, bit) => sum + bit, 0);
-  const pool =
-    set.size > 0 ? list.filter((entity) => set.on[entity] === 1) : list;
-  const cut = pool.length > 0 && pool.length >= (set.size || total);
-  if (cut) list.splice(list.indexOf(pool[0]), 1);
+  const shown = list.filter((entity) => set.on[entity] === 1);
+  const cut = shown.length >= set.size;
+  if (cut) list.splice(list.indexOf(shown[0]), 1);
   if (list.length === 0)
     return cut
       ? { state, hidden: 0, refused: "last-drawn" }

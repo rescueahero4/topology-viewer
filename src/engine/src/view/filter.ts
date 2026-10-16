@@ -2,7 +2,7 @@ import { profile } from "@qdic-topology/contract";
 import { byCodePoint } from "../data/hash";
 import type { CanvasState, Filters, Grouping } from "../state/canvasState";
 import { CUSTOM, own, type Provenance } from "../vocab/predicates";
-import type { Vocab } from "../vocab/resolve";
+import type { ResolvedType, Vocab } from "../vocab/resolve";
 
 export type TypeRow = {
   type: string | null;
@@ -50,19 +50,35 @@ function groupOf(type: string): string {
     : CUSTOM;
 }
 
-// why: lead decision D93 (1) and PRD v0.10 FR-FILTER-3 — the entities with no type share one row,
-// key `null`, in the Custom group; its label is UI text (mockup type `unknown`, line 350)
-function untypedRow(vocab: Vocab, typesOff: Set<string | null>): TypeRow[] {
-  const untyped = [...vocab.entities.values()].filter((e) => e.type === null);
-  if (untyped.length === 0) return [];
-  const row = {
-    type: null,
-    count: untyped.length,
-    group: CUSTOM,
-    provenance: untyped[0].provenance,
-    on: !typesOff.has(null),
-  };
-  return [row];
+// why: mockup `stats` (lib/topology.js line 2263) — one row per present type in the order of first
+// appearance; the entities with no type share one row, key `null`, in the Custom group, at the place
+// of the first of them (lead decision D93 (1), PRD v0.10 FR-FILTER-3; mockup type `unknown`, line
+// 350); its label is UI text
+function typeRows(vocab: Vocab, typesOff: Set<string | null>): TypeRow[] {
+  const rows = new Map<string | null, TypeRow>();
+  for (const entity of vocab.entities.values()) {
+    const row = rows.get(entity.type);
+    if (row !== undefined) row.count += entity.type === null ? 1 : 0;
+    else if (entity.type === null)
+      rows.set(null, {
+        type: null,
+        count: 1,
+        group: CUSTOM,
+        provenance: entity.provenance,
+        on: !typesOff.has(null),
+      });
+    else {
+      const type = vocab.types.get(entity.type) as ResolvedType;
+      rows.set(type.name, {
+        type: type.name,
+        count: type.count,
+        group: groupOf(type.name),
+        provenance: type.provenance,
+        on: !typesOff.has(type.name),
+      });
+    }
+  }
+  return [...rows.values()];
 }
 
 // why: mockup `stats` (lib/topology.js lines 2261-2291) — dataset totals of the present types,
@@ -71,18 +87,7 @@ export function stats(vocab: Vocab, state: CanvasState): Stats {
   const typesOff = new Set(state.filters.typesOff);
   const familiesOff = new Set(state.filters.familiesOff);
   const predicatesOff = new Set(state.filters.predicatesOff);
-  const named = [...vocab.types.values()]
-    .filter((type) => type.count > 0)
-    .map((type) => ({
-      type: type.name,
-      count: type.count,
-      group: groupOf(type.name),
-      provenance: type.provenance,
-      on: !typesOff.has(type.name),
-    }));
-  const types = [...named, ...untypedRow(vocab, typesOff)].sort(
-    (a, b) => b.count - a.count,
-  );
+  const types = typeRows(vocab, typesOff).sort((a, b) => b.count - a.count);
   const families = vocab.families.map(({ key, count }) => ({
     family: key,
     count,
