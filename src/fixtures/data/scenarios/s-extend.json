@@ -12,6 +12,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "passive", "selected": null },
     "notice": null,
-    "warnings": {}
+    "warnings": { "unknown-type": 1, "constraint-violation": 1 }
   }
 }

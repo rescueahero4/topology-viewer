@@ -24,6 +24,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "db_revenue" },
     "notice": null,
-    "warnings": {}
+    "warnings": { "constraint-violation": 6 }
   }
 }

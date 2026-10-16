@@ -17,6 +17,6 @@
     "schema": "pass",
     "firstPaint": { "approach": "active", "selected": "t_SF_ACCOUNT" },
     "notice": null,
-    "warnings": { "root-not-found": 1 }
+    "warnings": { "constraint-violation": 6, "root-not-found": 1 }
   }
 }
