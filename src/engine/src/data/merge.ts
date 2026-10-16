@@ -1,4 +1,8 @@
-import { profile, type RenderInput } from "@qdic-topology/contract";
+import {
+  profile,
+  type Profile,
+  type RenderInput,
+} from "@qdic-topology/contract";
 import { byCodePoint, stableJson, type Attrs } from "./hash";
 
 export type NodeRecord = {
@@ -53,9 +57,12 @@ const MAX_PASSES = 4;
 
 // why: PRD FR-DATA-5 and FR-VOC-7, lead decision D12 — containment comes from the profile and
 // payload `role` only, never from a predicate name in code
-function containment(predicates: Predicates): Set<string> {
+export function containment(
+  source: Profile,
+  predicates: Predicates,
+): Set<string> {
   const set = new Set<string>();
-  for (const [name, entry] of Object.entries(profile.predicates))
+  for (const [name, entry] of Object.entries(source.predicates))
     if (entry.role === "containment") set.add(name);
   for (const [name, entry] of Object.entries(predicates ?? {}))
     if (entry?.role === "containment") set.add(name);
@@ -209,7 +216,7 @@ export function merge(
   predicates: Predicates,
   identities: ReadonlySet<string>,
 ): { graph: Merged; map: Map<string, string>; passes: number } {
-  const contains = containment(predicates);
+  const contains = containment(profile, predicates);
   const { find, passes } = runPasses(records, edges, contains, identities);
   const { entities, map } = entitiesOf(records, find);
   return {
