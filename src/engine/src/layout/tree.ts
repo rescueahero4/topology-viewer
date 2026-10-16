@@ -91,7 +91,7 @@ function lane(rows: Rows, level: readonly (number | undefined)[]) {
       for (const m of rows.near[at]) {
         if (rows.role[m] !== "attribute" || level[m] !== undefined) continue;
         const cur = from[m];
-        if (cur === undefined || l < cur || (l === cur && step < depth[m])) {
+        if (cur === undefined || l < cur) {
           from[m] = l;
           depth[m] = step;
           next.push(m);
