@@ -361,7 +361,8 @@ function act(w: World, s: CanvasState, view: Frontier): Action | null {
   return r.pick(choices)();
 }
 
-const WORLDS = 1700;
+// why: memo item 5 — 1,700 worlds gave 50,227 steps; fewer keep the gate load low (ISSUE-007)
+const WORLDS = 400;
 const STEPS = 50;
 
 describe("place equals the reference model after each random step", () => {
@@ -394,6 +395,6 @@ describe("place equals the reference model after each random step", () => {
       }
     }
     console.log(`placement model: ${steps} place steps, 0 differences`);
-    expect(steps).toBeGreaterThan(50_000);
+    expect(steps).toBeGreaterThan(10_000);
   }, 600_000);
 });

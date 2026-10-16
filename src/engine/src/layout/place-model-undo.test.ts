@@ -255,7 +255,9 @@ function act(w: World, s: CanvasState, view: Frontier): Action | null {
   return r.pick(choices)();
 }
 
-const WORLDS = 600;
+// why: memo item 5 — the gate runs fewer worlds, so that its load does not disturb the timing
+// project (ISSUE-007)
+const WORLDS = 250;
 const STEPS = 50;
 
 describe("each collapse equals the reference model of rule (a)", () => {
@@ -309,6 +311,6 @@ describe("each collapse equals the reference model of rule (a)", () => {
       }
     }
     console.log(`collapse model: ${collapses} collapses, 0 differences`);
-    expect(collapses).toBeGreaterThan(3_000);
+    expect(collapses).toBeGreaterThan(1_200);
   }, 600_000);
 });

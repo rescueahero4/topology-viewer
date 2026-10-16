@@ -293,10 +293,12 @@ function play(seed: number, steps: number) {
 }
 
 describe("SA §6 rows 1, 2, 8 and 16 after each random step", () => {
-  it("holds in 1,500 random lists of 45 steps, in the five layouts", () => {
+  // why: memo item 5 — 1,500 lists gave 51,183 steps; the gate runs fewer, so that its load does
+  // not disturb the timing project (ISSUE-007)
+  it("holds in 350 random lists of 45 steps, in the five layouts", () => {
     let exact = 0;
     let steps = 0;
-    for (let seed = 0; seed < 1500; seed++) {
+    for (let seed = 0; seed < 350; seed++) {
       const run = play(seed, 45);
       exact += run.exact;
       steps += run.log.length;
@@ -304,12 +306,12 @@ describe("SA §6 rows 1, 2, 8 and 16 after each random step", () => {
     console.log(
       `random invariants: ${steps} place steps, ${exact} expand-then-collapse returns, all exact`,
     );
-    expect(steps).toBeGreaterThan(50_000);
-    expect(exact).toBeGreaterThan(1000);
+    expect(steps).toBeGreaterThan(10_000);
+    expect(exact).toBeGreaterThan(400);
   }, 600_000);
 
   it("gives the same results when a list runs twice (NF-3)", () => {
-    for (let seed = 0; seed < 60; seed++)
+    for (let seed = 0; seed < 30; seed++)
       expect(JSON.stringify(play(seed, 45).log)).toBe(
         JSON.stringify(play(seed, 45).log),
       );
