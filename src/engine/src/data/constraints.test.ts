@@ -98,3 +98,46 @@ describe("S46 a proposed pairing is not a violation", () => {
     expect(result.graph.triples).toHaveLength(2);
   });
 });
+
+describe("D88 (4) shaped edges between shaped records", () => {
+  const tree = { kind: "tree", children: "children", label: "name" };
+
+  it("checks no shaped tree edge and still checks a model edge of the same types", () => {
+    const result = run({
+      nodes: [
+        { name: "r", children: [{ name: "c", children: [{ name: "d" }] }] },
+      ],
+      shape: tree,
+      neighborhood: {
+        nodes: [
+          { id: "m1", type: "row" },
+          { id: "m2", type: "row" },
+        ],
+        edges: [{ subject: "m1", predicate: "contains", object: "m2" }],
+      },
+    });
+    expect(result.graph.records.filter((r) => r.type === "row")).toHaveLength(
+      5,
+    );
+    expect(violations(result)).toEqual([
+      { code: "constraint-violation", path: ["neighborhood", "edges", 0] },
+    ]);
+  });
+
+  it("gives none for a raw tree of row records", () => {
+    const result = run({ name: "r", children: [{ name: "c" }, { name: "e" }] });
+    expect(result.graph.triples).toHaveLength(2);
+    expect(violations(result)).toEqual([]);
+  });
+
+  it("still checks a model edge sent between two shaped records", () => {
+    const result = run({
+      nodes: [{ name: "r", children: [{ name: "c" }] }],
+      shape: tree,
+      edges: [{ subject: "0.0", predicate: "contains", object: "0" }],
+    });
+    expect(violations(result)).toEqual([
+      { code: "constraint-violation", path: ["edges", 0] },
+    ]);
+  });
+});
