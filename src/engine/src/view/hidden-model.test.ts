@@ -9,7 +9,7 @@ import { hiddenList, hiddenOf, onCanvas } from "./hidden";
 import { firstView, hide, transition } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
-const TYPES = ["t0", "t1", "t2"];
+const TYPES = ["t0", "t1", "t2", undefined];
 const PREDICATES = ["contains", "ownedBy", "memberOf", "pX", "pY"];
 const RUNS = 240;
 const STEPS = 40;
@@ -32,7 +32,8 @@ type Entry = { key: string; members: string[]; stranded: string[] };
 type Model = {
   revealed: Set<string> | null;
   mode: string;
-  typesOff: string[];
+  typesOff: (string | null)[];
+  refused?: "last-drawn";
   hidden: Entry[];
   origins: [string, string][];
 };
@@ -47,7 +48,10 @@ function world(seed: number) {
     rnd.pick(ids),
   ]);
   const input = {
-    nodes: ids.map((id) => [id, rnd.pick(TYPES)]),
+    nodes: ids.map((id) => {
+      const type = rnd.pick(TYPES);
+      return type === undefined ? [id] : [id, type];
+    }),
     edges,
     view: rnd.int(2) === 0 ? { budget: 10 } : {},
   };
@@ -77,17 +81,20 @@ type World = ReturnType<typeof world>;
 
 const all = (w: World, m: Model) => m.revealed ?? new Set(w.order);
 const off = (w: World, m: Model, id: string) =>
-  m.typesOff.includes(entityType(w.vocab, id) ?? "\u0000");
+  m.typesOff.includes(entityType(w.vocab, id));
+const shownOf = (w: World, m: Model, drawn: Set<string>) =>
+  [...drawn].filter((id) => !off(w, m, id));
 
-function strand(w: World, drawn: Set<string>, from: string[]): string[] {
+function strand(w: World, m: Model, drawn: Set<string>, from: string[]) {
   const out: string[] = [];
+  const on = (id: string) => drawn.has(id) && !off(w, m, id);
   const candidates = [...new Set(from.flatMap(w.neighbours))].sort(w.byOrder);
   for (const id of candidates)
     if (
-      drawn.has(id) &&
-      drawn.size > 1 &&
+      on(id) &&
+      shownOf(w, m, drawn).length > 1 &&
       !w.loops.has(id) &&
-      !w.neighbours(id).some((other) => drawn.has(other))
+      !w.neighbours(id).some(on)
     ) {
       drawn.delete(id);
       out.push(id);
@@ -102,6 +109,7 @@ function withEntries(m: Model, drawn: Set<string>, entries: Entry[]): Model {
     revealed: drawn,
     mode: m.mode === "all" ? "custom" : m.mode,
     hidden: [...m.hidden.filter((entry) => !keys.has(entry.key)), ...entries],
+    origins: m.origins.filter(([c, o]) => drawn.has(c) && drawn.has(o)),
   };
 }
 
@@ -110,22 +118,26 @@ function hideOne(w: World, m: Model, view: Frontier, key: string): Model {
   if (node === undefined) return m;
   const members = "members" in node ? node.members : [node.entity];
   const drawn = new Set(all(w, m));
-  if (members.length >= drawn.size) return m;
+  if (members.length >= shownOf(w, m, drawn).length)
+    return { ...m, refused: "last-drawn" };
   for (const id of members) drawn.delete(id);
-  const entry = { key, members, stranded: strand(w, drawn, members) };
+  const entry = { key, members, stranded: strand(w, m, drawn, members) };
   return withEntries(m, drawn, [entry]);
 }
 
 function hideSome(w: World, m: Model, ids: string[]): Model {
   const drawn = new Set(all(w, m));
-  let list = [...new Set(ids)].filter((id) => drawn.has(id));
-  if (list.length >= drawn.size) list = list.slice(1);
-  if (list.length === 0) return m;
+  const list = [...new Set(ids)].filter((id) => drawn.has(id));
+  const size = shownOf(w, m, drawn).length;
+  const pool = size > 0 ? list.filter((id) => !off(w, m, id)) : list;
+  const cut = pool.length > 0 && pool.length >= (size || drawn.size);
+  if (cut) list.splice(list.indexOf(pool[0]), 1);
+  if (list.length === 0) return cut ? { ...m, refused: "last-drawn" } : m;
   for (const id of list) drawn.delete(id);
   const entries = list.map((id) => ({
     key: `e:${id}`,
     members: [id],
-    stranded: strand(w, drawn, [id]),
+    stranded: strand(w, m, drawn, [id]),
   }));
   return withEntries(m, drawn, entries);
 }
@@ -160,7 +172,7 @@ function restoreSome(w: World, m: Model, keys: string[]): Model {
     if (via !== undefined) from.set(id, from.get(via) as string);
   }
   const origins: [string, string][] = [
-    ...m.origins.filter(([child]) => !back.includes(child)),
+    ...m.origins,
     ...back.flatMap((id): [string, string][] =>
       from.has(id) ? [[id, from.get(id) as string]] : [],
     ),
@@ -254,11 +266,13 @@ function collapse(m: Model, id: string): Model {
 
 function types(w: World, m: Model, action: Action): Model {
   if (action.kind === "showAllTypes") return { ...m, typesOff: [] };
-  if (action.kind !== "toggleType" || !w.vocab.types.get(action.type)?.count)
-    return m;
+  if (action.kind !== "toggleType") return m;
+  const present = w.order.some((id) => entityType(w.vocab, id) === action.type);
+  if (!present) return m;
   const rest = m.typesOff.filter((type) => type !== action.type);
-  const typesOff = action.on ? rest : [...rest, action.type].sort();
-  return { ...m, typesOff };
+  const named = [...rest, action.type].filter((t) => t !== null).sort();
+  const nulls = action.type === null || rest.includes(null) ? [null] : [];
+  return { ...m, typesOff: action.on ? rest : [...nulls, ...named] };
 }
 
 function apply(w: World, m: Model, view: Frontier, action: Action): Model {
@@ -289,7 +303,11 @@ function randomAction(w: World, state: CanvasState, view: Frontier): Action {
     () => ({ kind: "showMany", ids: some(w.order) }),
     () => ({ kind: "explore", id: rnd.pick(w.order) }),
     () => ({ kind: "collapse", id: rnd.pick(w.order) }),
-    () => ({ kind: "toggleType", type: rnd.pick(TYPES), on: rnd.int(2) === 0 }),
+    () => ({
+      kind: "toggleType",
+      type: rnd.pick(TYPES) ?? null,
+      on: rnd.int(2) === 0,
+    }),
     () => ({ kind: "showAllTypes" }),
     () => ({ kind: "grouping", grouping: rnd.pick([2, 5, "off"] as const) }),
     () => ({
@@ -311,6 +329,10 @@ function check(w: World, m: Model, state: CanvasState) {
   expect(state.filters.typesOff).toStrictEqual(m.typesOff);
   expect(state.hidden).toStrictEqual(m.hidden.map((e) => ({ ...e, seq: 0 })));
   expect(state.origins).toStrictEqual(m.origins);
+  const keys = state.origins.map(([child]) => child);
+  expect(new Set(keys).size).toBe(keys.length);
+  for (const pair of state.origins)
+    for (const id of pair) expect(drawn.has(id)).toBe(true);
   expect(drawn.size).toBeGreaterThan(0);
   expect(hiddenList(state).map((item) => item.key)).toEqual(
     [...m.hidden].reverse().map((entry) => entry.key),
@@ -342,6 +364,20 @@ function check(w: World, m: Model, state: CanvasState) {
   }
 }
 
+// why: SA §6 row 2 — an explore then a collapse of a node that opened nothing gives the same
+// frontier (QA finding F-2)
+function reversible(w: World, state: CanvasState) {
+  const view = frontier(state, w.graph, w.vocab);
+  const node = view.nodes.find(
+    (item) => "entity" in item && item.more > 0 && item.opened === 0,
+  );
+  if (node === undefined || !("entity" in node)) return;
+  const act = (s: CanvasState, kind: "explore" | "collapse") =>
+    transition(s, { kind, id: node.entity }, w.graph, w.vocab);
+  const back = act(act(state, "explore"), "collapse");
+  expect(frontier(back, w.graph, w.vocab)).toStrictEqual(view);
+}
+
 function walk(seed: number) {
   const w = world(seed);
   let state: CanvasState = {
@@ -364,10 +400,11 @@ function walk(seed: number) {
     actions.push(action);
     if (action.kind === "hide" || action.kind === "hideMany") {
       const result = hide(state, action, w.graph, w.vocab);
-      const next = apply(w, m, view, action);
+      const { refused, ...next } = apply(w, m, view, action);
       const fresh = next.hidden.filter((entry) => !m.hidden.includes(entry));
       const count = fresh.reduce((sum, e) => sum + e.members.length, 0);
       expect(result.hidden).toBe(count);
+      expect(result.refused).toBe(refused);
       m = next;
       state = result.state;
     } else {
@@ -376,6 +413,7 @@ function walk(seed: number) {
     }
     expect(state.positions).toBe(positions);
     check(w, m, state);
+    reversible(w, state);
   }
   return { state, actions };
 }

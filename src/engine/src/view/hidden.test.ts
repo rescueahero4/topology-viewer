@@ -34,6 +34,16 @@ function load(input: unknown) {
   };
 }
 
+// why: STORY-002-06 S24 — `a` of type `t1` next to `b` of type `t2`
+const typed = () =>
+  load({
+    nodes: [
+      ["a", "t1"],
+      ["b", "t2"],
+    ],
+    edges: [["a", "p", "b"]],
+  });
+
 function graphOf(ids: string[], pairs: string[]) {
   return load({
     nodes: ids.map((id) => [id, "t"]),
@@ -286,6 +296,20 @@ describe("S18 hide of the only drawn node", () => {
     expect(one.act(state, { kind: "hide", node: "e:x" })).toBe(state);
   });
 
+  it("is refused next to entities of types that are off (D93 (4))", () => {
+    const run = typed();
+    const state = run.act(run.first(), {
+      kind: "toggleType",
+      type: "t2",
+      on: false,
+    });
+    expect(run.hide(state, { kind: "hide", node: "e:a" })).toStrictEqual({
+      state,
+      hidden: 0,
+      refused: "last-drawn",
+    });
+  });
+
   it("is allowed for a group, because its anchor stays drawn", () => {
     const star = graphOf(["a", "l1", "l2"], ["a-l1", "a-l2"]);
     const state = star.first();
@@ -326,5 +350,24 @@ describe("record ids of a merged entity (STORY-002-04 Context rule)", () => {
     ]);
     const restored = run.act(bulk, { kind: "restore", keys: ["e:u_0"] });
     expect(restored.revealed).toEqual(state.revealed);
+  });
+});
+
+describe("S24 a hide that leaves no entity of a type that is on (QA F-3)", () => {
+  it("is refused for hide and for bulk Hide", () => {
+    const run = typed();
+    const state = run.act(run.first(), {
+      kind: "toggleType",
+      type: "t2",
+      on: false,
+    });
+    const refused = { state, hidden: 0, refused: "last-drawn" };
+    expect(run.hide(state, { kind: "hide", node: "e:a" })).toStrictEqual(
+      refused,
+    );
+    expect(run.hide(state, { kind: "hideMany", ids: ["a"] })).toStrictEqual(
+      refused,
+    );
+    expect(run.drawn(state).nodes.map((node) => node.id)).toEqual(["e:a"]);
   });
 });

@@ -132,3 +132,44 @@ describe("bounded filter and Hidden work at the caps (2,000 nodes, 4,000 edges)"
     60_000,
   );
 });
+
+// why: STORY-002-06 S26 — copies of one random component (100 entities, 200 triples), so the
+// graph has the same shape at each size; a bulk Show of every id along paths from a first view
+function copies(count: number): Compact {
+  const part = compact(generate.random(100, 200, 7));
+  const id = (k: number, name: string) => `n${k * 100 + Number(name.slice(1))}`;
+  const range = Array.from({ length: count }, (_, k) => k);
+  return {
+    nodes: range.flatMap((k) => part.nodes.map(([n, t]) => [id(k, n), t])),
+    edges: range.flatMap((k) =>
+      part.edges.map(([s, p, o]) => [id(k, s), p, id(k, o)]),
+    ),
+  };
+}
+
+function showAll(nodes: number) {
+  const input = copies(nodes / 100);
+  const result = normalize(input, { now: "2026-10-14" });
+  if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
+  const { graph, payload, hash } = result;
+  const { vocab } = resolveVocab(graph, payload, profile, LIGHT);
+  const first = firstView(graph, vocab, payload, hash);
+  const ids = graph.entities.map((entity) => entity.id);
+  return () => {
+    const next = transition(first, { kind: "showMany", ids }, graph, vocab);
+    frontier(next, graph, vocab);
+    return next;
+  };
+}
+
+describe("S26 bulk Show along paths is near-linear", () => {
+  it("takes < 100 ms at 2,000 entities and ≤ 2.5 × the time at 1,000", () => {
+    const works = [showAll(1000), showAll(2000)];
+    for (const work of works) work();
+    const [small, large] = works.map((work) => time(work));
+    expect(small.value.revealed).toHaveLength(1000);
+    expect(large.value.revealed).toHaveLength(2000);
+    expect(large.ms).toBeLessThan(100);
+    expect(large.ms).toBeLessThanOrEqual(2.5 * small.ms);
+  }, 60_000);
+});

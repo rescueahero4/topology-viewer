@@ -9,7 +9,7 @@ import { frontier } from "./frontier";
 import { firstView, transition } from "./story";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
-const TYPES = ["t0", "t1", "t2", "t3"];
+const TYPES = ["t0", "t1", "t2", "t3", undefined];
 const KNOWN = ["contains", "ownedBy", "memberOf", "taggedWith", "derivedFrom"];
 const RUNS = 200;
 const STEPS = 30;
@@ -39,7 +39,13 @@ function world(seed: number) {
     rnd.pick(ids),
   ]);
   const result = normalize(
-    { nodes: ids.map((id) => [id, rnd.pick(TYPES)]), edges },
+    {
+      nodes: ids.map((id) => {
+        const type = rnd.pick(TYPES);
+        return type === undefined ? [id] : [id, type];
+      }),
+      edges,
+    },
     { now: "2026-10-14" },
   );
   if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
@@ -51,15 +57,19 @@ function world(seed: number) {
 
 type World = ReturnType<typeof world>;
 
-const turn = (list: string[], name: string, on: boolean) => {
+const turn = <T extends string | null>(list: T[], name: T, on: boolean) => {
   const rest = list.filter((item) => item !== name);
-  return on ? rest : [...rest, name].sort();
+  const all = [...rest, name];
+  const named = all.filter((item) => item !== null).sort();
+  return on ? rest : [...all.filter((item) => item === null), ...named];
 };
 
 function model(w: World, f: Filters, action: Action): Filters {
   const family = (p: string) => w.vocab.predicates.get(p)?.family;
   if (action.kind === "showAllTypes") return { ...f, typesOff: [] };
-  if (action.kind === "toggleType" && w.vocab.types.get(action.type)?.count)
+  const typed = (type: string | null) =>
+    w.graph.entities.some((entity) => entityType(w.vocab, entity.id) === type);
+  if (action.kind === "toggleType" && typed(action.type))
     return { ...f, typesOff: turn(f.typesOff, action.type, action.on) };
   if (
     action.kind === "toggleFamily" &&
@@ -86,7 +96,11 @@ function randomAction(w: World): Action {
   const on = rnd.int(2) === 0;
   const families = [...w.vocab.families.map((item) => item.key), "zz"];
   const choices: (() => Action)[] = [
-    () => ({ kind: "toggleType", type: rnd.pick([...TYPES, "zz"]), on }),
+    () => ({
+      kind: "toggleType",
+      type: rnd.pick([...TYPES, "zz"]) ?? null,
+      on,
+    }),
     () => ({ kind: "showAllTypes" }),
     () => ({ kind: "toggleFamily", family: rnd.pick(families), on }),
     () => ({

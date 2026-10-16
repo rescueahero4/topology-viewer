@@ -280,8 +280,7 @@ export function explore(
 }
 
 // why: mockup `unexplore` (lib/topology.js lines 710-737) — all that this entity brought in, and
-// all that those brought in, leave with their origins; a hidden child stays on the Hidden list,
-// and a hidden entity collapses nothing, so the drawn set never empties (guardrail 6)
+// all that those brought in, leave with their origins
 export function collapse(
   top: Topology,
   state: CanvasState,
@@ -290,11 +289,8 @@ export function collapse(
   const entity = top.entityOf.get(id);
   if (state.revealed === null || entity === undefined) return state;
   const origin = top.ids[entity];
-  const mask = maskOf(top, state.revealed);
-  if (mask[entity] === 0) return state;
   const children = new Map<string, string[]>();
   for (const [child, from] of state.origins) {
-    if (mask[top.entityOf.get(child) as number] === 0) continue;
     const list = children.get(from) ?? [];
     list.push(child);
     children.set(from, list);
@@ -318,17 +314,17 @@ export function collapse(
 const PATH_HOPS = 4;
 
 // why: mockup `revealPath` (lib/topology.js lines 866-887) — breadth first from the target, so the
-// first drawn entity found ends the shortest path (FR-CANVAS-4)
+// first drawn entity found ends the shortest path (FR-CANVAS-4); `prev` holds only the entities
+// visited, so a bulk Show stays near-linear (S26)
 function pathTo(top: Topology, mask: Uint8Array, target: number) {
-  const prev = new Int32Array(top.ids.length).fill(-2);
-  prev[target] = -1;
+  const prev = new Map<number, number>([[target, -1]]);
   let ring = [target];
   for (let hop = 0; hop < PATH_HOPS && ring.length > 0; hop++) {
     const next: number[] = [];
     for (const entity of ring)
       for (const near of top.neighbours[entity]) {
-        if (prev[near] !== -2) continue;
-        prev[near] = entity;
+        if (prev.has(near)) continue;
+        prev.set(near, entity);
         if (mask[near] === 1) return { hit: near, prev };
         next.push(near);
       }
@@ -348,7 +344,11 @@ export function revealInto(
   const { hit, prev } = pathTo(top, mask, target);
   if (hit === null) mask[target] = 1;
   else
-    for (let from = hit, step = prev[hit]; step !== -1; step = prev[step]) {
+    for (
+      let from = hit, step = prev.get(hit) as number;
+      step !== -1;
+      step = prev.get(step) as number
+    ) {
       mask[step] = 1;
       origins.push([top.ids[step], top.ids[from]]);
       from = step;

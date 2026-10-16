@@ -28,8 +28,9 @@ export type TreeRows = {
   keyCoord: [number, number][];
 };
 
+// why: lead decision D93 (1) — `null` stands for the entities with no type; it sorts first
 export type Filters = {
-  typesOff: string[];
+  typesOff: (string | null)[];
   familiesOff: string[];
   predicatesOff: string[];
 };
@@ -72,7 +73,7 @@ export type Action =
   | { kind: "selectEdge"; edge: EdgeKey; anchor: DrawnId }
   | { kind: "budget"; budget: Budget }
   | { kind: "reset" }
-  | { kind: "toggleType"; type: string; on: boolean }
+  | { kind: "toggleType"; type: string | null; on: boolean }
   | { kind: "showAllTypes" }
   | { kind: "toggleFamily"; family: string; on: boolean }
   | { kind: "togglePredicate"; predicate: string; on: boolean }

@@ -26,28 +26,38 @@ export type HiddenItem = {
 // why: P20 — the three states of this story; STORY-002-08 adds `faded`
 export type OnCanvas = "drawn" | "not-drawn" | "hidden";
 
-// why: `live` counts the links of each entity to the drawn set (a self-loop counts), so each
-// strand test reads one number and a hide stays linear in the graph size (NF-1)
-type DrawnSet = { mask: Uint8Array; live: Int32Array; size: number };
+// why: lead decision D93 (4), SA §4.4 — the refusal and the strand rule count only entities of
+// types that are on (`on`); `live` counts the links of each such entity to the others (a self-loop
+// counts), so each strand test reads one number and a hide stays linear in the graph size (NF-1)
+type DrawnSet = {
+  mask: Uint8Array;
+  on: Uint8Array;
+  live: Int32Array;
+  size: number;
+};
 
 function drawnSet(top: Topology, state: CanvasState): DrawnSet {
   const mask = maskOf(top, state.revealed);
+  const off = offOf(top, state);
+  const on = mask.map((bit, entity) => bit & (1 - off[entity]));
   const live = new Int32Array(top.ids.length);
   for (const { subject, object } of top.links) {
-    if (mask[subject] === 0 || mask[object] === 0) continue;
+    if (on[subject] === 0 || on[object] === 0) continue;
     live[subject]++;
     if (object !== subject) live[object]++;
   }
-  return { mask, live, size: mask.reduce((sum, bit) => sum + bit, 0) };
+  return { mask, on, live, size: on.reduce((sum, bit) => sum + bit, 0) };
 }
 
 function leave(top: Topology, set: DrawnSet, entity: number) {
   set.mask[entity] = 0;
+  if (set.on[entity] === 0) return;
+  set.on[entity] = 0;
   set.size--;
   for (const index of top.incident[entity]) {
     const { subject, object } = top.links[index];
     const other = subject === entity ? object : subject;
-    if (other !== entity && set.mask[other] === 1) set.live[other]--;
+    if (other !== entity && set.on[other] === 1) set.live[other]--;
   }
 }
 
@@ -57,7 +67,7 @@ function strand(top: Topology, set: DrawnSet, from: number[]): number[] {
   const near = [...new Set(from.flatMap((entity) => top.neighbours[entity]))];
   const stranded: number[] = [];
   for (const entity of near.sort((a, b) => a - b))
-    if (set.mask[entity] === 1 && set.size > 1 && set.live[entity] === 0) {
+    if (set.on[entity] === 1 && set.size > 1 && set.live[entity] === 0) {
       leave(top, set, entity);
       stranded.push(entity);
     }
@@ -76,7 +86,9 @@ function entryOf(
 }
 
 // why: mockup `prune` (lib/topology.js lines 771-773) — a second hide of a key goes to the top, and
-// a canvas that showed everything is now a custom scope
+// a canvas that showed everything is now a custom scope. STORY-002-04 Context and SA §6 row 2 — every
+// `origins` pair with an end that leaves goes, so a key stays unique and an entity that comes back
+// starts a new hop (QA findings F-1, F-2)
 function hiddenState(
   top: Topology,
   state: CanvasState,
@@ -85,9 +97,13 @@ function hiddenState(
 ): CanvasState {
   const keys = new Set(entries.map((entry) => entry.key));
   const kept = state.hidden.filter((entry) => !keys.has(entry.key));
+  const drawn = (id: string) => set.mask[top.entityOf.get(id) as number] === 1;
   return {
     ...state,
     revealed: idsOf(top, set.mask),
+    origins: state.origins.filter(
+      ([child, from]) => drawn(child) && drawn(from),
+    ),
     scope:
       state.scope.mode === "all"
         ? { ...state.scope, mode: "custom" }
@@ -135,7 +151,9 @@ export function hideNode(
 }
 
 // why: mockup `hideMany` (lib/topology.js lines 783-808) — every listed entity leaves first, then
-// the strand rule runs per entity in call order; the first one stays when all would go
+// the strand rule runs per entity in call order; the first listed entity of a type that is on stays
+// when all of them would go (D93 (4)); with none drawn, the first listed entity stays (line 786), so
+// the drawn set never empties
 export function hideMany(
   top: Topology,
   state: CanvasState,
@@ -143,15 +161,22 @@ export function hideMany(
 ): HideResult {
   const set = drawnSet(top, state);
   const seen = new Uint8Array(top.ids.length);
-  let list: number[] = [];
+  const list: number[] = [];
   for (const id of ids) {
     const entity = top.entityOf.get(id);
     if (entity === undefined || seen[entity] === 1) continue;
     seen[entity] = 1;
     if (set.mask[entity] === 1) list.push(entity);
   }
-  if (list.length >= set.size) list = list.slice(1);
-  if (list.length === 0) return { state, hidden: 0 };
+  const total = set.mask.reduce((sum, bit) => sum + bit, 0);
+  const pool =
+    set.size > 0 ? list.filter((entity) => set.on[entity] === 1) : list;
+  const cut = pool.length > 0 && pool.length >= (set.size || total);
+  if (cut) list.splice(list.indexOf(pool[0]), 1);
+  if (list.length === 0)
+    return cut
+      ? { state, hidden: 0, refused: "last-drawn" }
+      : { state, hidden: 0 };
   for (const entity of list) leave(top, set, entity);
   const entries = list.map((entity) =>
     entryOf(
@@ -206,9 +231,8 @@ function originsOf(
     const via = top.neighbours[entity].find((next) => from[next] !== -1);
     if (via !== undefined) from[entity] = from[via];
   }
-  const returning = new Set(back.map((entity) => top.ids[entity]));
   return [
-    ...state.origins.filter(([child]) => !returning.has(child)),
+    ...state.origins,
     ...back.flatMap((entity): [string, string][] =>
       from[entity] === -1 ? [] : [[top.ids[entity], top.ids[from[entity]]]],
     ),
@@ -347,8 +371,7 @@ export function onCanvas(
   const entity = graph.entities[at].id;
   if (offTheCanvas(state)(entity))
     return hiddenOf(state, graph, entity) === null ? "not-drawn" : "hidden";
-  const type = entityType(vocab, entity);
-  return type !== null && state.filters.typesOff.includes(type)
+  return state.filters.typesOff.includes(entityType(vocab, entity))
     ? "not-drawn"
     : "drawn";
 }

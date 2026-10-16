@@ -5,7 +5,7 @@ import { CUSTOM, own, type Provenance } from "../vocab/predicates";
 import type { Vocab } from "../vocab/resolve";
 
 export type TypeRow = {
-  type: string;
+  type: string | null;
   count: number;
   group: string;
   provenance: Provenance;
@@ -50,15 +50,29 @@ function groupOf(type: string): string {
     : CUSTOM;
 }
 
+// why: lead decision D93 (1) and PRD v0.10 FR-FILTER-3 — the entities with no type share one row,
+// key `null`, in the Custom group; its label is UI text (mockup type `unknown`, line 350)
+function untypedRow(vocab: Vocab, typesOff: Set<string | null>): TypeRow[] {
+  const untyped = [...vocab.entities.values()].filter((e) => e.type === null);
+  if (untyped.length === 0) return [];
+  const row = {
+    type: null,
+    count: untyped.length,
+    group: CUSTOM,
+    provenance: untyped[0].provenance,
+    on: !typesOff.has(null),
+  };
+  return [row];
+}
+
 // why: mockup `stats` (lib/topology.js lines 2261-2291) — dataset totals of the present types,
 // families and predicates; types by count, predicates by family order, then count
 export function stats(vocab: Vocab, state: CanvasState): Stats {
   const typesOff = new Set(state.filters.typesOff);
   const familiesOff = new Set(state.filters.familiesOff);
   const predicatesOff = new Set(state.filters.predicatesOff);
-  const types = [...vocab.types.values()]
+  const named = [...vocab.types.values()]
     .filter((type) => type.count > 0)
-    .sort((a, b) => b.count - a.count)
     .map((type) => ({
       type: type.name,
       count: type.count,
@@ -66,6 +80,9 @@ export function stats(vocab: Vocab, state: CanvasState): Stats {
       provenance: type.provenance,
       on: !typesOff.has(type.name),
     }));
+  const types = [...named, ...untypedRow(vocab, typesOff)].sort(
+    (a, b) => b.count - a.count,
+  );
   const families = vocab.families.map(({ key, count }) => ({
     family: key,
     count,
@@ -99,13 +116,19 @@ export function filterMode(rows: Stats): FilterModes {
   };
 }
 
-function switched(list: string[], name: string, on: boolean): string[] {
+// why: SA §5 Determinism — by code point, `null` first, so the same toggles give the same array
+function byName(a: string | null, b: string | null): number {
+  if (a === null || b === null) return a === b ? 0 : a === null ? -1 : 1;
+  return byCodePoint(a, b);
+}
+
+function switched<T extends string | null>(list: T[], name: T, on: boolean) {
   if (on) return list.filter((item) => item !== name);
-  return list.includes(name) ? list : [...list, name].sort(byCodePoint);
+  return list.includes(name) ? list : [...list, name].sort(byName);
 }
 
 function withFilters(state: CanvasState, filters: Filters): CanvasState {
-  const same = (a: string[], b: string[]) =>
+  const same = <T>(a: T[], b: T[]) =>
     a.length === b.length && a.every((item, index) => item === b[index]);
   const before = state.filters;
   if (
@@ -121,10 +144,12 @@ function withFilters(state: CanvasState, filters: Filters): CanvasState {
 export function toggleType(
   state: CanvasState,
   vocab: Vocab,
-  type: string,
+  type: string | null,
   on: boolean,
 ): CanvasState {
-  if ((vocab.types.get(type)?.count ?? 0) === 0) return state;
+  const present =
+    type === null ? vocab.untyped !== null : !!vocab.types.get(type)?.count;
+  if (!present) return state;
   const typesOff = switched(state.filters.typesOff, type, on);
   return withFilters(state, { ...state.filters, typesOff });
 }

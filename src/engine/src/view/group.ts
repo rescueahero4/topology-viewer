@@ -93,12 +93,12 @@ export function topology(graph: Graph, vocab: Vocab): Topology {
 }
 
 // why: mockup `computeView` (lib/topology.js line 558) — an entity of a type that is off stays in
-// the drawn set but is not drawn (FR-FILTER-6; STORY-002-06 filter rules)
+// the drawn set but is not drawn (FR-FILTER-6); `null` is the row of the entities with no type (D93 (1))
 export function offOf(top: Topology, state: CanvasState): Uint8Array {
   const off = new Set(state.filters.typesOff);
   const mask = new Uint8Array(top.ids.length);
   top.types.forEach((type, entity) => {
-    if (type !== null && off.has(type)) mask[entity] = 1;
+    if (off.has(type)) mask[entity] = 1;
   });
   return mask;
 }
