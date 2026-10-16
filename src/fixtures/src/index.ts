@@ -10,6 +10,7 @@ const corpus = createCorpus({
 export const fixtures = corpus.fixtures;
 export const datasets = corpus.datasets;
 export const loadFixture = corpus.load;
+export * as generate from "./generate";
 export {
   createCorpus,
   type Corpus,

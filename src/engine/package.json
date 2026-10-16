@@ -1,0 +1,14 @@
+{
+  "name": "@qdic-topology/engine",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@qdic-topology/contract": "workspace:*"
+  },
+  "devDependencies": {
+    "@qdic-topology/fixtures": "workspace:*"
+  }
+}
