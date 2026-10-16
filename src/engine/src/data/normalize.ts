@@ -178,14 +178,16 @@ function viewIssues(input: unknown, map: Map<string, string>): Issue[] {
 }
 
 function constraintIssues(
-  graph: Merged,
+  graph: Graph,
   payload: Payload,
   paths: Path[],
 ): Issue[] {
-  return violations(graph, payload.vocabulary).map((triple) => ({
-    code: "constraint-violation",
-    path: paths[triple.records[0]],
-  }));
+  return violations(graph, payload.vocabulary, graph.shapedSet).map(
+    (triple) => ({
+      code: "constraint-violation",
+      path: paths[triple.records[0]],
+    }),
+  );
 }
 
 // why: epic condition C5 — the hash leaves out `retired`, so the layout seed is the same each day
@@ -282,12 +284,12 @@ function run(input: unknown, now: string): Normalized {
     payload.predicates,
     identities,
   );
-  issues.push(...constraintIssues(merged, payload, read.paths));
-  issues.push(...viewIssues(input, map));
   const graph: Graph = {
     ...merged,
     shapedSet: shapedSetOf(merged, made?.shapedSet),
   };
+  issues.push(...constraintIssues(graph, payload, read.paths));
+  issues.push(...viewIssues(input, map));
   return {
     ok: true,
     graph,

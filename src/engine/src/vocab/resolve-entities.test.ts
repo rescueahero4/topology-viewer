@@ -194,3 +194,39 @@ describe("mixed forms", () => {
     expect(vocab.predicates.get("p9")).not.toHaveProperty("layoutRole");
   });
 });
+
+describe("D88 (2) a supplied row is_system wins over the profile", () => {
+  it("gives custom for a row is_system false on a system type and predicate", () => {
+    const { vocab } = resolved({
+      nodes: [
+        { id: "t", type: "table" },
+        { id: "u", type: "user" },
+        { id: "x", type: "x_type" },
+      ],
+      edges: [
+        ["t", "ownedBy", "u"],
+        ["t", "contains", "x"],
+        ["t", "relatedTo", "x"],
+      ],
+      vocabulary: {
+        nodeTypes: [
+          { name: "table", is_system: false },
+          { name: "x_type", is_system: true },
+          { name: "user" },
+        ],
+        predicates: [
+          { name: "ownedBy", is_system: false },
+          { name: "relatedTo", is_system: true },
+          { name: "contains" },
+        ],
+      },
+    });
+    expect(vocab.types.get("table")?.provenance).toBe("custom");
+    expect(vocab.types.get("x_type")?.provenance).toBe("system");
+    expect(vocab.types.get("user")?.provenance).toBe("system");
+    expect(vocab.entities.get("t")?.provenance).toBe("custom");
+    expect(vocab.predicates.get("ownedBy")?.provenance).toBe("custom");
+    expect(vocab.predicates.get("relatedTo")?.provenance).toBe("system");
+    expect(vocab.predicates.get("contains")?.provenance).toBe("system");
+  });
+});

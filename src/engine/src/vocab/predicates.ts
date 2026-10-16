@@ -60,8 +60,10 @@ export function provenanceOf(
   isSystem: boolean | undefined,
 ): Provenance {
   if (shaped) return "inferred";
+  // why: lead decision D88 (2), FR-VOC-2 order — a supplied row `is_system` wins over the profile
   const fromRow = row === undefined ? undefined : own(row, "is_system");
-  return fromRow === true || isSystem === true ? "system" : "custom";
+  const system = typeof fromRow === "boolean" ? fromRow : isSystem === true;
+  return system ? "system" : "custom";
 }
 
 export function retiredOf(row: Row | undefined): boolean {
