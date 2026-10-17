@@ -42,17 +42,14 @@ const ALWAYS = new Set<Action["kind"]>([
   "restore",
   "showMany",
 ]);
-const ROOT_CAN_LEAVE = new Set<Action["kind"]>([
-  "hide",
-  "hideMany",
-  "collapse",
-  "collapseGroup",
-]);
+// why: lead decision D99 (2) — a new scope ends the grouping in place, with no glide
+const IN_PLACE = new Set<Action["kind"]>(["budget", "reset"]);
 
 type Run = { graph: Graph; vocab: Vocab; metrics: IconMetrics };
 
 // why: story Context exits 4-10 (D66, D68) — the glide home, then the transition on `home` and the
-// STORY-002-07 placement of its change; a hide or a collapse is an exit only when the root leaves
+// STORY-002-07 placement of its change. D100: every other change is exit 9 or 10 when the drawn id
+// of the root is not drawn after it (a hide, a collapse, an explore or a group expand, a path)
 function actionExit(
   state: CanvasState,
   root: DrawnId,
@@ -61,7 +58,7 @@ function actionExit(
   { graph, vocab, metrics }: Run,
 ): ExitResult | null {
   if (!ALWAYS.has(action.kind)) {
-    if (!ROOT_CAN_LEAVE.has(action.kind)) return null;
+    if (IN_PLACE.has(action.kind)) return null;
     const next = transition(state, action, graph, vocab);
     if (frontierOf(next, graph, vocab).nodes.some((n) => n.id === root))
       return null;

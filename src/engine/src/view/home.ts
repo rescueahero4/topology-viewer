@@ -51,20 +51,30 @@ type Chain = {
   member: Map<DrawnId, DrawnId>;
 };
 
-// why: STORY-002-04 `origins` — the origin of an entity; a group node takes the origin of its first
-// member that has one; a member of a group expand made while grouped takes that group (D98)
-function originOf(c: Chain, id: DrawnId): DrawnId | null {
+// why: the entities whose `origins` pair is the origin of a node: its own entity; the members of a
+// group node; for a group node that a group expand opened, its drawn members (D98), which came
+// with the explore that drew the group node (QA F-2)
+function entitiesOfNode(c: Chain, id: DrawnId): string[] {
   const node = c.nodes.get(id);
-  const entity = node === undefined ? entityOfDrawnId(id) : null;
-  const entities =
-    node === undefined
-      ? entity === null
-        ? []
-        : [entity]
-      : "entity" in node
-        ? [node.entity]
-        : node.members;
-  const from = entities.map((e) => c.pairs.get(e)).find((o) => o !== undefined);
+  if (node !== undefined)
+    return "entity" in node ? [node.entity] : node.members;
+  const entity = entityOfDrawnId(id);
+  if (entity !== null) return [entity];
+  const held: string[] = [];
+  for (const [member, group] of c.member) {
+    const drawn = c.nodes.get(member);
+    if (group === id && drawn !== undefined && "entity" in drawn)
+      held.push(drawn.entity);
+  }
+  return held;
+}
+
+// why: STORY-002-04 `origins` — the origin of a node is the origin of its first entity that has
+// one; a member of a group expand made while grouped with no pair takes that group (D98)
+function originOf(c: Chain, id: DrawnId): DrawnId | null {
+  const from = entitiesOfNode(c, id)
+    .map((e) => c.pairs.get(e))
+    .find((o) => o !== undefined);
   return from === undefined ? (c.member.get(id) ?? null) : entityDrawnId(from);
 }
 

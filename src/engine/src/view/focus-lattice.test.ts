@@ -283,7 +283,13 @@ describe("S36 case M: a crowded explore while grouped inside an earlier expansio
       const items = itemsOf(a.state, "e:A");
       expect(items).toHaveLength(34);
       expect(items.every(([id]) => saved.has(id))).toBe(true);
-      expect(items.filter(([id]) => id.startsWith("e:g"))).toHaveLength(6);
+      const grid = items.filter(([id]) => id.startsWith("e:g"));
+      expect(grid).toHaveLength(6);
+      const size = ([, x0, y0, x1, y1]: MoveItem) =>
+        Math.hypot(x1 - x0, y1 - y0);
+      const most = grid.reduce((a, b) => (size(b) > size(a) ? b : a));
+      expect(most[0]).toBe("e:g12_13");
+      expect(size(most)).toBeCloseTo(56.92, 2);
       const shut = run.act(a.state, { kind: "collapse", id: "T" }).state;
       expect(shut.around?.events).toEqual([]);
       for (const id of ["e:u", "e:A", "e:l0", "e:a0"])
@@ -295,4 +301,65 @@ describe("S36 case M: a crowded explore while grouped inside an earlier expansio
     },
     SLOW,
   );
+});
+
+// why: S45 Given (QA probe E): R in the middle, T, Y, z0, z1 on a 400 px ring, a leaf v0 that T
+// and Y share, 4 own leaves each; Force, Grouping Off
+function ring() {
+  const own = (hub: string, p: string) =>
+    [0, 1, 2, 3].map((k) => ({ id: `${p}${k}`, type: p, hub }));
+  const leaves = [...own("T", "l"), ...own("Y", "m")];
+  const spokes = ["T", "Y", "z0", "z1"];
+  const input = {
+    nodes: [
+      { id: "R", type: "r" },
+      ...spokes.map((id) => ({ id, type: "p" })),
+      { id: "v0", type: "q" },
+      ...leaves.map(({ id, type }) => ({ id, type })),
+    ],
+    edges: [
+      ...spokes.map((id) => rel("R", id)),
+      rel("Y", "v0"),
+      rel("T", "v0"),
+      ...leaves.map(({ id, hub }) => rel(hub, id)),
+    ],
+  };
+  const turn = (k: number) => (2 * Math.PI * k) / spokes.length;
+  return worldOf(input, [
+    ["R", { x: 0, y: 0 }],
+    ...spokes.map((id, k): [string, Point] => [
+      id,
+      { x: 400 * Math.cos(turn(k)), y: 400 * Math.sin(turn(k)) },
+    ]),
+  ]);
+}
+
+describe("S45 the undo of a non-zero D70 move item made while grouped (QA T-1)", () => {
+  it("puts T back at its grouped spot and deletes the item", () => {
+    const run = ring();
+    const S0 = run.state;
+    const y = run.act(S0, { kind: "explore", id: "Y" }).state;
+    const t = run.act(y, { kind: "explore", id: "T" }).state;
+    expect(t.homes.some(([k]) => k === "e:T")).toBe(true);
+    const on = run.group(t, "e:R");
+    const seq0 = on.around?.seq0 ?? 0;
+    const c = run.act(on, { kind: "collapse", id: "Y" }).state;
+    const g = at(c, "e:T");
+    const again = run.act(c, { kind: "explore", id: "T" }).state;
+    expect(again.around?.events).toEqual([["e:T", false]]);
+    const late = again.nudges.filter(([k, q]) => k === "e:T" && q > seq0);
+    const item = late.flatMap(([, , it]) => it).find(([id]) => id === "e:T");
+    if (item === undefined) throw new Error("no D70 move item");
+    near({ x: item[1], y: item[2] }, 22, -42);
+    near({ x: item[3], y: item[4] }, -14.06, -59.31);
+    const shut = run.act(again, { kind: "collapse", id: "T" }).state;
+    const p = at(shut, "e:T");
+    expect(Math.hypot(p.x - g.x, p.y - g.y)).toBeLessThanOrEqual(1e-9);
+    expect(shut.nudges.some(([k, q]) => k === "e:T" && q > seq0)).toBe(false);
+    const done = run.off(shut);
+    for (const [id, q] of S0.positions) expect(at(done, id)).toEqual(q);
+    expect(run.view(done).nodes.map((n) => n.id)).toEqual(
+      run.view(S0).nodes.map((n) => n.id),
+    );
+  });
 });

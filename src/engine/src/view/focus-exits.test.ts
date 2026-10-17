@@ -11,7 +11,7 @@ import type { Action, CanvasState } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
 import { exitAround, type AroundExit, type ExitResult } from "./exit";
-import { groupAround } from "./focus";
+import { expandAround, groupAround } from "./focus";
 import { frontier } from "./frontier";
 import { firstView, transition } from "./story";
 
@@ -243,5 +243,26 @@ describe("S27 the last step is the state; placed by exit", () => {
         "retractTo",
         "crowded",
       ]);
+  });
+});
+
+describe("S42 an explore that puts the root into a group node is exit 10 (D100 (a))", () => {
+  it.each(["force", "atomic", "bubbles"] as const)("%s", (name) => {
+    const before = setLayout(first, view(first), A.vocab, name, METRICS);
+    const S = group(before, "e:ug_exec");
+    const action: Action = { kind: "explore", id: "u_12" };
+    const r = exit(S, { kind: "action", action });
+    expect(r.steps).toHaveLength(2);
+    expect(r.steps[0].positions).toEqual(before.positions);
+    expect(r.steps[0].around).toBeNull();
+    expect(r.steps[1]).toEqual(act(before, action));
+    expect(r.state).toBe(r.steps[1]);
+    expect(drawn(r.state)).not.toContain("e:ug_exec");
+    expect(drawn(r.state)).toContain('g:["u_12","memberOf",">","user_group"]');
+    const next = transition(S, action, A.graph, A.vocab);
+    const change = { action, before: view(S), after: view(next) };
+    expect(() => expandAround(next, change, A.vocab, METRICS)).toThrow(
+      "exitAround",
+    );
   });
 });

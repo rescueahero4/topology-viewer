@@ -50,8 +50,10 @@ function world(input: unknown) {
     groupAround(s, view(s), id, METRICS);
   const off = (s: CanvasState) =>
     exitAround(s, { kind: "off" }, view(s), graph, vocab, METRICS).state;
+  const exit = (s: CanvasState, action: Action) =>
+    exitAround(s, { kind: "action", action }, view(s), graph, vocab, METRICS);
   const first = firstView(graph, vocab, payload, hash);
-  return { vocab, view, act, group, off, first };
+  return { vocab, view, act, group, off, exit, first };
 }
 
 const GRID = generate.grid(27, 45);
@@ -310,6 +312,7 @@ describe("S41 a tree shift made before the grouping, collapsed while grouped", (
     const on = run.group(back, "e:P");
     expect(on.around?.shown).toEqual(["e:X", "e:P", "e:Q"]);
     const shut = run.act(on, { kind: "collapse", id: "X" }).state;
+    expect(shut.treeRows).toBeNull();
     const saved = new Map(shut.around?.saved);
     expect(saved.get("e:P")).toEqual({ x: 240, y: 0 });
     expect(saved.get("e:Q")).toEqual({ x: 480, y: 100 });
@@ -321,5 +324,74 @@ describe("S41 a tree shift made before the grouping, collapsed while grouped", (
     expect(done.homes).toEqual([]);
     expect(done.treeShifts).toEqual([]);
     expect(done.nudges).toEqual([]);
+  });
+});
+
+type Run = ReturnType<typeof world>;
+
+// why: D100 — the change is exit 10: `[home, effect]`, `home` is the state before the grouping, the
+// effect is the change on it, and `expandAround` refuses the change
+function rootLeaves(
+  run: Run,
+  before: CanvasState,
+  root: DrawnId,
+  action: Action,
+) {
+  const S = run.group(before, root);
+  const r = run.exit(S, action);
+  expect(r.steps).toHaveLength(2);
+  expect(r.steps[0].positions).toEqual(before.positions);
+  expect(r.steps[0].around).toBeNull();
+  expect(r.steps[1]).toEqual(run.act(before, action).state);
+  expect(run.view(r.state).nodes.some((n) => n.id === root)).toBe(false);
+  expect(() => run.act(S, action)).toThrow("exitAround");
+}
+
+describe("S43 a change of a group root that takes it off the canvas (D100)", () => {
+  it(
+    "(c) a group expand of the root is exit 10",
+    () => {
+      const run = s22();
+      rootLeaves(run, run.state, G, { kind: "expandGroup", group: G });
+    },
+    SLOW,
+  );
+
+  // why: D100 (b) — the explore of `B` brings `x`, which links `l0` and `l1`; they are no longer
+  // leaves, so the group node of the root is not drawn
+  it("(b) an explore that takes the members out of the root is exit 10", () => {
+    const run = world({
+      nodes: [
+        { id: "A", type: "a" },
+        { id: "B", type: "b" },
+        { id: "l0", type: "tl" },
+        { id: "l1", type: "tl" },
+        { id: "x", type: "c" },
+      ],
+      edges: [
+        rel("A", "l0"),
+        rel("A", "l1"),
+        rel("A", "B"),
+        rel("B", "x"),
+      ].concat([rel("x", "l0"), rel("x", "l1")]),
+    });
+    const root = 'g:["A","relatedTo",">","tl"]';
+    const before: CanvasState = {
+      ...run.first,
+      grouping: 2,
+      layout: "force",
+      revealed: ["A", "B", "l0", "l1"],
+      positions: [
+        ["e:A", { x: 0, y: 0 }],
+        ["e:B", { x: 200, y: 0 }],
+        [root, { x: -200, y: 0 }],
+      ],
+    };
+    expect(run.view(before).nodes.map((n) => n.id)).toEqual([
+      "e:A",
+      "e:B",
+      root,
+    ]);
+    rootLeaves(run, before, root, { kind: "explore", id: "B" });
   });
 });

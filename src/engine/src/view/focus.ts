@@ -145,6 +145,15 @@ function eventOf(change: PlaceChange, state: CanvasState, born: DrawnNode[]) {
 const homeEntry = (state: CanvasState, id: DrawnId) =>
   state.homes.find(([key]) => key === id);
 
+// why: lead decision D100 — a change after which the root is not drawn is exit 9 or 10, and the
+// caller gets it from `exitAround` first (hand-off memo item 16); here it is a programmer error
+function keepsRoot(around: Around, change: PlaceChange) {
+  if (!change.after.nodes.some((n) => n.id === around.root))
+    throw new Error(
+      "The change takes the root off the canvas: use exitAround.",
+    );
+}
+
 // why: story questions 3 and 6 (Q24, option (b)) — an explore or a group expand while grouped is
 // not an exit: it applies as STORY-002-07 `place`, its newcomers join `shown`, the faded neighbours
 // of an explored shown node join with no move, and the event gets its `around.events` pair (D24)
@@ -154,14 +163,15 @@ export function expandAround(
   vocab: Vocab,
   metrics: IconMetrics,
 ): PlaceResult {
-  const result = place(state, change, vocab, metrics);
   const { action } = change;
   const around = state.around;
   if (
     around === null ||
     (action.kind !== "explore" && action.kind !== "expandGroup")
   )
-    return result;
+    return place(state, change, vocab, metrics);
+  keepsRoot(around, change);
+  const result = place(state, change, vocab, metrics);
   const drawn = new Set(change.before.nodes.map((n) => n.id));
   const born = change.after.nodes.filter((n) => !drawn.has(n.id));
   const key = eventOf(change, state, born);
@@ -336,6 +346,7 @@ export function collapseAround(
     (action.kind !== "collapse" && action.kind !== "collapseGroup")
   )
     return place(state, change, vocab, metrics);
+  keepsRoot(around, change);
   const run = { vocab, metrics };
   const { key, keys, drawn } = undoSetOf(state, change, action, run);
   const early = ([k, seq]: UndoEntry) => keys.has(k) && seq <= around.seq0;

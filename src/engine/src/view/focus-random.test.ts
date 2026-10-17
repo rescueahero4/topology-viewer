@@ -54,6 +54,14 @@ function world(input: unknown, name: LayoutName, spots?: [string, Point][]) {
   };
   const off = (s: CanvasState) =>
     exitAround(s, { kind: "off" }, view(s), graph, vocab, METRICS).state;
+  // why: D99 (1), D100 (hand-off memo item 16) — `exitAround` first; a change that is no exit then
+  // goes to `expandAround`, `collapseAround` or `place`
+  const apply = (s: CanvasState, action: Action): Step => {
+    const kind = { kind: "action", action } as const;
+    const e = exitAround(s, kind, view(s), graph, vocab, METRICS);
+    if (e.steps.length === 0) return { state: act(s, action) };
+    return { state: e.state, home: e.steps[0] };
+  };
   const first = firstView(graph, vocab, payload, hash);
   const state: CanvasState =
     spots === undefined
@@ -65,8 +73,10 @@ function world(input: unknown, name: LayoutName, spots?: [string, Point][]) {
           revealed: spots.map(([id]) => id),
           positions: spots.map(([id, p]) => [`e:${id}`, p]),
         };
-  return { view, act, off, state };
+  return { view, act, off, apply, state };
 }
+
+type Step = { state: CanvasState; home?: CanvasState };
 
 const rel = (subject: string, object: string) => ({
   subject,
@@ -128,24 +138,26 @@ function stepOf(
   s: CanvasState,
   r: () => number,
   { open, log }: { open: string[]; log: string[] },
-) {
+): Step {
   const nodes = run.view(s).nodes;
   const shown = new Set(s.around?.shown);
   const roll = r();
   if (roll < 0.25 && open.length > 0) {
     const id = open.pop() as string;
     log.push(`collapse ${id}`);
-    return run.act(s, { kind: "collapse", id });
+    return run.apply(s, { kind: "collapse", id });
   }
   if (roll < 0.6) {
     const ids = nodes.flatMap((n) =>
       "entity" in n && n.more > 0 && shown.has(n.id) ? [n.entity] : [],
     );
-    if (ids.length === 0) return s;
+    if (ids.length === 0) return { state: s };
     const id = pick(ids, r);
     log.push(`explore ${id}`);
-    const next = run.act(s, { kind: "explore", id });
-    if (drawnIds(run, next).join() !== drawnIds(run, s).join()) open.push(id);
+    const next = run.apply(s, { kind: "explore", id });
+    const from = next.home ?? s;
+    if (drawnIds(run, next.state).join() !== drawnIds(run, from).join())
+      open.push(id);
     return next;
   }
   const node = pick(nodes, r);
@@ -153,7 +165,7 @@ function stepOf(
   const p = new Map(s.positions).get(node.id) as Point;
   const to = { x: p.x + 400 * (r() - 0.5), y: p.y + 400 * (r() - 0.5) };
   log.push(`drag ${node.id}`);
-  return release(dragStep(ctx, to).ctx).state;
+  return { state: release(dragStep(ctx, to).ctx).state };
 }
 
 // why: up to 2 explores before the grouping, so that a collapse while grouped can undo an event
@@ -187,18 +199,25 @@ function runOnce(run: World, seed: number, roots?: string[]) {
   const root = pick(roots ?? run.view(A).nodes.map((n) => n.id), r);
   let s = groupAround(A, run.view(A), root, METRICS);
   path.log.push(`root ${s.around?.root}`);
-  for (let k = 0; k < STEPS; k++) s = stepOf(run, s, r, path);
   // why: story Context rule (3) (D76) — a collapse while grouped changes `saved`
-  const saved = new Map(s.around?.saved);
+  let saved = new Map(s.around?.saved);
+  let home: CanvasState | undefined;
+  for (let k = 0; k < STEPS && home === undefined; k++) {
+    const before = new Map(s.around?.saved);
+    ({ state: s, home } = stepOf(run, s, r, path));
+    saved = home === undefined ? new Map(s.around?.saved) : before;
+    // why: D100 — no state has `around` on with a root that is not drawn
+    if (s.around !== null) expect(drawnIds(run, s)).toContain(s.around.root);
+  }
   const why = path.log.join("; ");
-  const home = run.off(s);
+  home ??= s = run.off(s);
   expect(home.around).toBeNull();
   expect(home.hidden).toEqual(S0.hidden);
   for (const [id, p] of home.positions) {
     const spot = saved.get(id);
     if (spot !== undefined) expect(p, `${why}; ${id}`).toEqual(spot);
   }
-  let end = home;
+  let end = s;
   const opened = path.log.filter((step) => step.startsWith("explore")).length;
   while (path.open.length > 0)
     end = run.act(end, { kind: "collapse", id: path.open.pop() as string });
@@ -243,4 +262,17 @@ describe("SA §6 rows 2, 9: random steps while grouped, off, then the collapses"
     },
     SLOW,
   );
+});
+
+// why: S46 (QA M-2) — seeds that reach build memo item 3 (h) (a kept position at the exit: seed
+// 49) and item 3 (i) (the rule (h)(4) step of an earlier event in a collapse while grouped: seed
+// 36); with the item planted out, `s-access` seeds 1-300 fail at 49, 65, 66, 86, ... and at 36, 162
+describe("S46 fixed seeds for build memo items 3 (h) and 3 (i)", () => {
+  it.each([
+    [49, "3 (h)"],
+    [36, "3 (i)"],
+  ])("s-access in force, seed %i (item %s)", (seed) => {
+    const run = world(loadFixture("s-access").input, "force");
+    expect(runOnce(run, seed)).toBeGreaterThan(0);
+  });
 });

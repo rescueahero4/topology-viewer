@@ -298,8 +298,10 @@ describe("S32 a second explore while grouped of a node explored before", () => {
 
 describe("S35 case K: the collapse while grouped of a key with events on both sides of seq0", () => {
   it("undoes each event in its own frame", () => {
-    const { run, x0, S } = s32();
+    const { run, x0, A3, S } = s32();
     const shut = run.act(S, { kind: "collapse", id: "ug_fin_admin" });
+    const g = at(A3, FIN);
+    expect(at(shut, FIN)).toEqual({ x: g.x + 100, y: g.y });
     expect(shut.around?.events).toEqual([]);
     expect(shut.homes).toEqual([]);
     expect(shut.nudges).toEqual([]);
@@ -309,5 +311,37 @@ describe("S35 case K: the collapse while grouped of a key with events on both si
     expect(at(done, FIN)).toEqual(x0);
     expect(pos(done)).toEqual(pos(run.state));
     expect(done.around).toBeNull();
+  });
+});
+
+describe("S44 a group node born while grouped and open at the exit (QA F-2)", () => {
+  it("moves its homes entry by the exit vector of its origin", () => {
+    const run = access();
+    const G = 'g:["ug_fin_admin","memberOf","<","user"]';
+    const on = run.group(run.state, ROOT);
+    const A = run.act(on, { kind: "explore", id: "ug_fin_admin" });
+    expect(run.view(A).nodes.some((n) => n.id === G)).toBe(true);
+    const B = run.act(A, { kind: "expandGroup", group: G });
+    expect(B.around?.events).toEqual([
+      [FIN, true],
+      [G, true],
+    ]);
+    const spot = new Map(B.around?.saved).get(FIN) as Point;
+    const v = { x: spot.x - at(B, FIN).x, y: spot.y - at(B, FIN).y };
+    const g = at(A, G);
+    expect(entry(B, G)).toEqual([G, g.x, g.y, g.x, g.y]);
+    const done = run.off(B);
+    expect(entry(done, G)).toEqual([
+      G,
+      g.x + v.x,
+      g.y + v.y,
+      g.x + v.x,
+      g.y + v.y,
+    ]);
+    const shut = run.act(done, { kind: "collapseGroup", group: G });
+    const p = at(shut, G);
+    expect(
+      Math.hypot(p.x - (g.x + v.x), p.y - (g.y + v.y)),
+    ).toBeLessThanOrEqual(1e-9);
   });
 });
