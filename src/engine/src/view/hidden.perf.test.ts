@@ -162,14 +162,16 @@ function showAll(nodes: number) {
   };
 }
 
+// why: lead decision D94 (2), ISSUE-007 — 4 times the entities: near-linear work takes about 4 times
+// the time and quadratic work about 16 times, so the limit 8 keeps machine load out of the result
 describe("S26 bulk Show along paths is near-linear", () => {
-  it("takes < 100 ms at 2,000 entities and ≤ 2.5 × the time at 1,000", () => {
-    const works = [showAll(1000), showAll(2000)];
+  it("takes < 100 ms at 2,000 entities and ≤ 8 × the time at 500", () => {
+    const works = [showAll(500), showAll(2000)];
     for (const work of works) work();
     const [small, large] = works.map((work) => time(work));
-    expect(small.value.revealed).toHaveLength(1000);
+    expect(small.value.revealed).toHaveLength(500);
     expect(large.value.revealed).toHaveLength(2000);
     expect(large.ms).toBeLessThan(100);
-    expect(large.ms).toBeLessThanOrEqual(2.5 * small.ms);
+    expect(large.ms).toBeLessThanOrEqual(8 * small.ms);
   }, 60_000);
 });

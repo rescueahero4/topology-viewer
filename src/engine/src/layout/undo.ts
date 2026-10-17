@@ -68,6 +68,22 @@ export type RowsAt = {
   coord: Map<number, number>;
 };
 
+// why: the drawn nodes that stay, by row key, and the row keys in use, made once for each collapse,
+// so the undo of each row shift costs its rows only (story rule (h)(7))
+export type RowIndex = { members: Map<number, DrawnId[]>; used: Set<number> };
+
+export function rowIndex(rows: RowsAt, stay: DrawnId[]): RowIndex {
+  const members = new Map<number, DrawnId[]>();
+  for (const id of stay) {
+    const key = rows.keyOf.get(id);
+    if (key === undefined) continue;
+    const list = members.get(key);
+    if (list === undefined) members.set(key, [id]);
+    else list.push(id);
+  }
+  return { members, used: new Set(rows.keyOf.values()) };
+}
+
 // why: STORY-002-07 rule (a), lead decisions D64, D84 — the nodes that joined a shifted row after the
 // event follow the row back, with the same test; the row coordinates go back; an inserted row that
 // no drawn node uses is deleted (mockup lines 1335-1340)
@@ -75,27 +91,23 @@ export function undoRows(
   at: Map<DrawnId, Point>,
   rows: RowsAt,
   shift: TreeShift,
-  stay: DrawnId[],
+  index: RowIndex,
 ) {
   const moved = new Set(shift.moved.map(([id]) => id));
-  const byRow = new Map(shift.shiftOf.map(([key, c0, c1]) => [key, [c0, c1]]));
-  for (const id of stay) {
-    const key = rows.keyOf.get(id);
-    const pair = key === undefined ? undefined : byRow.get(key);
-    const p = at.get(id);
-    if (moved.has(id) || pair === undefined || p === undefined) continue;
-    const [c0, c1] = pair;
-    at.set(
-      id,
-      rows.vertical
-        ? { x: p.x, y: back(p.y, c0, c1) }
-        : { x: back(p.x, c0, c1), y: p.y },
-    );
-  }
   for (const [key, c0, c1] of shift.shiftOf) {
+    for (const id of index.members.get(key) ?? []) {
+      const p = at.get(id);
+      if (moved.has(id) || p === undefined) continue;
+      at.set(
+        id,
+        rows.vertical
+          ? { x: p.x, y: back(p.y, c0, c1) }
+          : { x: back(p.x, c0, c1), y: p.y },
+      );
+    }
     const c = rows.coord.get(key);
     if (c !== undefined) rows.coord.set(key, back(c, c0, c1));
   }
-  const used = new Set(rows.keyOf.values());
-  for (const key of shift.inserted) if (!used.has(key)) rows.coord.delete(key);
+  for (const key of shift.inserted)
+    if (!index.used.has(key)) rows.coord.delete(key);
 }

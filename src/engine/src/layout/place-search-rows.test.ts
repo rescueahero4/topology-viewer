@@ -336,4 +336,49 @@ describe("the engine tree search and nudge give the reference result", () => {
     },
     SLOW,
   );
+
+  // why: QA T-2, mockup line 1402 ("each node" of the row) — row 0 is full, so `n0` goes to its
+  // fallback ring at (0, 150), on row 1; `n1` of another origin wants x = 100 on row 1, where only
+  // the row test blocks it (labels of 22 characters need 187.2 px; the clearance tests pass)
+  it("puts the fallback-ring nodes of a tree search into the row test", () => {
+    const node = (id: string): Laid => ({
+      id,
+      type: "a",
+      label: "x".repeat(22),
+      chars: 22,
+      w: 24,
+      h: 24,
+      r: 12,
+      named: true,
+    });
+    const placed: Placed[] = Array.from({ length: 165 }, (_, k) => ({
+      node: node(`p${k}`),
+      at: { x: -4100 + 50 * k, y: 0 },
+    }));
+    const comer = (id: string, origin: Point): Newcomer => ({
+      id,
+      node: node(id),
+      origin,
+      spot: null,
+      tries: 0,
+      crowded: false,
+    });
+    const list = [
+      comer("n0", { x: 0, y: 40 }),
+      comer("n1", { x: 100, y: 500 }),
+    ];
+    const keyOf = new Map([
+      ...placed.map(({ node: { id } }): [string, number] => [id, 0]),
+      ["n0", 0],
+      ["n1", 1],
+    ]);
+    const coord = new Map([
+      [0, 0],
+      [1, 150],
+    ]);
+    inRows({ vertical: true, keyOf, coord }, list, placed);
+    expect(list[0].crowded).toBe(true);
+    expect(list[0].spot?.y).toBe(150);
+    expect([list[1].spot, list[1].tries]).toEqual([{ x: 200, y: 150 }, 10]);
+  });
 });

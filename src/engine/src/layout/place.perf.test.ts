@@ -72,14 +72,14 @@ type World = ReturnType<typeof world>;
 
 // why: STORY-002-07 rule (f) — one event is one `place` call; one warm-up call is not counted, then
 // the median of 5 calls
-function timed(run: World, next: CanvasState, change: PlaceChange) {
+function timed(run: World, next: CanvasState, change: PlaceChange, n = 5) {
   place(next, change, run.vocab, METRICS);
-  const times = Array.from({ length: 5 }, () => {
+  const times = Array.from({ length: n }, () => {
     const t0 = performance.now();
     place(next, change, run.vocab, METRICS);
     return performance.now() - t0;
   }).sort((a, b) => a - b);
-  return times[2];
+  return times[Math.floor(n / 2)];
 }
 
 const at = (s: CanvasState, id: string) =>
@@ -294,6 +294,69 @@ describe("place in the heavy rare forms", () => {
         `group expand of 1,999: crowded ${out.crowded}, median ${ms.toFixed(2)} ms`,
       );
       expect(ms).toBeLessThan(GUARD);
+    },
+    SLOW,
+  );
+});
+
+// why: S33 (QA F-4, rule (h)(7)) — `h` holds G anchors with 2 leaves each, so Grouping 2 draws G
+// groups; every group is open and has its `homes` record; the collapse of `a0` reads them all
+function records(count: number) {
+  const nodes = [
+    { id: "h", type: "a", label: "h" },
+    { id: "x", type: "x", label: "x" },
+  ];
+  const edges = [{ subject: "a0", predicate: "r", object: "x" }];
+  for (let i = 0; i < count; i++) {
+    nodes.push({ id: `a${i}`, type: "a", label: `a${i}` });
+    edges.push({ subject: "h", predicate: "p", object: `a${i}` });
+    for (const k of [0, 1]) {
+      nodes.push({ id: `l${i}_${k}`, type: "l", label: `l${i}_${k}` });
+      edges.push({ subject: `a${i}`, predicate: "q", object: `l${i}_${k}` });
+    }
+  }
+  const run = world({ nodes, edges });
+  const grouped: CanvasState = {
+    ...run.first,
+    grouping: 2,
+    revealed: nodes.map((n) => n.id).filter((id) => id !== "x"),
+  };
+  const groups = run.view(grouped).nodes.filter((n) => "members" in n);
+  const open = run.lay(
+    { ...grouped, expandedGroups: groups.map((n) => n.id.slice(2)) },
+    "force",
+  );
+  const state: CanvasState = {
+    ...open,
+    homes: groups.map((n) => [n.id, 0, 0, 0, 0]),
+  };
+  const { next, change } = run.change(state, { kind: "explore", id: "a0" });
+  const out = place(next, change, run.vocab, METRICS).state;
+  return { run, out, nodes: nodes.length, groups: groups.length };
+}
+
+describe("S33 a collapse with many group-expand records", () => {
+  it(
+    "is near-linear and ≤ 25 ms at 650 records",
+    () => {
+      const ms = [200, 400, 650].map((count) => {
+        const { run, out, nodes, groups } = records(count);
+        expect(groups).toBe(count);
+        const { next, change } = run.change(out, {
+          kind: "collapse",
+          id: "a0",
+        });
+        expect(
+          place(next, change, run.vocab, METRICS).state.homes,
+        ).toHaveLength(count);
+        const time = timed(run, next, change, 3);
+        console.log(
+          `S33: ${count} records, ${nodes} nodes, median ${time.toFixed(2)} ms`,
+        );
+        return time;
+      });
+      expect(ms[2]).toBeLessThanOrEqual(25);
+      expect(ms[2]).toBeLessThanOrEqual(4 * ms[0]);
     },
     SLOW,
   );

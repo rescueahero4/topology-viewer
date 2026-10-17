@@ -6,6 +6,7 @@ import type {
   CanvasState,
   DrawnId,
   LayoutName,
+  MoveItem,
   Point,
 } from "../state/canvasState";
 import { frontier, type DrawnNode, type Frontier } from "../view/frontier";
@@ -80,11 +81,13 @@ function collapse(c: Ctx, removed: DrawnNode[]) {
     { kind: "collapse" | "collapseGroup" }
   >;
   const group = action.kind === "collapseGroup";
-  const key = group
-    ? action.group
-    : c.holder.has(action.id)
-      ? `e:${action.id}`
-      : null;
+  // why: rule (h)(5) — the records of `e:X` are undone also when X is not drawn
+  const own = group ? "" : `e:${action.id}`;
+  const recorded = [...c.state.homes, ...c.state.nudges, ...c.state.treeShifts]
+    .map(([id]) => id)
+    .includes(own);
+  const drawnX = !group && c.holder.has(action.id);
+  const key = group ? action.group : drawnX || recorded ? own : null;
   const keys = new Set([...(key ? [key] : []), ...removed.map((n) => n.id)]);
   const drawnA = new Set(ch.after.nodes.flatMap(ents));
   for (const [id] of [
@@ -157,11 +160,24 @@ function collapse(c: Ctx, removed: DrawnNode[]) {
       at.set(n.id, c.was.get(n.id) as Point);
   const spot = group
     ? at.get(action.group)
-    : key
+    : drawnX
       ? c.was.get(c.holder.get(action.id) as DrawnId)
-      : undefined;
+      : key === null
+        ? undefined
+        : c.was.get(key);
+  // why: rule (h)(4) — a node that goes back into a group keeps its position from before the
+  // earliest undone event that holds an item of it
+  const kept = new Map<DrawnId, Point>();
+  const items = mine
+    .filter((e) => Array.isArray(e[2]))
+    .sort((a, b) => b[1] - a[1])
+    .flatMap((e) => e[2] as MoveItem[]);
+  for (const n of removed)
+    if ("entity" in n && drawnA.has(n.entity))
+      for (const [id, x, y] of items) if (id === n.id) kept.set(id, { x, y });
   return {
     keys,
+    kept,
     retract: removed.map((n): [DrawnId, Point] => [
       n.id,
       spot ?? (c.was.get(n.id) as Point),
@@ -230,6 +246,7 @@ function act(w: World, s: CanvasState, view: Frontier): Action | null {
     () => ({ kind: "explore", id: r.pick(more.length ? more : w.ids) }),
     () => ({ kind: "collapse", id: r.pick(opened.length ? opened : w.ids) }),
     () => ({ kind: "collapse", id: r.pick(opened.length ? opened : w.ids) }),
+    () => ({ kind: "collapse", id: r.pick(w.ids) }),
     () =>
       of(
         nodes.filter((n) => "members" in n),
@@ -284,14 +301,15 @@ describe("each collapse equals the reference model of rule (a)", () => {
         const c = setup(next, change, w.vocab);
         const drawn = new Set(change.after.nodes.map((n) => n.id));
         const removed = change.before.nodes.filter((n) => !drawn.has(n.id));
-        const { keys, retract } = collapse(c, removed);
+        const { keys, kept, retract } = collapse(c, removed);
         const why = `seed ${seed} step ${k} ${JSON.stringify(action)}`;
         const now = new Map(got.state.positions);
         expect(
           [...c.at].map(([id]) => [id, now.get(id)]),
           why,
         ).toEqual([...c.at]);
-        for (const n of removed) expect(now.has(n.id), why).toBe(false);
+        for (const n of removed)
+          expect(now.get(n.id), why).toEqual(kept.get(n.id));
         expect(got.retractTo, why).toEqual(retract);
         expect(got.state.homes, why).toEqual(
           next.homes.filter(([id]) => !keys.has(id)),

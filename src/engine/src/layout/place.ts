@@ -47,7 +47,12 @@ export type PlaceResult = {
   candidates: [DrawnId, number][];
 };
 
-type Work = Undo & { state: CanvasState; action: Action; fresh: number[] };
+type Work = Undo & {
+  state: CanvasState;
+  action: Action;
+  fresh: number[];
+  expanded: Set<string>;
+};
 
 // why: STORY-002-07 rule (a) — an explore or a group expand is an expansion: it can move its target,
 // shift rows and nudge, and it keeps what it moved under its event key, the drawn id of the target
@@ -90,6 +95,7 @@ function workOf(
     homes: state.homes,
     nudges: state.nudges,
     treeShifts: state.treeShifts,
+    expanded: new Set(state.expandedGroups),
   };
 }
 
@@ -98,9 +104,12 @@ function leavingOf(w: Work): DrawnNode[] {
   return w.before.frontier.nodes.filter((node) => !drawn.has(node.id));
 }
 
+type Collapsed = { retract: Point | undefined; back: Map<DrawnId, Point> };
+
 // why: STORY-002-07 rule (a) "Collapse of X" and Origins — undo, then the nodes that leave retract to
-// the position of the target before the glide (D73), the members of a group to its home
-function collapseOf(w: Work, leaving: DrawnNode[]): Point | undefined {
+// the position of the target before the glide (D73), the members of a group to its home. Rule
+// (h)(4): a node that goes back into a group keeps its position from before the undone event
+function collapseOf(w: Work, leaving: DrawnNode[]): Collapsed {
   const { action } = w;
   const target =
     action.kind === "collapse" ? collapseTarget(w, action.id) : null;
@@ -111,11 +120,19 @@ function collapseOf(w: Work, leaving: DrawnNode[]): Point | undefined {
     key,
     leaving.map((node) => node.id),
   );
-  undoEvents(w, keys);
-  const spot = target?.spot;
+  const undone = undoEvents(w, keys);
   goHome(w, key, keys);
   comeBack(w);
-  return action.kind === "collapseGroup" ? w.at.get(action.group) : spot;
+  const folded = new Set(
+    leaving.flatMap((node) =>
+      "entity" in node && w.after.holder.has(node.entity) ? [node.id] : [],
+    ),
+  );
+  const back = new Map<DrawnId, Point>();
+  for (const [id, x, y] of undone) if (folded.has(id)) back.set(id, { x, y });
+  const retract =
+    action.kind === "collapseGroup" ? w.at.get(action.group) : target?.spot;
+  return { retract, back };
 }
 
 // why: STORY-002-04 explore — every entity that an explore brings has the explored entity as its
@@ -238,35 +255,61 @@ function nudged(
   return items;
 }
 
+// why: story rule (h)(4) — an expansion that draws a node out of a group stores the position that
+// the node kept in the group, so the collapse of the expansion puts it back there. The item moves
+// nothing (as the `homes` entry of a group, rule (a)), so a node that stays drawn does not move
+function cameOut(w: Work, ev: Event): MoveItem[] {
+  if (!ev.expand) return [];
+  return w.fresh.flatMap((i): MoveItem[] => {
+    const node = w.after.frontier.nodes[i];
+    const kept = w.was.get(node.id);
+    const at = "entity" in node ? w.before.holder.get(node.entity) : undefined;
+    if (kept === undefined || at === undefined) return [];
+    if (!("members" in w.before.frontier.nodes[at])) return [];
+    return [[node.id, kept.x, kept.y, kept.x, kept.y]];
+  });
+}
+
+// why: STORY-002-07 rule (a) — the items of one entry in frontier order, the move item of a later
+// `moveOut` first
+function itemsOf(w: Work, out: MoveItem[], rest: MoveItem[]): MoveItem[] {
+  const order = new Map(w.after.frontier.nodes.map((node, i) => [node.id, i]));
+  const rank = (item: MoveItem) => order.get(item[0]) as number;
+  return [...out, ...rest.sort((a, b) => rank(a) - rank(b))];
+}
+
 // why: STORY-002-07 rule (a) "Group node" — a group that opens leaves the drawn set, and its spot
 // before the event is its home (a group expand, or a path that opens the group of its target)
 function groupHomes(w: Work, leaving: DrawnNode[]) {
   for (const node of leaving) {
     const key = groupKeyOf(node.id);
     const at = w.was.get(node.id);
-    if (key === null || at === undefined) continue;
-    if (!w.state.expandedGroups.includes(key)) continue;
+    if (key === null || at === undefined || !w.expanded.has(key)) continue;
     const home: MoveItem = [node.id, at.x, at.y, at.x, at.y];
     w.homes = [...w.homes.filter(([id]) => id !== node.id), home];
   }
 }
 
-// why: STORY-002-07 rule (d), S16, S21, S24 — a hide keeps every position (STORY-002-08 S8 reads
-// them); a Grouping change and a collapse forget the nodes that leave (each came with an expansion
-// that the collapse undoes); else a node is forgotten when its entities leave the drawn set or when
-// it is a group that opened (its home is in `homes`). A node that goes into a group keeps its
-// position, so a collapse puts it back there (mockup line 2216)
+// why: STORY-002-07 rule (d), rule (h)(3), S16, S21, S24 — a hide keeps every position (STORY-002-08
+// S8 reads them); a Grouping change and a collapse forget the nodes that leave (each came with an
+// expansion that the collapse undoes, except rule (h)(4)); else a node is forgotten when its
+// entities leave the drawn set or when it is a group that opened (its home is in `homes`). A node
+// that goes into a group keeps its position, so a collapse puts it back there (mockup line 2216)
 function dropped(w: Work, node: DrawnNode): boolean {
   const kind = w.action.kind;
   if (kind === "hide" || kind === "hideMany") return false;
   if (kind === "grouping" || kind === "collapse" || kind === "collapseGroup")
     return true;
   const key = groupKeyOf(node.id);
-  if (key !== null && w.state.expandedGroups.includes(key)) return true;
+  if (key !== null && w.expanded.has(key)) return true;
   return !entitiesOf(node).some((entity) => w.after.holder.has(entity));
 }
 
-function positionsOf(w: Work, leaving: DrawnNode[]): [DrawnId, Point][] {
+function positionsOf(
+  w: Work,
+  leaving: DrawnNode[],
+  back: Map<DrawnId, Point>,
+): [DrawnId, Point][] {
   const drop = new Set(
     leaving.filter((node) => dropped(w, node)).map((node) => node.id),
   );
@@ -275,9 +318,12 @@ function positionsOf(w: Work, leaving: DrawnNode[]): [DrawnId, Point][] {
     w.at.get(node.id) as Point,
   ]);
   const shown = new Set(drawn.map(([id]) => id));
-  const kept = w.state.positions.filter(
-    ([id]) => !shown.has(id) && !drop.has(id),
-  );
+  const kept = w.state.positions.flatMap(([id, p]): [DrawnId, Point][] => {
+    if (shown.has(id)) return [];
+    const home = back.get(id);
+    if (home !== undefined) return [[id, home]];
+    return drop.has(id) ? [] : [[id, p]];
+  });
   return [...drawn, ...kept];
 }
 
@@ -307,7 +353,7 @@ export function place(
   const leaving = leavingOf(w);
   const { kind } = change.action;
   const collapse = kind === "collapse" || kind === "collapseGroup";
-  const retract = collapse ? collapseOf(w, leaving) : undefined;
+  const undone = collapse ? collapseOf(w, leaving) : null;
   const origins = originsOf(w);
   const ev = collapse ? NO_EVENT : eventOf(w, origins);
   const { starts, list } = newcomersOf(
@@ -321,15 +367,21 @@ export function place(
   for (const item of list) w.at.set(item.id, item.spot as Point);
   const out = spot && ev.target ? movedOut(w, ev.target, spot) : [];
   const shifted = inserted?.shiftOf ?? new Map<number, number>();
-  const items = [...out, ...nudged(w, ev, list, shifted)];
+  const rest = [...nudged(w, ev, list, shifted), ...cameOut(w, ev)];
+  const items = itemsOf(w, out, rest);
   groupHomes(w, leaving);
   const key = ev.key as DrawnId;
   const shift = ev.expand ? inserted?.entry : undefined;
+  const retract = undone?.retract;
   return {
     state: {
       ...state,
       seq,
-      positions: positionsOf(w, leaving),
+      positions: positionsOf(
+        w,
+        leaving,
+        undone?.back ?? new Map<DrawnId, Point>(),
+      ),
       treeRows: treeRowsOf(w),
       homes: w.homes,
       nudges: items.length > 0 ? [...w.nudges, [key, seq, items]] : w.nudges,

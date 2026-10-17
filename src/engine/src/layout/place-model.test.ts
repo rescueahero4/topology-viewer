@@ -44,7 +44,6 @@ const mid = (l: Placed[]) => centroid(l.map((p) => p.at));
 type Ctx = {
   state: CanvasState;
   ch: PlaceChange;
-  vocab: Vocab;
   was: Map<DrawnId, Point>;
   at: Map<DrawnId, Point>;
   stay: DrawnId[];
@@ -127,7 +126,7 @@ function model(state: CanvasState, ch: PlaceChange, vocab: Vocab): PlaceResult {
           ),
         }
       : null;
-  const c: Ctx = { state, ch, vocab, was, at, stay, holder, rows };
+  const c: Ctx = { state, ch, was, at, stay, holder, rows };
   const removed = ch.before.nodes.filter((n) => !inA.has(n.id));
   let homes = state.homes;
   const pairs = new Map(state.origins);
@@ -218,6 +217,17 @@ function model(state: CanvasState, ch: PlaceChange, vocab: Vocab): PlaceResult {
       items.push(it);
     }
   }
+  // why: rule (h)(4) — a node that an expansion draws out of a group gives its kept position
+  for (const n of ev ? ch.after.nodes : []) {
+    const kept = was.get(n.id);
+    const from = "entity" in n ? holder.get(n.entity) : undefined;
+    if (!inB.has(n.id) && kept && from?.startsWith("g:"))
+      items.push([n.id, kept.x, kept.y, kept.x, kept.y]);
+  }
+  const rank = new Map(ch.after.nodes.map((n, i) => [n.id, i]));
+  const order = (id: DrawnId) =>
+    id === target ? -1 : (rank.get(id) as number);
+  items.sort((a, b) => order(a[0]) - order(b[0]));
   const opened = (n: DrawnNode) =>
     "members" in n && state.expandedGroups.includes(n.id.slice(2));
   for (const n of removed) {
@@ -331,16 +341,13 @@ function act(w: World, s: CanvasState, view: Frontier): Action | null {
   const more = nodes.flatMap((n) =>
     "entity" in n && n.more > 0 ? [n.entity] : [],
   );
+  const groups = nodes.filter((n) => "members" in n);
   const choices: (() => Action | null)[] = [
     () => ({ kind: "explore", id: r.pick(more.length ? more : w.ids) }),
     () => ({ kind: "explore", id: r.pick(more.length ? more : w.ids) }),
     () => ({ kind: "collapse", id: r.pick(opened.length ? opened : w.ids) }),
     () => ({ kind: "collapse", id: r.pick(opened.length ? opened : w.ids) }),
-    () =>
-      of(
-        nodes.filter((n) => "members" in n),
-        (n) => ({ kind: "expandGroup", group: n.id }),
-      ),
+    () => of(groups, (n) => ({ kind: "expandGroup", group: n.id })),
     () =>
       of(s.expandedGroups, (k) => ({ kind: "collapseGroup", group: `g:${k}` })),
     () => ({ kind: "path", id: r.pick(w.ids) }),
@@ -348,11 +355,7 @@ function act(w: World, s: CanvasState, view: Frontier): Action | null {
     () => ({ kind: "hideMany", ids: some() }),
     () => of(s.hidden, (e) => ({ kind: "restore", keys: [e.key] })),
     () => ({ kind: "showMany", ids: some() }),
-    () => ({
-      kind: "toggleType",
-      type: r.pick(TYPES) ?? null,
-      on: r.int(2) === 0,
-    }),
+    () => ({ kind: "toggleType", type: r.pick(TYPES) ?? null, on: !r.int(2) }),
     () => ({ kind: "showAllTypes" }),
     () => ({ kind: "grouping", grouping: r.pick([2, 5, "off"] as const) }),
     () => ({ kind: "reset" }),
@@ -375,9 +378,7 @@ describe("place equals the reference model after each random step", () => {
         const before = w.view(s);
         const action = act(w, s, before);
         if (action === null || action.kind === "reset") {
-          s = w.lay(
-            action === null ? s : transition(s, action, w.graph, w.vocab),
-          );
+          s = w.lay(action ? transition(s, action, w.graph, w.vocab) : s);
           continue;
         }
         const next = transition(s, action, w.graph, w.vocab);
@@ -387,10 +388,8 @@ describe("place equals the reference model after each random step", () => {
         // why: `place-model-undo.test.ts` holds the model of a collapse
         if (action.kind === "collapse" || action.kind === "collapseGroup")
           continue;
-        const want = model(next, change, w.vocab);
-        expect(got, `seed ${seed} step ${k} ${JSON.stringify(action)}`).toEqual(
-          want,
-        );
+        const why = `seed ${seed} step ${k} ${JSON.stringify(action)}`;
+        expect(got, why).toEqual(model(next, change, w.vocab));
         steps++;
       }
     }

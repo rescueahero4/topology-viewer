@@ -1,6 +1,8 @@
 import {
   entityDrawnId,
-  groupKeyOf,
+  entityOfDrawnId,
+  groupDrawnId,
+  groupKey,
   type DrawnId,
   type MoveItem,
   type NudgeEntry,
@@ -9,7 +11,13 @@ import {
 } from "../state/canvasState";
 import type { DrawnEdge } from "../view/frontier";
 import type { Frame } from "./origins";
-import { undoEntries, undoRows, type RowsAt } from "./undo";
+import {
+  rowIndex,
+  undoEntries,
+  undoRows,
+  type RowsAt,
+  type UndoEntry,
+} from "./undo";
 
 export type Undo = {
   before: Frame;
@@ -23,63 +31,56 @@ export type Undo = {
   treeShifts: ShiftEntry[];
 };
 
-// why: STORY-002-04 decision (a) — a collapse takes an entity id or a record id; `place` has no
-// graph (D68), so a record id is found as the node that lost its opened count (only the target
-// loses one: every node that a collapse takes out had the target up its chain of origins). The key
-// is the drawn id of the entity (its explore events have it), the spot that of the node drawing it
+// why: STORY-002-04 decision (a) — a collapse takes an entity id or a record id. An entity id gives
+// the key `e:<id>`, also when the entity is not drawn and only its records hold the key (rule
+// (h)(5)); `place` has no graph (D68), so a record id is found as the drawn node that stays and
+// lost part of its opened count (only the target loses some: every node that a collapse takes out
+// had the target up its chain of origins). The spot is that of the node that draws the target
 export function collapseTarget(u: Undo, id: string) {
   const at = u.before.holder.get(id);
+  const key = entityDrawnId(id);
+  if (at !== undefined)
+    return { key, spot: u.was.get(u.before.frontier.nodes[at].id) };
+  const records = [...u.homes, ...u.nudges, ...u.treeShifts];
+  if (records.some(([k]) => k === key)) return { key, spot: u.was.get(key) };
   const after = new Map(u.after.frontier.nodes.map((node) => [node.id, node]));
-  const node =
-    at === undefined
-      ? u.before.frontier.nodes.find((item) => {
-          if (!("entity" in item) || item.opened === 0) return false;
-          const next = after.get(item.id);
-          return (
-            next === undefined ||
-            !("entity" in next) ||
-            next.opened < item.opened
-          );
-        })
-      : u.before.frontier.nodes[at];
-  if (node === undefined) return null;
-  const key = at === undefined ? node.id : entityDrawnId(id);
-  return { key, spot: u.was.get(node.id) };
+  const node = u.before.frontier.nodes.find((item) => {
+    const next = after.get(item.id);
+    return (
+      "entity" in item &&
+      next !== undefined &&
+      "entity" in next &&
+      next.opened < item.opened
+    );
+  });
+  return node === undefined ? null : { key: node.id, spot: u.was.get(node.id) };
 }
 
-function ends(edges: DrawnEdge[]) {
+// why: STORY-002-04 Context "Grouping" (mockup `bucketize`, lib/topology.js lines 615-632) — a leaf
+// has one drawn link, to an entity anchor; its bucket is the group key of the anchor, the
+// predicate, the direction and its type. One pass over the edges and the nodes (rule (h)(7))
+function buckets(frame: Frame): Map<DrawnId, string[]> {
   const degree = new Map<DrawnId, number>();
   const sole = new Map<DrawnId, DrawnEdge>();
-  for (const edge of edges)
+  for (const edge of frame.frontier.edges)
     for (const end of [edge.subject, edge.object]) {
       degree.set(end, (degree.get(end) ?? 0) + 1);
       sole.set(end, edge);
     }
-  return { degree, sole };
-}
-
-// why: STORY-002-04 Context "Grouping" (mockup `bucketize`, lib/topology.js lines 615-632) — the
-// members of an expanded group are the leaves that its key names: one drawn link, to the anchor,
-// with the predicate and the direction of the key
-function bucketMembers(u: Undo, key: string, links: ReturnType<typeof ends>) {
-  const [anchor, predicate, direction, type] = JSON.parse(key) as [
-    string,
-    string,
-    ">" | "<",
-    string | null,
-  ];
-  const hub = entityDrawnId(anchor);
-  return u.before.frontier.nodes.flatMap((node) => {
-    if (!("entity" in node) || node.type !== type) return [];
-    const edge = links.sole.get(node.id);
-    if (links.degree.get(node.id) !== 1 || edge === undefined) return [];
-    const [from, to] = direction === ">" ? [hub, node.id] : [node.id, hub];
-    const leaf =
-      edge.predicate === predicate &&
-      edge.subject === from &&
-      edge.object === to;
-    return leaf ? [node.entity] : [];
-  });
+  const out = new Map<DrawnId, string[]>();
+  for (const node of frame.frontier.nodes) {
+    const edge = sole.get(node.id);
+    if (!("entity" in node) || edge === undefined) continue;
+    if (degree.get(node.id) !== 1) continue;
+    const out1 = edge.subject === node.id;
+    const anchor = entityOfDrawnId(out1 ? edge.object : edge.subject);
+    if (anchor === null) continue;
+    const id = groupDrawnId(
+      groupKey(anchor, edge.predicate, out1 ? "<" : ">", node.type),
+    );
+    out.set(id, [...(out.get(id) ?? []), node.entity]);
+  }
+  return out;
 }
 
 // why: STORY-002-07 rule (a), lead decision D54 — the events of the target and of every expansion
@@ -88,57 +89,56 @@ function bucketMembers(u: Undo, key: string, links: ReturnType<typeof ends>) {
 export function undoKeys(u: Undo, key: DrawnId | null, leaving: DrawnId[]) {
   const keys = new Set<DrawnId>(leaving);
   if (key !== null) keys.add(key);
+  const members = buckets(u.before);
   const gone = (entity: string) => !u.after.holder.has(entity);
-  const links = ends(u.before.frontier.edges);
-  const groups = new Set(
-    [...u.homes, ...u.nudges, ...u.treeShifts].map(([id]) => id),
-  );
-  for (const id of groups) {
-    const group = groupKeyOf(id);
-    if (group === null || keys.has(id)) continue;
-    const members = bucketMembers(u, group, links);
-    if (members.length > 0 && members.every(gone)) keys.add(id);
+  for (const [id] of [...u.homes, ...u.nudges, ...u.treeShifts]) {
+    const list = members.get(id);
+    if (!keys.has(id) && list !== undefined && list.every(gone)) keys.add(id);
   }
   return keys;
 }
 
-function bySeq<T extends NudgeEntry | ShiftEntry>(
-  list: T[],
-  keys: Set<DrawnId>,
-) {
-  const out = new Map<number, T[]>();
+function bySeq(list: UndoEntry[], keys: Set<DrawnId>) {
+  const out = new Map<number, UndoEntry[]>();
   for (const entry of list)
-    if (keys.has(entry[0]))
-      out.set(entry[1], [...(out.get(entry[1]) ?? []), entry]);
+    if (keys.has(entry[0])) {
+      const group = out.get(entry[1]);
+      if (group === undefined) out.set(entry[1], [entry]);
+      else group.push(entry);
+    }
   return out;
 }
 
+const idsOf = (entry: UndoEntry) =>
+  Array.isArray(entry[2])
+    ? entry[2].map(([id]) => id)
+    : entry[2].moved.map(([id]) => id);
+
 // why: STORY-002-07 rule (a), lead decisions D54, D65, D84, D87 — event by event, from the latest:
-// `undoEntries` on the drawn positions, then the rows of that event when `treeRows` has the axis of
-// the entry (no `treeRows`, no row step)
-export function undoEvents(u: Undo, keys: Set<DrawnId>) {
-  const nudges = bySeq(u.nudges, keys);
-  const shifts = bySeq(u.treeShifts, keys);
-  const seqs = [...new Set([...nudges.keys(), ...shifts.keys()])].sort(
-    (a, b) => b - a,
-  );
-  for (const seq of seqs) {
-    const rows = shifts.get(seq) ?? [];
-    const positions = u.stay.map((id): [DrawnId, Point] => [
+// `undoEntries` on the drawn positions that the event names, then the rows of that event when
+// `treeRows` has the axis of the entry (no `treeRows`, no row step). Returns the items undone, in
+// that order (rule (h)(4) reads them)
+export function undoEvents(u: Undo, keys: Set<DrawnId>): MoveItem[] {
+  const events = bySeq([...u.nudges, ...u.treeShifts], keys);
+  const index = u.rows === null ? null : rowIndex(u.rows, u.stay);
+  const undone: MoveItem[] = [];
+  for (const seq of [...events.keys()].sort((a, b) => b - a)) {
+    const entries = events.get(seq) as UndoEntry[];
+    const ids = new Set(entries.flatMap(idsOf).filter((id) => u.at.has(id)));
+    const positions = [...ids].map((id): [DrawnId, Point] => [
       id,
       u.at.get(id) as Point,
     ]);
-    for (const [id, p] of undoEntries(positions, [
-      ...(nudges.get(seq) ?? []),
-      ...rows,
-    ]))
-      u.at.set(id, p);
-    for (const [, , shift] of rows)
-      if (u.rows !== null && u.rows.vertical === shift.vertical)
-        undoRows(u.at, u.rows, shift, u.stay);
+    for (const [id, p] of undoEntries(positions, entries)) u.at.set(id, p);
+    for (const [, , part] of entries)
+      if (Array.isArray(part)) undone.push(...part);
+      else if (u.rows !== null && index !== null)
+        if (u.rows.vertical === part.vertical)
+          undoRows(u.at, u.rows, part, index);
   }
   u.nudges = u.nudges.filter(([id]) => !keys.has(id));
   u.treeShifts = u.treeShifts.filter(([id]) => !keys.has(id));
+  return undone;
 }
 
 // why: STORY-002-07 rule (a), lead decision D59 — the target glides home with the D21 test; a group

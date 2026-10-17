@@ -110,6 +110,7 @@ function act(
     () => ({ kind: "explore", id: r.pick(more.length ? more : w.ids) }),
     () => ({ kind: "explore", id: r.pick(more.length ? more : w.ids) }),
     () => ({ kind: "collapse", id: r.pick(opened.length ? opened : w.ids) }),
+    () => ({ kind: "collapse", id: r.pick(w.ids) }),
     () =>
       groups.length ? { kind: "expandGroup", group: r.pick(groups) } : null,
     () =>
@@ -208,11 +209,17 @@ function check(
     else if (expand && n.id !== target) expect(far).toBeLessThanOrEqual(BOUND);
   }
   if (out.crowded) return;
-  // why: rule (b) — outside `crowded` no node is nudged; a D70 move item of the target can be there
+  // why: rule (b) — outside `crowded` no node is nudged; a D70 move item of the target and the
+  // rule (h)(4) items (they move nothing) of nodes that leave a group can be there
   const added = out.state.nudges
     .slice(s.nudges.length)
     .flatMap(([, , items]) => items);
-  if (expand) expect(added.filter(([id]) => id !== target)).toEqual([]);
+  const old = new Set(stay.map((n) => n.id));
+  const moved = added.filter(
+    ([id, x0, y0, x1, y1]) =>
+      id !== target && (old.has(id) || x0 !== x1 || y0 !== y1),
+  );
+  if (expand) expect(moved).toEqual([]);
   const node = new Map(after.nodes.map((n) => [n.id, n]));
   const key = (p: Point) => `${Math.round(p.x)},${Math.round(p.y)}`;
   const starts = new Map(out.starts);

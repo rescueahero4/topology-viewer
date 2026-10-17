@@ -16,7 +16,7 @@ import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
 import type { IconMetrics } from "./drawn";
 import { place, type PlaceResult } from "./place";
-import { undoEntries, undoRows } from "./undo";
+import { rowIndex, undoEntries, undoRows } from "./undo";
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
 const METRICS: IconMetrics = {
@@ -181,15 +181,19 @@ describe("undoEntries (rule (a), D79, D83-D85)", () => {
   });
 
   it("undoes by descending seq, and in one event the nudges first", () => {
-    const later: NudgeEntry = ["e:k", 2, [["e:a", 50, 0, 70, 0]]];
-    const earlier: NudgeEntry = ["e:j", 1, [["e:a", 0, 0, 50, 0]]];
-    const start: [string, Point][] = [["e:a", { x: 70, y: 0 }]];
-    expect(undoEntries(start, [earlier, later])).toEqual([
-      ["e:a", { x: 0, y: 0 }],
-    ]);
+    // why: QA T-1 — with 0.1 → 0.1 + 0.2 → 0.7 only the descending order gives 0.1 exactly (the
+    // ascending order subtracts twice and gives 0.09999999999999998); integers hide the order
+    const a1 = 0.1 + 0.2;
+    const later: NudgeEntry = ["e:k", 2, [["e:a", a1, 0, 0.7, 0]]];
+    const earlier: NudgeEntry = ["e:j", 1, [["e:a", 0.1, 0, a1, 0]]];
+    const start: [string, Point][] = [["e:a", { x: 0.7, y: 0 }]];
+    for (const entries of [
+      [earlier, later],
+      [later, earlier],
+    ])
+      expect(undoEntries(start, entries)).toEqual([["e:a", { x: 0.1, y: 0 }]]);
     // why: only the order nudges, then row shift gives 0.1 back exactly; the other order subtracts
     // twice and gives 0.09999999999999998
-    const a1 = 0.1 + 0.2;
     const rows: ShiftEntry = [
       "e:k",
       1,
@@ -225,7 +229,7 @@ describe("undoEntries (rule (a), D79, D83-D85)", () => {
         [7, 50],
       ]),
     };
-    undoRows(at, rows, moved[2], ["e:b"]);
+    undoRows(at, rows, moved[2], rowIndex(rows, ["e:b"]));
     expect(at.get("e:b")).toEqual({ x: 9, y: 0.1 });
     expect([...rows.coord]).toEqual([[5, 0.1]]);
   });
