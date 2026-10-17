@@ -42,11 +42,12 @@ function rig(
   const { vocab } = resolveVocab(graph, payload, profile, LIGHT);
   const view = (s: CanvasState) => frontier(s, graph, vocab);
   const ids = (s: CanvasState) => view(s).nodes.map((n) => n.id);
-  const act = (s: CanvasState, action: Action) => {
+  const step = (s: CanvasState, action: Action) => {
     const next = transition(s, action, graph, vocab);
     const change = { action, before: view(s), after: view(next) };
-    return place(next, change, vocab, METRICS).state;
+    return place(next, change, vocab, METRICS);
   };
+  const act = (s: CanvasState, action: Action) => step(s, action).state;
   const state: CanvasState = {
     ...firstView(graph, vocab, payload, hash),
     grouping,
@@ -54,7 +55,7 @@ function rig(
     revealed,
     positions,
   };
-  return { state, act, ids };
+  return { state, act, step, ids };
 }
 
 const at = (s: CanvasState, id: string) =>
@@ -110,44 +111,60 @@ describe("S31 a collapse of an entity that is not drawn (rule (h)(5), QA F-1)", 
   );
 });
 
+// why: S32 world — A has the leaves L and L2 (one group at Grouping 2); N, a neighbour of Y, also
+// links L, so the explore of Y draws L out of the group
+function leafOut() {
+  const input: Input = {
+    nodes: [
+      ...["A", "Y", "N"].map((id) => ({ id, type: "t" })),
+      ...["L", "L2"].map((id) => ({ id, type: "tl" })),
+    ],
+    edges: [
+      rel("A", "L", "p"),
+      rel("A", "L2", "p"),
+      rel("A", "Y"),
+      rel("Y", "N"),
+      rel("N", "L"),
+    ],
+  };
+  return rig(
+    input,
+    ["A", "Y", "L"],
+    [
+      ["e:A", { x: 0, y: 0 }],
+      ["e:Y", { x: 300, y: 0 }],
+      ["e:L", { x: -150, y: 0 }],
+    ],
+    2,
+  );
+}
+
 describe("S32 a leaf that goes into a group and out again (rule (h)(4), QA O-3)", () => {
   it("is in the group again after collapse Y and back at (−150, 0) after collapse A", () => {
-    const input: Input = {
-      nodes: [
-        ...["A", "Y", "N"].map((id) => ({ id, type: "t" })),
-        ...["L", "L2"].map((id) => ({ id, type: "tl" })),
-      ],
-      edges: [
-        rel("A", "L", "p"),
-        rel("A", "L2", "p"),
-        rel("A", "Y"),
-        rel("Y", "N"),
-        rel("N", "L"),
-      ],
-    };
-    const run = rig(
-      input,
-      ["A", "Y", "L"],
-      [
-        ["e:A", { x: 0, y: 0 }],
-        ["e:Y", { x: 300, y: 0 }],
-        ["e:L", { x: -150, y: 0 }],
-      ],
-      2,
-    );
+    const run = leafOut();
     const s1 = run.act(run.state, { kind: "explore", id: "A" });
     expect(run.ids(s1)).not.toContain("e:L");
     const s2 = run.act(s1, { kind: "explore", id: "Y" });
     expect(run.ids(s2)).toContain("e:L");
-    const items = s2.nudges.flatMap(([key, , list]) =>
-      key === "e:Y" ? list : [],
-    );
-    expect(items).toContainEqual(["e:L", -150, 0, -150, 0]);
     const s3 = run.act(s2, { kind: "collapse", id: "Y" });
     expect(run.ids(s3)).toEqual(run.ids(s1));
     expect(at(s3, "e:L")).toEqual({ x: -150, y: 0 });
     const s4 = run.act(s3, { kind: "collapse", id: "A" });
     expect(run.ids(s4)).toEqual(run.ids(run.state));
     expect(s4.positions).toEqual(run.state.positions);
+  });
+
+  it("stores a zero-move kept-position item and moves no node (D96 (1))", () => {
+    const run = leafOut();
+    const s1 = run.act(run.state, { kind: "explore", id: "A" });
+    const out = run.step(s1, { kind: "explore", id: "Y" });
+    expect(out.crowded).toBe(false);
+    expect(out.state.nudges.slice(0, s1.nudges.length)).toEqual(s1.nudges);
+    expect(out.state.nudges.slice(s1.nudges.length)).toEqual([
+      ["e:Y", out.state.seq, [["e:L", -150, 0, -150, 0]]],
+    ]);
+    for (const id of run.ids(s1))
+      if (run.ids(out.state).includes(id))
+        expect(at(out.state, id)).toEqual(at(s1, id));
   });
 });

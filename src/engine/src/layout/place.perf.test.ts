@@ -349,14 +349,15 @@ describe("S33 a collapse with many group-expand records", () => {
         expect(
           place(next, change, run.vocab, METRICS).state.homes,
         ).toHaveLength(count);
-        const time = timed(run, next, change, 3);
+        const time = timed(run, next, change, 21);
         console.log(
           `S33: ${count} records, ${nodes} nodes, median ${time.toFixed(2)} ms`,
         );
         return time;
       });
       expect(ms[2]).toBeLessThanOrEqual(25);
-      expect(ms[2]).toBeLessThanOrEqual(4 * ms[0]);
+      // why: D96 (2) — linear work gives about 3.25 × (the node ratio), the old quadratic code 10.5 ×
+      expect(ms[2]).toBeLessThanOrEqual(6 * ms[0]);
     },
     SLOW,
   );

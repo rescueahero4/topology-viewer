@@ -135,7 +135,14 @@ describe("S1 each expand keeps SA §6 row 1", () => {
       }
       if (out.crowded) continue;
       expect(newcomersClear(run, run.state, out)).toBe(true);
-      expect(out.state.nudges).toEqual(run.state.nudges);
+      // why: D96 (1) — a zero-move item is a kept position of rule (h)(4), not a nudge
+      const kept = run.state.nudges.length;
+      expect(out.state.nudges.slice(0, kept)).toEqual(run.state.nudges);
+      const nudged = out.state.nudges
+        .slice(kept)
+        .flatMap(([, , items]) => items)
+        .filter(([, x0, y0, x1, y1]) => x0 !== x1 || y0 !== y1);
+      expect(nudged).toEqual([]);
     }
   });
 });
