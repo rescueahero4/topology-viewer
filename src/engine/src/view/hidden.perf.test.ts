@@ -1,7 +1,7 @@
 import { profile } from "@qdic-topology/contract";
 import { generate } from "@qdic-topology/fixtures";
 import { describe, expect, it } from "vitest";
-import { normalize } from "../data/normalize";
+import { normalize, type Graph } from "../data/normalize";
 import type { Action, CanvasState } from "../state/canvasState";
 import { canvasColor, type Hex } from "../vocab/colors";
 import { resolveVocab } from "../vocab/resolve";
@@ -51,15 +51,15 @@ function leaves(): Compact {
   return { nodes, edges: [...star.edges, ...loops] };
 }
 
-// why: ISSUE-006 — the median of 3 timed calls after one warm-up call; the work is pure
-function time<T>(work: () => T): { value: T; ms: number } {
+// why: ISSUE-006 — the median of 3 timed calls (S26: 5) after one warm-up call; the work is pure
+function time<T>(work: () => T, runs = RUNS): { value: T; ms: number } {
   const value = work();
-  const times = Array.from({ length: RUNS }, () => {
+  const times = Array.from({ length: runs }, () => {
     const start = performance.now();
     work();
     return performance.now() - start;
   }).sort((a, b) => a - b);
-  return { value, ms: times[Math.floor(RUNS / 2)] };
+  return { value, ms: times[Math.floor(runs / 2)] };
 }
 
 function measure(input: Compact) {
@@ -133,25 +133,58 @@ describe("bounded filter and Hidden work at the caps (2,000 nodes, 4,000 edges)"
   );
 });
 
-// why: STORY-002-06 S26 — copies of one random component (100 entities, 200 triples), so the
-// graph has the same shape at each size; a bulk Show of every id along paths from a first view
-function copies(count: number): Compact {
-  const part = compact(generate.random(100, 200, 7));
-  const id = (k: number, name: string) => `n${k * 100 + Number(name.slice(1))}`;
-  const range = Array.from({ length: count }, (_, k) => k);
-  return {
-    nodes: range.flatMap((k) => part.nodes.map(([n, t]) => [id(k, n), t])),
-    edges: range.flatMap((k) =>
-      part.edges.map(([s, p, o]) => [id(k, s), p, id(k, o)]),
-    ),
-  };
-}
+const PART_EDGES = 200;
 
-function showAll(nodes: number) {
-  const input = copies(nodes / 100);
+// why: STORY-002-06 S26, lead decision D96 (3) — copies of one normalized random component (100
+// entities, 200 triples), so the graph has the same shape at each size and can pass the contract
+// caps; only view functions run on it
+function copies(count: number) {
+  const input = compact(generate.random(100, PART_EDGES, 7));
   const result = normalize(input, { now: "2026-10-14" });
   if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
-  const { graph, payload, hash } = result;
+  const { graph: part, payload, hash } = result;
+  const range = Array.from({ length: count }, (_, k) => k);
+  const graph: Graph = {
+    records: range.flatMap((k) =>
+      part.records.map((record) => ({
+        ...record,
+        id: copyId(k, record.id),
+        label: copyId(k, record.label),
+        position: k * part.records.length + record.position,
+      })),
+    ),
+    entities: range.flatMap((k) =>
+      part.entities.map((entity) => ({
+        ...entity,
+        id: copyId(k, entity.id),
+        label: copyId(k, entity.label),
+        records: entity.records.map((id) => copyId(k, id)),
+      })),
+    ),
+    triples: range.flatMap((k) =>
+      part.triples.map((triple) => {
+        const subject = copyId(k, triple.subject);
+        const object = copyId(k, triple.object);
+        return {
+          ...triple,
+          key: JSON.stringify([subject, triple.predicate, object]),
+          subject,
+          object,
+          records: triple.records.map((i) => k * PART_EDGES + i),
+        };
+      }),
+    ),
+    shapedSet: { records: [], triples: [] },
+  };
+  return { graph, payload, hash };
+}
+
+const copyId = (k: number, name: string) =>
+  `n${k * 100 + Number(name.slice(1))}`;
+
+// why: a bulk Show of every id along paths from a first view
+function showAll(nodes: number) {
+  const { graph, payload, hash } = copies(nodes / 100);
   const { vocab } = resolveVocab(graph, payload, profile, LIGHT);
   const first = firstView(graph, vocab, payload, hash);
   const ids = graph.entities.map((entity) => entity.id);
@@ -162,14 +195,17 @@ function showAll(nodes: number) {
   };
 }
 
+// why: lead decision D96 (3), ISSUE-007 — 16 times the entities: linear work takes about 16 times
+// the time and the old quadratic `pathTo` about 256 times, so the limit 50 keeps machine load out
 describe("S26 bulk Show along paths is near-linear", () => {
-  it("takes < 100 ms at 2,000 entities and ≤ 2.5 × the time at 1,000", () => {
-    const works = [showAll(1000), showAll(2000)];
+  it("takes < 100 ms at 2,000 entities and ≤ 50 × the time at 500 for 8,000", () => {
+    const works = [showAll(500), showAll(2000), showAll(8000)];
     for (const work of works) work();
-    const [small, large] = works.map((work) => time(work));
-    expect(small.value.revealed).toHaveLength(1000);
-    expect(large.value.revealed).toHaveLength(2000);
-    expect(large.ms).toBeLessThan(100);
-    expect(large.ms).toBeLessThanOrEqual(2.5 * small.ms);
+    const [small, cap, large] = works.map((work) => time(work, 5));
+    expect(small.value.revealed).toHaveLength(500);
+    expect(cap.value.revealed).toHaveLength(2000);
+    expect(large.value.revealed).toHaveLength(8000);
+    expect(cap.ms).toBeLessThan(100);
+    expect(large.ms).toBeLessThanOrEqual(50 * small.ms);
   }, 60_000);
 });

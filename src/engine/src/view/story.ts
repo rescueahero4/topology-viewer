@@ -131,12 +131,20 @@ function storySelection(top: Topology, state: CanvasState): Selection {
 }
 
 // why: mockup `initScope` and `setBudget` (lib/topology.js lines 677, 2373) — a new scope clears
-// the Hidden list; only new data clears the filters (line 2308)
+// the Hidden list; only new data clears the filters (line 2308). The STORY-002-07 records belong to
+// the expansions of `origins`, so they go with them (the mockup keeps them, line 2381; SA §6 row 2)
+const NO_EXPANSION = {
+  origins: [],
+  expandedGroups: [],
+  homes: [],
+  treeShifts: [],
+  nudges: [],
+};
+
 function restart(top: Topology, state: CanvasState): CanvasState {
   const next = scoped(top, {
     ...state,
-    origins: [],
-    expandedGroups: [],
+    ...NO_EXPANSION,
     selection: null,
     hidden: [],
   });
@@ -158,8 +166,7 @@ export function firstView(
     budget: view.budget ?? DEFAULT_BUDGET,
     grouping: 2,
     revealed: null,
-    origins: [],
-    expandedGroups: [],
+    ...NO_EXPANSION,
     selection: null,
     seq: 0,
     layout: view.layout ?? "force",
@@ -180,8 +187,7 @@ function rebudget(top: Topology, state: CanvasState, budget: Budget) {
   const base = {
     ...state,
     budget,
-    origins: [],
-    expandedGroups: [],
+    ...NO_EXPANSION,
     hidden: [],
   };
   const root = start === null ? null : top.ids[start];

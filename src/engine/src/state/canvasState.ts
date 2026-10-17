@@ -42,6 +42,27 @@ export type HiddenEntry = {
   seq: number;
 };
 
+// why: STORY-002-07 rule (a) JSON forms — a move from (x0, y0) to (x1, y1); the coordinate after
+// is kept, because x0 + (x1 - x0) is not always x1 in floating point (D21, D59)
+export type MoveItem = [
+  id: DrawnId,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+];
+
+export type NudgeEntry = [eventKey: DrawnId, seq: number, items: MoveItem[]];
+
+export type TreeShift = {
+  vertical: boolean;
+  shiftOf: [rowKey: number, c0: number, c1: number][];
+  inserted: number[];
+  moved: [id: DrawnId, a0: number, a1: number][];
+};
+
+export type ShiftEntry = [eventKey: DrawnId, seq: number, shift: TreeShift];
+
 // why: STORY-002-04 Q16 — plain JSON only: a Set is an array in canonical order, a Map is an
 // array of [key, value] pairs, and no object is keyed by a model id (S-C3)
 export type CanvasState = {
@@ -60,6 +81,9 @@ export type CanvasState = {
   treeRows: TreeRows | null;
   filters: Filters;
   hidden: HiddenEntry[];
+  homes: MoveItem[];
+  treeShifts: ShiftEntry[];
+  nudges: NudgeEntry[];
 };
 
 export type Action =
