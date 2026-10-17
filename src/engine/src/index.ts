@@ -40,6 +40,7 @@ export {
   groupKey,
   type Action,
   type Approach,
+  type Around,
   type Budget,
   type CanvasState,
   type DrawnId,
@@ -99,3 +100,27 @@ export {
 } from "./layout/layout";
 export { treeRowKeys } from "./layout/tree";
 export { place, type PlaceChange, type PlaceResult } from "./layout/place";
+export {
+  beginDrag,
+  dragBubble,
+  dragStep,
+  release,
+  type DragCtx,
+  type DragStep,
+  type Release,
+} from "./interact/drag";
+export {
+  aroundInfo,
+  collapseAround,
+  expandAround,
+  fadeSet,
+  groupAround,
+  type AroundInfo,
+  type Faded,
+} from "./view/focus";
+export {
+  exitAround,
+  type AroundExit,
+  type ExitResult,
+  type Placed,
+} from "./view/exit";

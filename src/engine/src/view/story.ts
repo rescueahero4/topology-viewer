@@ -132,13 +132,15 @@ function storySelection(top: Topology, state: CanvasState): Selection {
 
 // why: mockup `initScope` and `setBudget` (lib/topology.js lines 677, 2373) — a new scope clears
 // the Hidden list; only new data clears the filters (line 2308). The STORY-002-07 records belong to
-// the expansions of `origins`, so they go with them (the mockup keeps them, line 2381; SA §6 row 2)
+// the expansions of `origins`, so they go with them (the mockup keeps them, line 2381; SA §6 row 2).
+// A new scope also ends Group around root in place (mockup `rebuild` with no keep, line 2206)
 const NO_EXPANSION = {
   origins: [],
   expandedGroups: [],
   homes: [],
   treeShifts: [],
   nudges: [],
+  around: null,
 };
 
 function restart(top: Topology, state: CanvasState): CanvasState {
