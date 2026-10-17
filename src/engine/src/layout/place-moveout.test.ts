@@ -21,7 +21,7 @@ const METRICS: IconMetrics = {
       "utf8",
     ),
   ) as IconMetrics),
-  ...Object.fromEntries(["t0", "tl", "t2", "tm"].map((t) => [t, LEAF])),
+  ...Object.fromEntries(["t0", "tl", "t2", "tm", "tz"].map((t) => [t, LEAF])),
 };
 const GRID = generate.grid(27, 45);
 const HOLE = ["n582", "n583", "n584", "n610", "n611", "n636", "n637", "n638"];
@@ -264,6 +264,62 @@ describe("S30 a move between two moveOut calls (D70)", () => {
         expect(end.homes).toEqual([]);
         expect(end.nudges).toEqual([]);
       }
+    },
+    SLOW,
+  );
+});
+
+const Y = 'g:["n609","relatedTo",">","tm"]';
+
+// why: S34 (QA F-8, rule (h)(9), D97) — after the explores of y0 and y1 no member of Y is a leaf,
+// so only the rule (h)(9) test finds the group expand inside the removed set
+describe("S34 a group expand whose members were explored (QA F-8)", () => {
+  it.each(["force", "atomic"] as const)(
+    "%s: the collapse of n609 undoes the group expand",
+    (layout) => {
+      const run = gridWorld(
+        {
+          nodes: [
+            ...["y0", "y1"].map((id) => ({ id, type: "tm" })),
+            ...["z0", "z1"].map((id) => ({ id, type: "tz" })),
+          ],
+          edges: [
+            ...linked("n609", ["y0", "y1"]),
+            ...linked("y0", ["z0"]),
+            ...linked("y1", ["z1"]),
+            ...linked("n606", ["n607"]),
+          ],
+          without: HOLE,
+          away: ["y0", "y1", "z0", "z1"],
+        },
+        [],
+      );
+      const start: CanvasState = { ...run.state, layout };
+      const ids = (s: CanvasState) => run.view(s).nodes.map((n) => n.id);
+      const one = run.act(start, { kind: "explore", id: "n609" });
+      expect(ids(one.state)).toContain(Y);
+      const open = run.act(one.state, { kind: "expandGroup", group: Y });
+      expect(open.crowded).toBe(true);
+      const items = open.state.nudges.flatMap(([key, , list]) =>
+        key === Y ? list : [],
+      );
+      expect(
+        items.filter(([, x0, y0, x1, y1]) => x0 !== x1 || y0 !== y1),
+      ).toHaveLength(5);
+      const out = ["y0", "y1"].reduce(
+        (s, id) => run.act(s, { kind: "explore", id }).state,
+        open.state,
+      );
+      const end = run.act(out, { kind: "collapse", id: "n609" }).state;
+      expect(ids(end)).toEqual(ids(start));
+      for (const id of ids(start)) {
+        const p = at(start, id);
+        const q = at(end, id);
+        expect(Math.hypot(q.x - p.x, q.y - p.y)).toBeLessThanOrEqual(1e-9);
+      }
+      expect(
+        [...end.homes, ...end.nudges, ...end.treeShifts].map(([key]) => key),
+      ).not.toContain(Y);
     },
     SLOW,
   );

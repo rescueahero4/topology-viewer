@@ -3,13 +3,14 @@ import {
   entityOfDrawnId,
   groupDrawnId,
   groupKey,
+  groupKeyOf,
+  type CanvasState,
   type DrawnId,
   type MoveItem,
   type NudgeEntry,
   type Point,
   type ShiftEntry,
 } from "../state/canvasState";
-import type { DrawnEdge } from "../view/frontier";
 import type { Frame } from "./origins";
 import {
   rowIndex,
@@ -56,44 +57,77 @@ export function collapseTarget(u: Undo, id: string) {
   return node === undefined ? null : { key: node.id, spot: u.was.get(node.id) };
 }
 
-// why: STORY-002-04 Context "Grouping" (mockup `bucketize`, lib/topology.js lines 615-632) — a leaf
-// has one drawn link, to an entity anchor; its bucket is the group key of the anchor, the
-// predicate, the direction and its type. One pass over the edges and the nodes (rule (h)(7))
-function buckets(frame: Frame): Map<DrawnId, string[]> {
+type Held = { leafStays: boolean; gone: boolean };
+
+// why: STORY-002-04 Context "Grouping" (mockup `bucketize`, lib/topology.js lines 615-632), story
+// rule (h)(9) — the drawn entity nodes that a group key can hold: an entity node of the type with a
+// drawn link of the predicate and the direction to the anchor. A leaf (one drawn link) is in the
+// bucket now; a node with more links can be a member that was explored or a node that never was
+// one, so only a leaf that stays keeps the group expand. One pass over the edges (rule (h)(7))
+function held(frame: Frame, stays: (entity: string) => boolean) {
+  const nodes = new Map(frame.frontier.nodes.map((node) => [node.id, node]));
   const degree = new Map<DrawnId, number>();
-  const sole = new Map<DrawnId, DrawnEdge>();
   for (const edge of frame.frontier.edges)
-    for (const end of [edge.subject, edge.object]) {
+    for (const end of [edge.subject, edge.object])
       degree.set(end, (degree.get(end) ?? 0) + 1);
-      sole.set(end, edge);
+  const out = new Map<DrawnId, Held>();
+  for (const edge of frame.frontier.edges)
+    for (const [end, other, direction] of [
+      [edge.subject, edge.object, "<"],
+      [edge.object, edge.subject, ">"],
+    ] as const) {
+      const node = nodes.get(end);
+      const anchor = entityOfDrawnId(other);
+      if (node === undefined || !("entity" in node) || anchor === null)
+        continue;
+      const id = groupDrawnId(
+        groupKey(anchor, edge.predicate, direction, node.type),
+      );
+      const now = out.get(id) ?? { leafStays: false, gone: false };
+      const left = !stays(node.entity);
+      out.set(id, {
+        leafStays: now.leafStays || (degree.get(end) === 1 && !left),
+        gone: now.gone || left,
+      });
     }
-  const out = new Map<DrawnId, string[]>();
-  for (const node of frame.frontier.nodes) {
-    const edge = sole.get(node.id);
-    if (!("entity" in node) || edge === undefined) continue;
-    if (degree.get(node.id) !== 1) continue;
-    const out1 = edge.subject === node.id;
-    const anchor = entityOfDrawnId(out1 ? edge.object : edge.subject);
-    if (anchor === null) continue;
-    const id = groupDrawnId(
-      groupKey(anchor, edge.predicate, out1 ? "<" : ">", node.type),
-    );
-    out.set(id, [...(out.get(id) ?? []), node.entity]);
-  }
-  return out;
+  const lone = new Set<string | null>();
+  for (const node of frame.frontier.nodes)
+    if ("entity" in node && !degree.has(node.id) && stays(node.entity))
+      lone.add(node.type);
+  return { out, lone, drawn: (id: DrawnId) => nodes.has(id) };
 }
 
-// why: STORY-002-07 rule (a), lead decision D54 — the events of the target and of every expansion
-// inside the set that the collapse removes: an explore of a node that leaves, or a group expand whose
-// members all leave the drawn set
-export function undoKeys(u: Undo, key: DrawnId | null, leaving: DrawnId[]) {
+// why: STORY-002-07 rule (a), lead decisions D54, D97, rule (h)(9) — the events of the target and of
+// every expansion inside the set that the collapse removes: an explore of a node that leaves, or a
+// group expand with no leaf that stays, when one of its members leaves or its anchor is the target
+// or leaves (then an undone event drew the group node; hidden members are not drawn). The frontier
+// shows no link to an anchor that is not drawn: a leaf of an anchor whose type is off is drawn with
+// no link, so a node of the type with no link that stays keeps the group expand; a hidden anchor
+// strands its leaves (STORY-002-06), so then such a node is not one of them
+export function undoKeys(
+  u: Undo & { state: Pick<CanvasState, "hidden"> },
+  key: DrawnId | null,
+  leaving: DrawnId[],
+) {
   const keys = new Set<DrawnId>(leaving);
   if (key !== null) keys.add(key);
-  const members = buckets(u.before);
-  const gone = (entity: string) => !u.after.holder.has(entity);
+  const members = held(u.before, (entity) => u.after.holder.has(entity));
+  const hidden = new Set(u.state.hidden.flatMap((entry) => entry.members));
   for (const [id] of [...u.homes, ...u.nudges, ...u.treeShifts]) {
-    const list = members.get(id);
-    if (!keys.has(id) && list !== undefined && list.every(gone)) keys.add(id);
+    const group = groupKeyOf(id);
+    if (group === null || keys.has(id)) continue;
+    const [entity, , , type] = JSON.parse(group) as [
+      string,
+      string,
+      string,
+      string | null,
+    ];
+    const anchor = entityDrawnId(entity);
+    const seen = members.out.get(id);
+    const undone = members.drawn(anchor)
+      ? seen?.leafStays !== true && (seen?.gone === true || keys.has(anchor))
+      : keys.has(anchor) && (hidden.has(entity) || !members.lone.has(type));
+    if (undone) keys.add(id);
   }
   return keys;
 }

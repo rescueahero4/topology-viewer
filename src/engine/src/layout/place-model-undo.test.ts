@@ -96,24 +96,39 @@ function collapse(c: Ctx, removed: DrawnNode[]) {
     ...c.state.treeShifts,
   ]) {
     if (!id.startsWith("g:") || keys.has(id)) continue;
+    // why: rule (h)(9), D97 — the drawn nodes that the group key can hold (a leaf or not); with a
+    // drawn anchor, the group expand is undone when no leaf of them stays and one of them left or
+    // the anchor is undone; with an anchor not drawn, when the anchor is undone and it is hidden or
+    // no node of the type with no link stays
     const [anchor, pred, dir, type] = JSON.parse(id.slice(2)) as string[];
-    const leaves = ch.before.nodes.filter((n) => {
-      const touch = ch.before.edges.flatMap((e) =>
-        [e.subject, e.object].filter((x) => x === n.id).map(() => e),
+    const links = (n: DrawnNode) =>
+      ch.before.edges.filter((e) => e.subject === n.id || e.object === n.id);
+    if (!ch.before.nodes.some((n) => n.id === `e:${anchor}`)) {
+      const lone = ch.before.nodes.some(
+        (n) =>
+          "entity" in n &&
+          n.type === type &&
+          links(n).length === 0 &&
+          drawnA.has(n.entity),
       );
+      const hid = c.state.hidden.some((h) => h.members.includes(anchor));
+      if (keys.has(`e:${anchor}`) && (hid || !lone)) keys.add(id);
+      continue;
+    }
+    const held = ch.before.nodes.filter((n) => {
       const [from, to] =
         dir === ">" ? [`e:${anchor}`, n.id] : [n.id, `e:${anchor}`];
-      const e = touch[0];
       return (
         "entity" in n &&
         n.type === type &&
-        touch.length === 1 &&
-        e.predicate === pred &&
-        e.subject === from &&
-        e.object === to
+        links(n).some(
+          (e) => e.predicate === pred && e.subject === from && e.object === to,
+        )
       );
     });
-    if (leaves.length > 0 && leaves.every((n) => !drawnA.has(ents(n)[0])))
+    const left = (n: DrawnNode) => !drawnA.has(ents(n)[0]);
+    const leafStays = held.some((n) => links(n).length === 1 && !left(n));
+    if (!leafStays && (held.some(left) || keys.has(`e:${anchor}`)))
       keys.add(id);
   }
   const mine = [...c.state.nudges, ...c.state.treeShifts].filter(([id]) =>

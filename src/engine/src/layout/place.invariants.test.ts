@@ -116,13 +116,21 @@ function newcomersClear(run: World, before: CanvasState, out: PlaceResult) {
 const expandable = (run: World, s: CanvasState) =>
   run.view(s).nodes.flatMap((n) => ("entity" in n && n.more > 0 ? [n] : []));
 
+// why: Given correction (QA 2026-10-17; F-9) — with budget 20 `s-chain` draws all 14 nodes and has
+// nothing to expand; budget 10 leaves `t9` with `more` > 0
+const inputOf = (key: string) =>
+  key === "s-chain"
+    ? { ...(loadFixture(key).input as object), view: { budget: 10 } }
+    : loadFixture(key).input;
+
 const CASES = ["s-access", "s-chain", "q-full-vocabulary"].flatMap((key) =>
   LAYOUTS.map((name): [string, LayoutName] => [key, name]),
 );
 
 describe("S1 each expand keeps SA §6 row 1", () => {
   it.each(CASES)("%s in %s", (key, name) => {
-    const run = world(loadFixture(key).input, name);
+    const run = world(inputOf(key), name);
+    expect(expandable(run, run.state).length).toBeGreaterThan(0);
     for (const node of expandable(run, run.state)) {
       const out = run.act(run.state, { kind: "explore", id: node.entity });
       for (const other of run.view(run.state).nodes) {
@@ -149,7 +157,8 @@ describe("S1 each expand keeps SA §6 row 1", () => {
 
 describe("S2 expand then collapse is exact", () => {
   it.each(CASES)("%s in %s", (key, name) => {
-    const run = world(loadFixture(key).input, name);
+    const run = world(inputOf(key), name);
+    expect(expandable(run, run.state).length).toBeGreaterThan(0);
     for (const node of expandable(run, run.state)) {
       const out = run.act(run.state, { kind: "explore", id: node.entity });
       const back = run.act(out.state, { kind: "collapse", id: node.entity });

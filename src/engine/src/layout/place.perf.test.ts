@@ -300,8 +300,9 @@ describe("place in the heavy rare forms", () => {
 });
 
 // why: S33 (QA F-4, rule (h)(7)) — `h` holds G anchors with 2 leaves each, so Grouping 2 draws G
-// groups; every group is open and has its `homes` record; the collapse of `a0` reads them all
-function records(count: number) {
+// groups; every group is open and has its `homes` record. The anchors form a chain, so they are
+// not leaves and stay apart when their leaves leave
+function groupWorld(count: number) {
   const nodes = [
     { id: "h", type: "a", label: "h" },
     { id: "x", type: "x", label: "x" },
@@ -310,9 +311,12 @@ function records(count: number) {
   for (let i = 0; i < count; i++) {
     nodes.push({ id: `a${i}`, type: "a", label: `a${i}` });
     edges.push({ subject: "h", predicate: "p", object: `a${i}` });
+    if (i > 0)
+      edges.push({ subject: `a${i - 1}`, predicate: "s", object: `a${i}` });
     for (const k of [0, 1]) {
-      nodes.push({ id: `l${i}_${k}`, type: "l", label: `l${i}_${k}` });
-      edges.push({ subject: `a${i}`, predicate: "q", object: `l${i}_${k}` });
+      const id = `l${i}_${k}`;
+      nodes.push({ id, type: "l", label: id });
+      edges.push({ subject: `a${i}`, predicate: "q", object: id });
     }
   }
   const run = world({ nodes, edges });
@@ -322,36 +326,64 @@ function records(count: number) {
     revealed: nodes.map((n) => n.id).filter((id) => id !== "x"),
   };
   const groups = run.view(grouped).nodes.filter((n) => "members" in n);
-  const open = run.lay(
-    { ...grouped, expandedGroups: groups.map((n) => n.id.slice(2)) },
-    "force",
-  );
   const state: CanvasState = {
-    ...open,
+    ...grouped,
+    expandedGroups: groups.map((n) => n.id.slice(2)),
     homes: groups.map((n) => [n.id, 0, 0, 0, 0]),
   };
-  const { next, change } = run.change(state, { kind: "explore", id: "a0" });
+  return { run, state, nodes, groups };
+}
+
+// why: the collapse of `a0` reads every record and undoes none
+function records(count: number) {
+  const { run, state, nodes, groups } = groupWorld(count);
+  const open = run.lay(state, "force");
+  const { next, change } = run.change(open, { kind: "explore", id: "a0" });
   const out = place(next, change, run.vocab, METRICS).state;
-  return { run, out, nodes: nodes.length, groups: groups.length };
+  const collapse = run.change(out, { kind: "collapse", id: "a0" });
+  const kept = place(collapse.next, collapse.change, run.vocab, METRICS);
+  expect(kept.state.homes).toHaveLength(count);
+  return { run, ...collapse, nodes: nodes.length, groups: groups.length };
+}
+
+// why: QA P25 — in tree-h `h` brought every leaf, and every group expand has a row-shift record, so
+// the collapse of `h` undoes all the group events while `h` and the anchors stay; one row index
+// for the collapse, not one for each event
+function rowRecords(count: number) {
+  const { run, state, nodes, groups } = groupWorld(count);
+  const leaves = nodes.filter((n) => n.type === "l");
+  const shifted = run.lay(
+    {
+      ...state,
+      seq: count,
+      origins: leaves.map((n): [string, string] => [n.id, "h"]),
+      treeShifts: groups.map((n, i) => [
+        n.id,
+        i + 1,
+        { vertical: false, shiftOf: [], inserted: [], moved: [] },
+      ]),
+    },
+    "tree-h",
+  );
+  const collapse = run.change(shifted, { kind: "collapse", id: "h" });
+  const undone = place(collapse.next, collapse.change, run.vocab, METRICS);
+  expect([undone.state.homes, undone.state.treeShifts]).toEqual([[], []]);
+  return { run, ...collapse, nodes: nodes.length, groups: groups.length };
 }
 
 describe("S33 a collapse with many group-expand records", () => {
-  it(
-    "is near-linear and ≤ 25 ms at 650 records",
-    () => {
+  it.each([
+    ["force, the records stay", records],
+    ["tree-h, the group events are undone", rowRecords],
+  ])(
+    "%s: near-linear and ≤ 25 ms at 650 records",
+    (name, build) => {
       const ms = [200, 400, 650].map((count) => {
-        const { run, out, nodes, groups } = records(count);
+        const { run, next, change, nodes, groups } = build(count);
         expect(groups).toBe(count);
-        const { next, change } = run.change(out, {
-          kind: "collapse",
-          id: "a0",
-        });
-        expect(
-          place(next, change, run.vocab, METRICS).state.homes,
-        ).toHaveLength(count);
         const time = timed(run, next, change, 21);
         console.log(
-          `S33: ${count} records, ${nodes} nodes, median ${time.toFixed(2)} ms`,
+          `S33 ${name}: ${count} records, ${nodes} nodes, median ${time.toFixed(2)} ms`,
         );
         return time;
       });
