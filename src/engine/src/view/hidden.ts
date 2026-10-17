@@ -7,7 +7,7 @@ import {
   type HiddenEntry,
 } from "../state/canvasState";
 import { entityType, type Vocab } from "../vocab/resolve";
-import { drawnView, revealInto } from "./frontier";
+import { drawnIdOf, drawnView, revealInto } from "./frontier";
 import { idsOf, maskOf, offOf, type Topology } from "./group";
 
 export type HideResult = {
@@ -23,8 +23,8 @@ export type HiddenItem = {
   seq: number;
 };
 
-// why: P20 — the three states of this story; STORY-002-08 adds `faded`
-export type OnCanvas = "drawn" | "not-drawn" | "hidden";
+// why: P20, SA §4.5 — `faded` is a state of its own (PRD Q22, f-0036)
+export type OnCanvas = "drawn" | "not-drawn" | "hidden" | "faded";
 
 // why: lead decision D93 (4), SA §4.4 — the refusal and the strand rule count only entities of
 // types that are on (`on`); `live` counts the links of each such entity to the others (a self-loop
@@ -358,7 +358,8 @@ export function hiddenOf(
 }
 
 // why: PRD FR-TABLE-4 and SA §4.4 — an entity of a type that is off is not drawn (finding f-0016;
-// the mockup returns drawn), and an entity on the Hidden list is hidden
+// the mockup returns drawn), an entity on the Hidden list is hidden, and a drawn entity outside
+// the shown set of Group around root is faded (FR-CANVAS-14)
 export function onCanvas(
   state: CanvasState,
   graph: Graph,
@@ -370,7 +371,11 @@ export function onCanvas(
   const entity = graph.entities[at].id;
   if (offTheCanvas(state)(entity))
     return hiddenOf(state, graph, entity) === null ? "not-drawn" : "hidden";
-  return state.filters.typesOff.includes(entityType(vocab, entity))
-    ? "not-drawn"
+  if (state.filters.typesOff.includes(entityType(vocab, entity)))
+    return "not-drawn";
+  if (state.around === null) return "drawn";
+  const node = drawnIdOf(state, graph, vocab, entity);
+  return node !== null && !state.around.shown.includes(node)
+    ? "faded"
     : "drawn";
 }

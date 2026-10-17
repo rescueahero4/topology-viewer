@@ -63,6 +63,16 @@ export type TreeShift = {
 
 export type ShiftEntry = [eventKey: DrawnId, seq: number, shift: TreeShift];
 
+// why: STORY-002-08 Context `CanvasState.around` — ids, booleans and numbers only (S-C3); the fade
+// set, the exit vectors and `aroundInfo` are computed, not stored
+export type Around = {
+  root: DrawnId;
+  saved: [DrawnId, Point][];
+  shown: DrawnId[];
+  events: [eventKey: DrawnId, wroteHome: boolean][];
+  seq0: number;
+};
+
 // why: STORY-002-04 Q16 — plain JSON only: a Set is an array in canonical order, a Map is an
 // array of [key, value] pairs, and no object is keyed by a model id (S-C3)
 export type CanvasState = {
@@ -84,6 +94,7 @@ export type CanvasState = {
   homes: MoveItem[];
   treeShifts: ShiftEntry[];
   nudges: NudgeEntry[];
+  around: Around | null;
 };
 
 export type Action =

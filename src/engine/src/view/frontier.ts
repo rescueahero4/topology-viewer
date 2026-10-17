@@ -72,19 +72,21 @@ function openedOf(top: Topology, state: CanvasState, mask: Uint8Array) {
 }
 
 // why: mockup `offCanvas` (lib/topology.js lines 635-642) — a neighbour of a type that is off is
-// not counted
+// not counted. PRD FR-CANVAS-14 (Q22) — while grouped, a faded neighbour also counts, per entity
 function moreOf(
   top: Topology,
   state: CanvasState,
   mask: Uint8Array,
   off: Uint8Array,
+  drawnOf: (DrawnId | null)[],
 ) {
-  return (entity: number) =>
-    state.revealed === null
-      ? 0
-      : top.neighbours[entity].filter(
-          (next) => mask[next] === 0 && off[next] === 0,
-        ).length;
+  const shown = state.around === null ? null : new Set(state.around.shown);
+  const counted = (next: number) => {
+    const id = drawnOf[next];
+    if (shown !== null && id !== null && !shown.has(id)) return true;
+    return state.revealed !== null && mask[next] === 0 && off[next] === 0;
+  };
+  return (entity: number) => top.neighbours[entity].filter(counted).length;
 }
 
 // why: mockup `isMuted` (lib/topology.js line 1047) — a family or predicate filter only styles an
@@ -137,7 +139,7 @@ export function drawnView(top: Topology, state: CanvasState): DrawnView {
     return key === null ? entityDrawnId(top.ids[entity]) : groupDrawnId(key);
   });
   const opened = openedOf(top, state, mask);
-  const more = moreOf(top, state, mask, off);
+  const more = moreOf(top, state, mask, off, drawnOf);
   const nodes: DrawnNode[] = [];
   groupOf.forEach((key, entity) => {
     const id = drawnOf[entity];
