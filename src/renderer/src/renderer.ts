@@ -1,4 +1,3 @@
-import type { DrawnId } from "@qdic-topology/engine";
 import {
   before,
   boxOf,
@@ -7,30 +6,12 @@ import {
   seenOf,
   type CameraControl,
 } from "./camera";
-import { cullLabels } from "./cull";
 import { createDrag, type Drag, type DragHandlers } from "./drag";
-import { drawEdges, endOf, endsOf, pathsOf, type Ends } from "./edges";
+import { endOf, endsOf } from "./edges";
 import { validCamera, type Camera } from "./fit";
-import { drawHalo } from "./halo";
-import {
-  edgeLights,
-  nodeLights,
-  selectionLights,
-  showLights,
-  showSelection,
-} from "./highlight";
-import { drawHits, hitEdges, keptHits } from "./hits";
-import {
-  bindCanvas,
-  bindHits,
-  bindNodes,
-  unbind,
-  type Intent,
-  type Pointer,
-} from "./intents";
-import { createLayers, type Layers } from "./layers";
+import { edgeLights, nodeLights, showLights } from "./highlight";
+import { bindCanvas, unbind, type Intent, type Pointer } from "./intents";
 import { createLod, type Lod } from "./lod";
-import { drawMarkers } from "./markers";
 import {
   cameraNow,
   cameraPart,
@@ -42,15 +23,21 @@ import {
   type Player,
   type StageHost,
 } from "./motion";
-import { drawNodes } from "./nodes";
-import { drawPills, pillEdges, scalePills } from "./pills";
+import {
+  endWork,
+  mount,
+  paint,
+  restore,
+  type Current,
+  type Handlers,
+  type Parts,
+  type Report,
+} from "./paint";
+import { scalePills } from "./pills";
 import type { Scene } from "./scene";
-import { drawSymbols } from "./sprite";
 import type { RendererText } from "./text";
-import { createTooltip, type Tooltip } from "./tooltip";
 
-export type Report =
-  { kind: "zero-size" } | { kind: "ended" } | { kind: "error" };
+export type { Report } from "./paint";
 
 export type Renderer = {
   draw(scene: Scene, motion?: DrawMotion): void;
@@ -69,63 +56,12 @@ export type RendererOptions = {
   drag?: DragHandlers;
 };
 
-const instances = new WeakMap<Document, number>();
-
-// why: Security round 1 A3 — the id prefix is made here from a number per document, so no model
-// or host string goes into an id, and two documents give the same ids (NF-3)
-function prefixOf(doc: Document): string {
-  const n = (instances.get(doc) ?? 0) + 1;
-  instances.set(doc, n);
-  return `qt${n}`;
-}
-
 const EMPTY: Scene = {
   nodes: [],
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
 };
-
-type Parts = {
-  doc: Document;
-  root: HTMLDivElement;
-  tip: Tooltip;
-  layers: Layers;
-  prefix: string;
-  labelId: (id: DrawnId) => string;
-};
-
-type Handlers = {
-  intent: ((intent: Intent) => void) | null;
-  report: ((report: Report) => void) | null;
-  settle: ((camera: Camera) => void) | null;
-};
-
-type Current = { scene: Scene; ends: Ends; on: Handlers };
-
-function mount(container: HTMLElement, text: RendererText): Parts {
-  const doc = container.ownerDocument;
-  const prefix = prefixOf(doc);
-  container.replaceChildren();
-  const root = doc.createElement("div");
-  root.setAttribute("class", "qt-root");
-  container.appendChild(root);
-  const tip = createTooltip(root, text);
-  const layers = createLayers(root, text.canvasName);
-  const labels = new Map<DrawnId, string>();
-  const labelId = (id: DrawnId) => {
-    let label = labels.get(id);
-    if (label === undefined) {
-      label = `${prefix}-l-${labels.size}`;
-      labels.set(id, label);
-    }
-    return label;
-  };
-  return { doc, root, tip, layers, prefix, labelId };
-}
-
-const restore = ({ root, layers }: Parts, { scene }: Current) =>
-  showLights(root, layers, selectionLights(scene));
 
 function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
   const { root, layers, tip } = parts;
@@ -147,47 +83,6 @@ function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
       restore(parts, now);
     },
   };
-}
-
-function paint(
-  parts: Parts,
-  now: Current,
-  pointer: Pointer,
-  lod: Lod,
-  k: number,
-) {
-  const { layers, prefix, labelId } = parts;
-  const { scene, ends } = now;
-  const hrefOf = drawSymbols(layers.defs, scene.nodes, prefix);
-  const markers = drawMarkers(layers.defs, scene.edges, prefix);
-  drawEdges(layers, scene, ends, markers);
-  keptHits(layers.hits, scene.edges, pathsOf(scene, ends));
-  drawNodes(layers.nodes, scene.nodes, { hrefOf, labelId, big: lod.big() });
-  bindNodes(layers, pointer);
-  showSelection(layers, scene);
-  restore(parts, now);
-  const node = scene.selection.node;
-  drawHalo(layers.focus, node === null ? null : (ends.get(node) ?? null));
-  drawPills(layers.edgeLabels, pillEdges(scene), ends, k);
-}
-
-// why: STORY-003-04 Context "Labels", "Viewport hit paths" — at the end of each gesture or camera
-// move and after each draw, never per frame: `--k`, culling and the hit paths in the viewport
-function endWork(
-  parts: Parts,
-  now: Current,
-  pointer: Pointer,
-  lod: Lod,
-  cam: CameraControl,
-) {
-  const { layers } = parts;
-  const { scene, ends } = now;
-  const camera = cam.transform();
-  lod.ended(camera.k);
-  cullLabels(layers.nodes, scene, camera.k, lod.level(), lod.big());
-  const edges = hitEdges(scene.edges, ends, { camera, ...cam.size() });
-  drawHits(layers.hits, edges, pathsOf(scene, ends));
-  bindHits(layers, pointer);
 }
 
 type Ctx = {
