@@ -1,10 +1,19 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
 import type { Designed, Hex } from "@qdic-topology/engine";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createRenderer } from "./renderer";
 import type { Scene, SceneNode } from "./scene";
 import type { RendererText } from "./text";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
 
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,

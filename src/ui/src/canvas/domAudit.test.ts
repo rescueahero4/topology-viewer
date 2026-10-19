@@ -10,9 +10,18 @@ import {
   type SceneEdge,
   type SceneNode,
 } from "@qdic-topology/renderer";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { domAudit } from "./domAudit";
 import { CLASS_NAMES } from "./domAllowList";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
 
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,

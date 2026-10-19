@@ -8,6 +8,28 @@ import { createRenderer } from "./renderer";
 import type { Scene, SceneEdge, SceneNode, SceneSelection } from "./scene";
 import type { RendererText } from "./text";
 
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
+// why: STORY-003-04 — hit paths exist only in a viewport, and jsdom gives each element 0 × 0;
+// the tests that use hit paths stub an 800 × 600 container
+HTMLElement.prototype.getBoundingClientRect = () =>
+  ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 800,
+    bottom: 600,
+    width: 800,
+    height: 600,
+  }) as DOMRect;
+
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,
   collapsed: "Collapsed",

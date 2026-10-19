@@ -25,6 +25,15 @@ import { describe, expect, it, vi } from "vitest";
 import { edgeStyles } from "./edgeColours";
 import { sceneOf } from "./scene";
 
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
+
 const record = vi.hoisted(() => ({ calls: [] as [Rgb, string][] }));
 
 vi.mock("@qdic-topology/engine", async (importOriginal) => {

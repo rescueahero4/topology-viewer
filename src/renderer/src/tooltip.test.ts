@@ -1,10 +1,32 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
 import type { Hex } from "@qdic-topology/engine";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createRenderer } from "./renderer";
 import type { Scene, SceneEdge, SceneNode } from "./scene";
 import type { RendererText } from "./text";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
+// why: STORY-003-04 — hit paths exist only in a viewport, and jsdom gives each element 0 × 0;
+// the tests that use hit paths stub an 800 × 600 container
+HTMLElement.prototype.getBoundingClientRect = () =>
+  ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 800,
+    bottom: 600,
+    width: 800,
+    height: 600,
+  }) as DOMRect;
 
 // Each function marks its arguments, so a line shows which key made it.
 const TEXT: RendererText = {
