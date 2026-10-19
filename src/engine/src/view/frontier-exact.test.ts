@@ -57,6 +57,7 @@ describe("S33 the exact frontier in canonical order", () => {
       label: id,
       more: 0,
       opened: 0,
+      group: null,
     });
     expect(run.drawn(run.first())).toStrictEqual({
       nodes: [

@@ -1,12 +1,21 @@
 import { packEnclose, packSiblings } from "d3-hierarchy";
 import { byCodePoint } from "../data/hash";
 import type { DrawnId, Point } from "../state/canvasState";
-import { byType, type Drawn, type Laid } from "./drawn";
+import type { Frontier } from "../view/frontier";
+import type { Vocab } from "../vocab/resolve";
+import {
+  byType,
+  drawnOf,
+  type Drawn,
+  type IconMetrics,
+  type Laid,
+} from "./drawn";
 
 export type Bubble = { key: string | null; x: number; y: number; r: number };
 
 // why: mockup `BUBBLE_PAD` 14 + 10 for the bubble label (lib/topology.js lines 1779, 1792)
-const BUBBLE_ROOM = 14 + 10;
+const BUBBLE_PAD = 14;
+const BUBBLE_ROOM = BUBBLE_PAD + 10;
 // why: mockup lines 1788, 1794 — the room between members and between bubbles; a PRD Q29 DDR on
 // the bubble pill changes only `OUTER` (lead decision D9)
 const MEMBER_GAP = 4;
@@ -15,6 +24,19 @@ const OUTER = 26;
 // why: mockup `roomOf` (lib/topology.js lines 1780-1782)
 export function bubbleRoom(node: Laid): number {
   return node.named ? Math.max(node.r + 22, node.chars * 3.8 + 6) : node.r + 12;
+}
+
+// why: STORY-003-01 Rule B, mockup `drawBubbles` (lib/topology.js lines 1806-1812) — the renderer
+// encloses these rooms at the frame positions, so the room rule stays in the engine (SA §3)
+export function bubbleRooms(
+  frontier: Frontier,
+  vocab: Vocab,
+  metrics: IconMetrics,
+): [DrawnId, number][] {
+  return drawnOf(frontier, vocab, metrics).nodes.map((node) => [
+    node.id,
+    bubbleRoom(node) + BUBBLE_PAD,
+  ]);
 }
 
 function membersOf(drawn: Drawn): Map<string | null, number[]> {
