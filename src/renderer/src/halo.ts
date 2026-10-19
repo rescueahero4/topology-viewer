@@ -2,7 +2,7 @@ import { select } from "d3-selection";
 import { setColour } from "./marks";
 import type { SceneNode } from "./scene";
 
-// why: mockup `renderFocus` (lib/topology.js lines 1117-1125) — three soft rings, scale and
+// why: mockup `renderFocus` (lib/topology.js lines 1120-1126) — three soft rings, scale and
 // opacity of each, then the pulse ring
 const RINGS = [
   [2.15, 0.08],

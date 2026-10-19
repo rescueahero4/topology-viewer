@@ -32,7 +32,7 @@ function anchorOf(edge: SceneEdge, node: DrawnId | null): DrawnId {
     : edge.subject;
 }
 
-// why: mockup node listeners (lib/topology.js lines 1018-1026) and NF-5 — click and Enter
+// why: mockup node listeners (lib/topology.js lines 1021-1026) and NF-5 — click and Enter
 // select, double-click and Space activate
 export function bindNodes(layers: Layers, p: Pointer): void {
   nodesOf(layers)

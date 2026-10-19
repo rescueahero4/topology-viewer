@@ -13,8 +13,8 @@ export type Tooltip = {
   hide(): void;
 };
 
-// why: mockup `hoverEdge` (lib/topology.js line 2058) — the edge tooltip sits 8 px above the
-// pointer; a node tooltip sits half the node height above it (line 2038)
+// why: mockup `hoverEdge` (lib/topology.js line 2064) — the edge tooltip sits 8 px above the
+// pointer; a node tooltip sits half the node height above it (line 2040)
 const EDGE_LIFT = 8;
 
 // why: mockup `hover` (lib/topology.js lines 2032-2035) — the first line that applies, in order

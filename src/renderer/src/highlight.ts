@@ -22,7 +22,7 @@ export function nodeLights(edges: readonly SceneEdge[], id: DrawnId): Lights {
   return { nodes, edges: keys };
 }
 
-// why: mockup `highlightEdge` (lib/topology.js lines 2047-2051) — the edge and its two ends
+// why: mockup `highlightEdge` (lib/topology.js lines 2049-2053) — the edge and its two ends
 export function edgeLights(edge: SceneEdge): Lights {
   return {
     nodes: new Set([edge.subject, edge.object]),
@@ -36,7 +36,7 @@ export function pickedEdge(scene: Scene): SceneEdge | null {
   return scene.edges.find((e) => e.key === edge) ?? null;
 }
 
-// why: mockup `restoreHighlight` (lib/topology.js lines 2041-2044) — the lights of the current
+// why: mockup `restoreHighlight` (lib/topology.js lines 2044-2047) — the lights of the current
 // edge pick, else of the selected node, else none
 export function selectionLights(scene: Scene): Lights {
   const picked = pickedEdge(scene);

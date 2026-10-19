@@ -22,7 +22,7 @@ function addMarker(defs: Element, id: string, colour: string): void {
 }
 
 // why: FR-FILTER-6 — a muted edge has no arrowhead, and Structure has none (mockup `edgeStyle`,
-// lib/topology.js line 1053), so their colours make no marker. The symbols of the same draw
+// lib/topology.js line 1052), so their colours make no marker. The symbols of the same draw
 // replaced every child of `defs` before this, so no unused marker stays
 export function drawMarkers(
   defs: Element,

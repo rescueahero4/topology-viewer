@@ -7,10 +7,10 @@ import type { Scene, SceneEdge, SceneNode } from "./scene";
 
 export type Ends = ReadonlyMap<DrawnId, SceneNode>;
 
-// why: mockup tree curves (lib/topology.js lines 1068-1072) — an arrow edge ends 3 px before the
+// why: mockup tree curves (lib/topology.js lines 1068-1078) — an arrow edge ends 3 px before the
 // side of the object; a Structure edge ends at the side
 const TREE_GAP = 3;
-// why: mockup `edgePath` (lib/topology.js line 1065) — the arrow tip stops 2 px before the
+// why: mockup `edgePath` (lib/topology.js line 1066) — the arrow tip stops 2 px before the
 // object circle
 const ARROW_GAP = 2;
 
@@ -61,7 +61,7 @@ function classOf(edge: SceneEdge): string {
 }
 
 // why: FR-FILTER-6 — a muted edge takes its grey and dots from the `qt-muted` class and has no
-// arrowhead; mockup `edgeStyle` (lib/topology.js lines 1049-1054)
+// arrowhead; mockup `edgeStyle` (lib/topology.js lines 1048-1053)
 function styleEdge(el: SVGPathElement, edge: SceneEdge, markers: Markers) {
   el.removeAttribute("stroke");
   el.removeAttribute("marker-end");
