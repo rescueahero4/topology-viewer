@@ -270,4 +270,19 @@ describe("S9 stuck drags end at once (renderer)", () => {
     expect(m.calls.frame.at(-1)).toEqual({ x: 40, y: 0 });
     expect(m.calls.end).toBe(1);
   });
+
+  it("a wheel gesture during a drag gives no settle before the end of the release", () => {
+    const m = mount();
+    start(m);
+    const svg = m.div.querySelector("svg") as SVGSVGElement;
+    svg.dispatchEvent(
+      new WheelEvent("wheel", { deltaY: -100, cancelable: true }),
+    );
+    frames(20);
+    expect(m.settles).toHaveLength(1);
+    expect(m.calls.frame).toHaveLength(21);
+    window.dispatchEvent(mouse("mouseup", 30, 0));
+    frames(2);
+    expect(m.settles).toHaveLength(2);
+  });
 });

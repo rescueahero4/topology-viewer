@@ -212,6 +212,13 @@ const CALLS: Call[] = [
   ["fit", (c) => c.fit()],
   ["setData", (c, _o, _k, f) => c.setData(f)],
   ["an intent (a click)", (_c, o) => click(o, "e:ug_analytics")],
+  [
+    "an edge intent (a click on a hit path)",
+    (_c, o) =>
+      o.div
+        .querySelector("path.qt-ehit")
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true })),
+  ],
 ];
 
 // why: S6 — an opened node (for `collapse`) and a hidden node (for `restore`) before the drag; the
