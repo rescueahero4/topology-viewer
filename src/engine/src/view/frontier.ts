@@ -15,6 +15,7 @@ import {
   groupsOf,
   idsOf,
   maskOf,
+  minimum,
   offOf,
   topology,
   type Grouper,
@@ -28,6 +29,7 @@ export type EntityNode = {
   label: string;
   more: number;
   opened: number;
+  group: DrawnId | null;
 };
 
 export type GroupNode = {
@@ -129,11 +131,25 @@ function edgesOf(
   return [...edges.values()];
 }
 
+// why: STORY-003-01 Rule A, mockup `bucket` (lib/topology.js lines 567-570, 2115-2121) — the
+// expanded group that a `collapseGroup` makes again, so a member can close it (FR-CANVAS-1)
+function memberGroupOf(state: CanvasState, drawn: Grouper) {
+  const least = minimum(state.grouping);
+  const expanded = new Set(state.expandedGroups);
+  return (entity: number): DrawnId | null => {
+    const key = drawn.bucketOf(entity);
+    return key !== null && expanded.has(key) && drawn.sizeOf(key) >= least
+      ? groupDrawnId(key)
+      : null;
+  };
+}
+
 // why: epic condition C4 — nodes in canonical entity order (a group at its first member), edges in
 // canonical triple order
 export function drawnView(top: Topology, state: CanvasState): DrawnView {
   const { mask, off, drawn } = drawnGrouper(top, state);
   const { groupOf, members } = groupsOf(top, state, drawn);
+  const group = memberGroupOf(state, drawn);
   const drawnOf = groupOf.map((key, entity) => {
     if (mask[entity] === 0 || off[entity] === 1) return null;
     return key === null ? entityDrawnId(top.ids[entity]) : groupDrawnId(key);
@@ -152,6 +168,7 @@ export function drawnView(top: Topology, state: CanvasState): DrawnView {
         label: top.labels[entity],
         more: more(entity),
         opened: opened[entity],
+        group: group(entity),
       });
       return;
     }

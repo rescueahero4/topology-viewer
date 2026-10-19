@@ -124,7 +124,7 @@ type Tally = {
   saved: number;
 };
 
-function minimum(grouping: Grouping): number {
+export function minimum(grouping: Grouping): number {
   return grouping === "off" ? Infinity : grouping;
 }
 
