@@ -191,3 +191,18 @@ describe("S6 s-access: more, then opened (NF-5 Space)", () => {
     },
   );
 });
+
+describe("S6 order (mockup toggleGroup): opened comes before more", () => {
+  it("an opened node with one more neighbour collapses", async () => {
+    const o = await open("s-access");
+    o.activate("e:t_FCT_REVENUE");
+    o.canvas.hide(["e:sc_MARTS"]);
+    vi.advanceTimersByTime(3000);
+    const root = o.log.settle[o.log.settle.length - 1].frontier.nodes.find(
+      (n) => n.id === "e:t_FCT_REVENUE",
+    );
+    expect([root?.opened, root?.more]).toEqual([33, 1]);
+    o.activate("e:t_FCT_REVENUE");
+    expect(lastMotion().kind).toBe("collapse");
+  });
+});

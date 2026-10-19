@@ -183,6 +183,28 @@ describe("TL-4 with the motion clock (SA §6 row 6)", () => {
   });
 });
 
+describe("S14 (a) a new draw jumps the camera part to its end", () => {
+  it("the next draw starts from the end camera of the jumped motion", () => {
+    const m = mount(scene([node("e:a", 0, 0)]));
+    const plan = revealPlan(
+      CAMERA,
+      800,
+      600,
+      { s: { x: 400, y: 300 }, p: { x: 200, y: 0 } },
+      EXPLORE.map(box),
+      [],
+    );
+    m.renderer.draw(
+      scene(EXPLORE),
+      motion("local", { starts: START, anchor: "e:a" }),
+    );
+    vi.advanceTimersByTime(240);
+    expect(m.renderer.transform()).not.toEqual(plan);
+    m.renderer.draw(scene(EXPLORE), motion("none"));
+    expect(m.renderer.transform()).toEqual(plan);
+  });
+});
+
 describe("B13 the anchor context takes only the nodes on screen", () => {
   it("a previous node off screen does not make the camera zoom out", () => {
     vi.stubGlobal("matchMedia", () => ({ matches: true }));

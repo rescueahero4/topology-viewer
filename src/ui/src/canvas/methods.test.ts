@@ -217,6 +217,9 @@ describe("S21 method branches", () => {
     const edge = '["e:u_0","memberOf","e:ug_fin_admin"]';
     const state = o.run((c) => c.select(edge));
     expect(state.selection).toEqual({ edge, anchor: "e:u_0" });
+    o.run((c) => c.select("e:ug_fin_admin"));
+    const pick = o.run((c) => c.select(edge));
+    expect(pick.selection).toEqual({ edge, anchor: "e:ug_fin_admin" });
   });
 
   it("(f) setLayout of the same name and of another: motion layout and one fit", async () => {
