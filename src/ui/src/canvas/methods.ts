@@ -235,9 +235,14 @@ function filterOf(ctx: Ctx, f: unknown): Filter | null {
 }
 
 // why: SA §4.5 method list as written (v0.12 text, kept in v0.13); `groupAroundRoot(on)` comes
-// with STORY-003-07
+// with STORY-003-07. STORY-003-06a interrupt rule — each method first ends a running drag (its
+// release commits and `drag-end` fires) and then runs on the committed state
 export function methodsOf(ctx: Ctx): Canvas {
-  const run = (work: () => void) => guard(ctx, work);
+  const run = (work: () => void) =>
+    guard(ctx, () => {
+      ctx.renderer.endDrag();
+      work();
+    });
   return {
     setData: (f) => run(() => setData(ctx, f)),
     setLayout: (name) =>

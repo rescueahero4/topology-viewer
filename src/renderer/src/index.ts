@@ -1,4 +1,5 @@
 export { createRenderer, type Renderer, type Report } from "./renderer";
+export type { DragHandlers } from "./drag";
 export type { DrawMotion, Motion, MotionKind } from "./motion";
 export {
   fitTransform,
