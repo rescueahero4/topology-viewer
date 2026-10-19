@@ -76,13 +76,14 @@ type State = {
   size: Size;
   drawn: boolean;
   current: Camera;
-  own: boolean;
   tween: Timer | null;
 };
 
 // why: STORY-003-04 Context "Camera" — the default filter, the scale extent, no double-click
 // zoom; the extent comes from the observed size (jsdom has no SVG geometry, T1). A gesture
-// (`start` with a `sourceEvent`) stops a camera move; only a gesture end runs the end work here
+// (`start` with a `sourceEvent`) stops a camera move. Only a gesture end runs the end work here:
+// the camera's own `zoom.transform` calls have no `sourceEvent`, so their `end` does nothing
+// and the camera runs the end work once at the end of its move (Implementer round 2 item (1))
 function behaviourOf(host: CameraHost, st: State, stop: () => void) {
   return zoom<SVGSVGElement, unknown>()
     .scaleExtent([K_MIN, K_MAX])
@@ -101,7 +102,7 @@ function behaviourOf(host: CameraHost, st: State, stop: () => void) {
       host.zoomed(st.current);
     })
     .on("end", (event: Event) => {
-      if (host.live() && !st.own && event.sourceEvent != null) host.settled();
+      if (host.live() && event.sourceEvent != null) host.settled();
     });
 }
 
@@ -110,9 +111,8 @@ type Mover = {
   run: (to: Camera, frame: Frame, animate: boolean) => boolean;
 };
 
-// why: our own `zoom.transform` call keeps the d3-zoom state current and its `end` does no work;
-// the camera runs the end work once at the end of the move. Security round 1 A3 — one camera
-// timer at a time; a throw in a frame stops the timer and sets the end transform
+// why: each frame calls `zoom.transform`, so the d3-zoom state stays current. Security round 1
+// A3 — one camera timer at a time; a throw in a frame stops the timer and sets the end transform
 function moverOf(
   host: CameraHost,
   st: State,
@@ -122,10 +122,8 @@ function moverOf(
     st.tween?.stop();
     st.tween = null;
   };
-  const finish = (t: Timer, to: Camera) => {
-    t.stop();
-    if (st.tween !== t) return;
-    st.tween = null;
+  const finish = (to: Camera) => {
+    stop();
     if (!host.live()) return;
     apply(to);
     host.settled();
@@ -137,19 +135,18 @@ function moverOf(
       return false;
     }
     apply(frame(0));
-    const t = timer((elapsed) => {
+    st.tween = timer((elapsed) => {
       let done = true;
       try {
-        if (!host.live() || st.tween !== t) return;
+        if (!host.live()) return;
         if (elapsed < DURATION) {
           apply(frame(easeCubicInOut(elapsed / DURATION)));
           done = false;
         }
       } finally {
-        if (done) finish(t, to);
+        if (done) finish(to);
       }
     });
-    st.tween = t;
     return true;
   };
   return { stop, run };
@@ -179,17 +176,11 @@ export function createCamera(host: CameraHost): CameraControl {
     size: { w: 0, h: 0 },
     drawn: false,
     current: { k: 1, x: 0, y: 0 },
-    own: false,
     tween: null,
   };
-  const mover = moverOf(host, st, (c) => {
-    st.own = true;
-    try {
-      behaviour.transform(svgSel, zoomIdentity.translate(c.x, c.y).scale(c.k));
-    } finally {
-      st.own = false;
-    }
-  });
+  const mover = moverOf(host, st, (c) =>
+    behaviour.transform(svgSel, zoomIdentity.translate(c.x, c.y).scale(c.k)),
+  );
   const behaviour = behaviourOf(host, st, mover.stop);
   svgSel.call(behaviour).on("dblclick.zoom", null);
   const now = (to: Camera) => mover.run(to, () => to, false);
