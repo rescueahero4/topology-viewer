@@ -10,6 +10,7 @@ import {
   revealPlan,
   type Box,
   type Camera,
+  type FitOptions,
 } from "./fit";
 import type { Ends } from "./edges";
 import type { Scene, SceneNode } from "./scene";
@@ -37,7 +38,7 @@ export type CameraControl = {
   size(): Size;
   jump(camera: Camera): void;
   first(keep: boolean): boolean;
-  fit(animate: boolean): "none" | "now" | "tween";
+  fit(options: FitOptions): "none" | "now" | "tween";
   reveal(plan: Camera, anchor: Point, at: Point): boolean;
   centred(target: Box, must: Box[], context: Box[]): Camera | null;
   move(to: Camera): boolean;
@@ -210,6 +211,15 @@ function glideAbout(st: State, to: Camera): Frame {
   return glide(c.k, to.k, at, centreOf(c, at), centreOf(to, at));
 }
 
+const fitFor = (host: CameraHost, st: State, o: FitOptions) =>
+  fitTransform(
+    o.boxes ?? host.boxes(),
+    st.size.w,
+    st.size.h,
+    o.pad ?? PAD,
+    o.minK ?? 0,
+  );
+
 export function createCamera(host: CameraHost): CameraControl {
   const svgSel = select<SVGSVGElement, unknown>(host.svg);
   const st: State = {
@@ -225,7 +235,7 @@ export function createCamera(host: CameraHost): CameraControl {
   const behaviour = behaviourOf(host, st, mover.stop);
   svgSel.call(behaviour).on("dblclick.zoom", null);
   const now = (to: Camera) => mover.run(to, () => to, false);
-  const fitNow = () => fitTransform(host.boxes(), st.size.w, st.size.h, PAD, 0);
+  const fitTo = (o: FitOptions) => fitFor(host, st, o);
   const glideTo = (to: Camera) => glideAbout(st, to);
   const observer = observerOf(host, st, (to) => {
     now(to);
@@ -240,14 +250,16 @@ export function createCamera(host: CameraHost): CameraControl {
       const rect = host.root.getBoundingClientRect();
       st.size = { w: rect.width, h: rect.height };
       if (!(st.size.w > 0 && st.size.h > 0)) return true;
-      const to = keep ? null : fitNow();
+      const to = keep ? null : fitTo({});
       if (to !== null) now(to);
       return false;
     },
-    fit(animate) {
-      const to = fitNow();
+    fit(options) {
+      const to = fitTo(options);
       if (to === null) return "none";
-      return mover.run(to, glideTo(to), animate) ? "tween" : "now";
+      return mover.run(to, glideTo(to), options.animate ?? true)
+        ? "tween"
+        : "now";
     },
     reveal(plan, anchor, at) {
       const frame = glide(st.current.k, plan.k, at, anchor, anchor);

@@ -8,7 +8,7 @@ import {
 } from "./camera";
 import { createDrag, type Drag, type DragHandlers } from "./drag";
 import { endOf, endsOf } from "./edges";
-import { validCamera, type Camera } from "./fit";
+import { validCamera, type Camera, type FitOptions } from "./fit";
 import { edgeLights, nodeLights, showLights } from "./highlight";
 import { bindCanvas, unbind, type Intent, type Pointer } from "./intents";
 import { createLod, type Lod } from "./lod";
@@ -41,7 +41,7 @@ export type { Report } from "./paint";
 
 export type Renderer = {
   draw(scene: Scene, motion?: DrawMotion): void;
-  fit(options?: { animate?: boolean }): void;
+  fit(options?: FitOptions): void;
   transform(): Camera;
   onIntent(handler: (intent: Intent) => void): void;
   onReport(handler: (report: Report) => void): void;
@@ -122,7 +122,9 @@ function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
       tip.hide();
     },
     settled: () => ctx().settled(),
-    boxes: () => now.scene.nodes.map(boxOf),
+    // why: mockup `fit` (lib/topology.js line 2165) — while grouped only the shown nodes count,
+    // for `fit()`, the first visibility and a resize
+    boxes: () => now.scene.nodes.filter((n) => !n.faded).map(boxOf),
   });
 }
 
@@ -165,8 +167,7 @@ function api(c: Ctx): Renderer {
       if (pointer.live()) drawScene(c, scene, motion);
     },
     fit(options) {
-      if (pointer.live() && cam.fit(options?.animate ?? true) === "now")
-        c.settled();
+      if (pointer.live() && cam.fit(options ?? {}) === "now") c.settled();
     },
     transform: () => cam.transform(),
     onIntent(handler) {

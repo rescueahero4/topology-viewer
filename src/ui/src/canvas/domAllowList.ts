@@ -43,6 +43,8 @@ export const CLASS_NAMES: readonly string[] = [
   // why: STORY-003-05 — the emerge and retract classes of the motion (mockup lines 74-81)
   "qt-born",
   "qt-emerge",
+  // why: STORY-003-07 — the Group around root fade (DA-3)
+  "qt-off",
 ];
 
 // why: the attributes of the sprite allow-list of `scripts/build-icons.mjs`

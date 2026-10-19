@@ -210,11 +210,14 @@ function begin(m: M, p: Press): void {
   try {
     jumpPlay(m, false);
     m.host.jump();
+    if (!m.host.view.ends.has(p.id)) return;
+    ok = m.on.start(p.id) === true;
+    // why: STORY-003-07 — the start handler first draws the last waiting step of a step chain, so
+    // the origin and the zoom are read after it
     const node = m.host.view.ends.get(p.id);
     if (node === undefined) return;
     p.origin = { x: node.x, y: node.y };
     p.k = m.host.k();
-    ok = m.on.start(p.id) === true;
   } catch {
     return m.host.failed();
   }

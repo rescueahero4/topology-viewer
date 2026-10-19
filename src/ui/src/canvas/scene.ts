@@ -1,6 +1,7 @@
 import {
   canvasColor,
   entitySlots,
+  fadeSet,
   type CanvasState,
   type Designed,
   type DrawnEdge,
@@ -108,7 +109,7 @@ function typeLabelOf(type: string | null, vocab: Vocab, text: RendererText) {
 function nodeOf(
   node: DrawnNode,
   at: Point,
-  input: SceneInput,
+  input: SceneInput & { faded: ReadonlySet<DrawnId> },
   text: RendererText,
 ): SceneNode {
   const { vocab, canvas } = input;
@@ -135,6 +136,7 @@ function nodeOf(
     more: node.more,
     opened: node.opened,
     group: group ? null : node.group,
+    faded: input.faded.has(node.id),
     x: at.x,
     y: at.y,
   };
@@ -175,6 +177,9 @@ export function sceneOf(input: SceneInput, text: RendererText): Scene {
   const { state, frontier, vocab, canvas } = input;
   const positions = new Map<DrawnId, Point>(state.positions);
   const styles = edgeStyles(vocab, canvas);
+  // why: FR-CANVAS-14, hand-off item 16 — the fade flags come from `fadeSet` only, never from
+  // `around.shown`, and they join by the drawn id
+  const faded = new Set(fadeSet(state, frontier).map((f) => f.id));
   return {
     nodes: frontier.nodes.map((node) => {
       const at = positions.get(node.id);
@@ -182,7 +187,7 @@ export function sceneOf(input: SceneInput, text: RendererText): Scene {
       // item 2 — a saved state with a position that is not finite never reaches an attribute
       if (at === undefined || !Number.isFinite(at.x) || !Number.isFinite(at.y))
         throw new Error("sceneOf: a drawn node has no finite position");
-      return nodeOf(node, at, input, text);
+      return nodeOf(node, at, { ...input, faded }, text);
     }),
     edges: frontier.edges.map((edge) => edgeOf(edge, vocab, styles)),
     selection: selectionOf(state.selection),

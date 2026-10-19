@@ -322,6 +322,22 @@
   dominant-baseline: central;
 }
 
+/* Group around root (FR-CANVAS-14, SA §6 row 11; mockup lib/topology.js lines 122-125): a faded
+   element gets no pointer events and no keyboard focus. !important wins over the
+   pointer-events: stroke of .qt-ehit; visibility: hidden takes a node out of the Tab order. */
+.qt-root .qt-node.qt-off,
+.qt-root .qt-edge.qt-off,
+.qt-root .qt-ehit.qt-off,
+.qt-root .qt-elabel.qt-off,
+.qt-root .qt-focus.qt-off {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  transition:
+    opacity 0.25s,
+    visibility 0s 0.25s;
+}
+
 .qt-tip {
   position: absolute;
   pointer-events: none;

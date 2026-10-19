@@ -4,6 +4,15 @@ export type Camera = { k: number; x: number; y: number };
 export type Box = { x: number; y: number; r: number };
 export type Anchor = { s: Point; p: Point };
 
+// why: STORY-003-07 Context — a fit takes its own boxes, pad and lowest zoom (the Group around
+// root frame, mockup lines 1261-1270); with none it fits the shown scene nodes at pad 40
+export type FitOptions = {
+  animate?: boolean;
+  boxes?: readonly Box[];
+  pad?: number;
+  minK?: number;
+};
+
 // why: mockup `scaleExtent([0.05, 6])` (lib/topology.js line 535); `zoom.transform` does not
 // clamp, so every camera value of this module is clamped here (Security round 1 A4)
 export const K_MIN = 0.05;

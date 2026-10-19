@@ -53,6 +53,7 @@ const node = (id: string, x: number): SceneNode => ({
   count: 0,
   more: 0,
   opened: 0,
+  faded: false,
   group: null,
   x,
   y: 0,
@@ -69,11 +70,22 @@ const LAST: Positions = [
   ["e:b", { x: 120, y: 5 }],
 ];
 
-type Plant = { frame?: boolean; end?: boolean };
+// why: `refuse` — the start handler gives `false` (B17); `redraw` — it draws a scene first, as the
+// controller does with the last waiting step of a step chain (STORY-003-07)
+type Plant = {
+  frame?: boolean;
+  end?: boolean;
+  refuse?: boolean;
+  redraw?: Scene;
+};
 function mount(plant: Plant = {}) {
   const calls = { start: [] as string[], frame: [] as Point[], end: 0 };
   const handlers: DragHandlers = {
-    start: (id) => (calls.start.push(id), true),
+    start(id) {
+      calls.start.push(id);
+      if (plant.redraw !== undefined) renderer.draw(plant.redraw);
+      return plant.refuse !== true;
+    },
     frame(p) {
       calls.frame.push(p);
       if (plant.frame === true) throw new Error("planted");
@@ -284,5 +296,36 @@ describe("S9 stuck drags end at once (renderer)", () => {
     window.dispatchEvent(mouse("mouseup", 30, 0));
     frames(2);
     expect(m.settles).toHaveLength(2);
+  });
+});
+
+describe("B17 a start handler that gives false", () => {
+  it("starts no frame timer, calls no frame and no end, and gives no settle", () => {
+    const m = mount({ refuse: true });
+    const settles = m.settles.length;
+    frames(2);
+    expect(vi.getTimerCount()).toBe(0);
+    el(m, "e:a").dispatchEvent(mouse("mousedown", 10));
+    window.dispatchEvent(mouse("mousemove", 30));
+    frames(5);
+    expect(m.calls.start).toEqual(["e:a"]);
+    expect(vi.getTimerCount()).toBe(0);
+    window.dispatchEvent(mouse("mousemove", 50));
+    frames(5);
+    window.dispatchEvent(mouse("mouseup", 50, 0));
+    frames(5);
+    expect([m.calls.frame.length, m.calls.end]).toEqual([0, 0]);
+    expect(m.settles).toHaveLength(settles);
+    expect(at(m, "e:a")).toBe("translate(0,0)");
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+describe("STORY-003-07 a start handler that draws first", () => {
+  it("reads the origin of the drag after the handler", () => {
+    const moved = { ...SCENE, nodes: [node("e:a", 70), node("e:b", 100)] };
+    const m = mount({ redraw: moved });
+    start(m);
+    expect(m.calls.frame[0]).toEqual({ x: 90, y: 0 });
   });
 });

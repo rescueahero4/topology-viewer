@@ -3,6 +3,7 @@ import type { CameraControl } from "./camera";
 import type { Camera } from "./fit";
 import { cullLabels } from "./cull";
 import { drawEdges, pathsOf, type Ends } from "./edges";
+import { drawFade, fadeHits } from "./fade";
 import { drawHalo } from "./halo";
 import { selectionLights, showLights, showSelection } from "./highlight";
 import { drawHits, hitEdges, keptHits } from "./hits";
@@ -91,6 +92,7 @@ export function paint(
   const node = scene.selection.node;
   drawHalo(layers.focus, node === null ? null : (ends.get(node) ?? null));
   drawPills(layers.edgeLabels, pillEdges(scene), ends, k);
+  drawFade(layers, scene);
 }
 
 // why: STORY-003-04 Context "Labels", "Viewport hit paths" — at the end of each gesture or camera
@@ -109,5 +111,6 @@ export function endWork(
   cullLabels(layers.nodes, scene, camera.k, lod.level(), lod.big());
   const edges = hitEdges(scene.edges, ends, { camera, ...cam.size() });
   drawHits(layers.hits, edges, pathsOf(scene, ends));
+  fadeHits(layers.hits, scene);
   bindHits(layers, pointer);
 }

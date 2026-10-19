@@ -28,12 +28,13 @@ function degrees(scene: Scene): Map<DrawnId, number> {
   return out;
 }
 
-// why: named first, then degree, then group count, then scene order (stable sort)
+// why: named first, then degree, then group count, then scene order (stable sort); mockup line
+// 1906 — a faded node takes no part, so its label box hides no shown label
 function ranked(scene: Scene, full: boolean): SceneNode[] {
   const degree = degrees(scene);
   const deg = (n: SceneNode) => degree.get(n.id) ?? 0;
   return scene.nodes
-    .filter((n) => full || named(n))
+    .filter((n) => !n.faded && (full || named(n)))
     .sort(
       (a, b) =>
         Number(named(b)) - Number(named(a)) ||

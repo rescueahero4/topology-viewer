@@ -1,5 +1,6 @@
 import { profile } from "@qdic-topology/contract";
 import {
+  aroundInfo,
   canvasColor,
   normalize,
   resolveVocab,
@@ -17,6 +18,7 @@ import {
   type SceneNode,
 } from "@qdic-topology/renderer";
 import { auditStrings, domAudit } from "./domAudit";
+import { mountAround, showAround } from "./harness-around";
 import { measure } from "./harness-timing";
 import {
   createCanvas,
@@ -63,6 +65,7 @@ const report = byId<HTMLPreElement>("report");
 const log = byId<HTMLPreElement>("events");
 const zoom = byId<HTMLSpanElement>("zoom");
 const target = byId<HTMLInputElement>("target");
+const around = byId<HTMLPreElement>("around");
 
 type Open = {
   model: CanvasModel;
@@ -169,6 +172,7 @@ function start(model: CanvasModel, keep: Open | null = null): void {
     o.base = e.state;
     count("settle");
     show(o);
+    showAround(around, aroundInfo(e.state, e.frontier));
   });
   canvas.on("drag-end", (e) => {
     o.drag = readout(o, e.state);
@@ -184,6 +188,7 @@ function start(model: CanvasModel, keep: Open | null = null): void {
 function load(): void {
   counts.clear();
   log.textContent = "";
+  showAround(around, null);
   const key = pick("fixture").value;
   if (key === BUILT) return loadBuilt();
   const model = modelOf(loadFixture(key).input, COLOURS[pick("colour").value]);
@@ -215,6 +220,7 @@ function builtNode(i: number): SceneNode {
     more: 0,
     opened: 0,
     group: null,
+    faded: false,
     x: radius * Math.cos(angle),
     y: radius * Math.sin(angle),
   };
@@ -335,5 +341,16 @@ byId<HTMLButtonElement>("timing").addEventListener("click", () => {
       out.textContent = `${out.textContent ?? ""}${line}\n`;
     },
   );
+});
+// why: S18 — the toggle, one button per exit and the `aroundInfo` readout
+mountAround({
+  bar: byId<HTMLDivElement>("bar3"),
+  canvas: () => open?.canvas ?? null,
+  grouped: () => (open?.last?.state.around ?? null) !== null,
+  fresh(fixture) {
+    pick("fixture").value = fixture;
+    load();
+    return open?.canvas ?? null;
+  },
 });
 load();
