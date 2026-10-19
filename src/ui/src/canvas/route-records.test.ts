@@ -217,4 +217,30 @@ describe("S16 the motion reads no engine record (hand-off items 13, 15, D77, D96
     expect(keyScan(scene)).toEqual([]);
     expect(keyScan(motion)).toEqual([]);
   });
+
+  // why: the records of an earlier event hold start points that are no longer drawn positions
+  it("list A, then one more explore: the motion starts from the drawn positions", async () => {
+    const o = await open(ACCESS());
+    for (const [kind, id] of LISTS[0][1])
+      o.settled(() =>
+        kind === "hide" ? o.canvas.hide([id]) : o.canvas.expand(id),
+      );
+    const drawn = spots(o.div);
+    const stale = o
+      .state()
+      .nudges.flatMap(([, , list]) => list)
+      .filter(([id, x0, y0]) => {
+        const p = drawn.get(id);
+        return p !== undefined && (p.x !== x0 || p.y !== y0);
+      });
+    expect(stale.length).toBeGreaterThan(0);
+    const frontier = o.log.settle[o.log.settle.length - 1].frontier;
+    const more = frontier.nodes.find((n) => "entity" in n && n.more > 0);
+    expect(more).toBeDefined();
+    const draws = spy.draws.length;
+    o.canvas.expand(more?.id ?? "");
+    expect(spy.draws.length).toBe(draws + 1);
+    for (const [key, p] of spots(o.div))
+      if (drawn.has(key)) expect(p).toEqual(drawn.get(key));
+  });
 });

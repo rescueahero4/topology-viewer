@@ -270,6 +270,7 @@ describe("S8 family filters and an edge pick move nothing (SA §6 row 3)", () =>
       { node: "e:t_FCT_REVENUE" },
       { edge, anchor: "e:t_FCT_REVENUE" },
     ]);
+    expect(o.log.explore).toEqual([]);
   });
 });
 
