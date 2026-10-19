@@ -28,6 +28,10 @@ export type CameraHost = {
   boxes(): Box[];
 };
 
+// why: STORY-003-05 — the camera part of a motion runs with the motion clock; a gesture, a fit or a
+// resize stops it, and the motion end sets its end camera
+export type CameraPart = { at(elapsed: number): void; end(): void };
+
 export type CameraControl = {
   transform(): Camera;
   size(): Size;
@@ -35,6 +39,10 @@ export type CameraControl = {
   first(keep: boolean): boolean;
   fit(animate: boolean): "none" | "now" | "tween";
   reveal(plan: Camera, anchor: Point, at: Point): boolean;
+  centred(target: Box, must: Box[], context: Box[]): Camera | null;
+  move(to: Camera): boolean;
+  glideTo(to: Camera): (e: number) => Camera;
+  follow(frame: (elapsed: number) => Camera, end: Camera): CameraPart;
   end(): void;
 };
 
@@ -65,7 +73,7 @@ const centreOf = (c: Camera, at: Point): Point => ({
 
 // why: NF-8 — under reduced motion or a hidden document a move jumps to its end; `matchMedia` is
 // read at each move and can be absent (Security round 2 (d))
-function instant(doc: Document): boolean {
+export function instant(doc: Document): boolean {
   const reduce =
     typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -77,6 +85,7 @@ type State = {
   drawn: boolean;
   current: Camera;
   tween: Timer | null;
+  follow: object | null;
 };
 
 // why: STORY-003-04 Context "Camera" — the default filter, the scale extent, no double-click
@@ -121,6 +130,7 @@ function moverOf(
   const stop = () => {
     st.tween?.stop();
     st.tween = null;
+    st.follow = null;
   };
   const finish = (to: Camera) => {
     stop();
@@ -170,6 +180,36 @@ function observerOf(host: CameraHost, st: State, fit: (to: Camera) => void) {
   return observer;
 }
 
+// why: one camera part at a time; `mover.stop` (a gesture, a fit, a resize, a reveal, the end)
+// clears `st.follow`, so the part writes nothing after it
+function followOf(
+  host: CameraHost,
+  st: State,
+  apply: (c: Camera) => void,
+  frame: (elapsed: number) => Camera,
+  end: Camera,
+): CameraPart {
+  const token = {};
+  st.follow = token;
+  const on = () => st.follow === token && host.live();
+  return {
+    at(elapsed) {
+      if (on()) apply(frame(elapsed));
+    },
+    end() {
+      if (on()) apply(end);
+      if (st.follow === token) st.follow = null;
+    },
+  };
+}
+
+// why: the layout point at the container centre glides from the current camera to `to`
+function glideAbout(st: State, to: Camera): Frame {
+  const c = st.current;
+  const at = { x: st.size.w / 2, y: st.size.h / 2 };
+  return glide(c.k, to.k, at, centreOf(c, at), centreOf(to, at));
+}
+
 export function createCamera(host: CameraHost): CameraControl {
   const svgSel = select<SVGSVGElement, unknown>(host.svg);
   const st: State = {
@@ -177,14 +217,16 @@ export function createCamera(host: CameraHost): CameraControl {
     drawn: false,
     current: { k: 1, x: 0, y: 0 },
     tween: null,
+    follow: null,
   };
-  const mover = moverOf(host, st, (c) =>
-    behaviour.transform(svgSel, zoomIdentity.translate(c.x, c.y).scale(c.k)),
-  );
+  const apply = (c: Camera) =>
+    behaviour.transform(svgSel, zoomIdentity.translate(c.x, c.y).scale(c.k));
+  const mover = moverOf(host, st, apply);
   const behaviour = behaviourOf(host, st, mover.stop);
   svgSel.call(behaviour).on("dblclick.zoom", null);
   const now = (to: Camera) => mover.run(to, () => to, false);
   const fitNow = () => fitTransform(host.boxes(), st.size.w, st.size.h, PAD, 0);
+  const glideTo = (to: Camera) => glideAbout(st, to);
   const observer = observerOf(host, st, (to) => {
     now(to);
     host.settled();
@@ -205,14 +247,18 @@ export function createCamera(host: CameraHost): CameraControl {
     fit(animate) {
       const to = fitNow();
       if (to === null) return "none";
-      const at = { x: st.size.w / 2, y: st.size.h / 2 };
-      const c = st.current;
-      const frame = glide(c.k, to.k, at, centreOf(c, at), centreOf(to, at));
-      return mover.run(to, frame, animate) ? "tween" : "now";
+      return mover.run(to, glideTo(to), animate) ? "tween" : "now";
     },
     reveal(plan, anchor, at) {
       const frame = glide(st.current.k, plan.k, at, anchor, anchor);
       return mover.run(plan, frame, true);
+    },
+    centred: (target, must, context) => centred(st, target, must, context),
+    move: (to) => mover.run(to, glideTo(to), true),
+    glideTo,
+    follow(frame, end) {
+      mover.stop();
+      return followOf(host, st, apply, frame, end);
     },
     end() {
       mover.stop();
@@ -220,6 +266,25 @@ export function createCamera(host: CameraHost): CameraControl {
       svgSel.on(".zoom", null);
     },
   };
+}
+
+// why: build-time item B5 (epic question 19) — a focus target that is not fully in the viewport
+// gets the TL-4 plan about the viewport centre: it pans and only zooms out, never a fit
+function centred(
+  st: State,
+  target: Box,
+  must: Box[],
+  context: Box[],
+): Camera | null {
+  const t = st.current;
+  const { w, h } = st.size;
+  const x0 = t.x + t.k * (target.x - target.r);
+  const x1 = t.x + t.k * (target.x + target.r);
+  const y0 = t.y + t.k * (target.y - target.r);
+  const y1 = t.y + t.k * (target.y + target.r);
+  if (x0 >= 0 && x1 <= w && y0 >= 0 && y1 <= h) return null;
+  const s = { x: w / 2, y: h / 2 };
+  return revealPlan(t, w, h, { s, p: target }, must, context);
 }
 
 export type Before = {
@@ -230,8 +295,23 @@ export type Before = {
   context: ReadonlySet<DrawnId>;
 };
 
-// why: TL-4 — before the draw: the screen point of the anchor and the previous nodes whose centre
-// is in the container
+const screenOf = (t: Camera, n: Point) => ({
+  x: t.x + t.k * n.x,
+  y: t.y + t.k * n.y,
+});
+
+// why: TL-4 — the previous nodes whose centre is in the container
+export function seenOf(scene: Scene, cam: CameraControl): Set<DrawnId> {
+  const t = cam.transform();
+  const { w, h } = cam.size();
+  const seen = (n: SceneNode) => {
+    const p = screenOf(t, n);
+    return p.x >= 0 && p.x <= w && p.y >= 0 && p.y <= h;
+  };
+  return new Set(scene.nodes.filter(seen).map((n) => n.id));
+}
+
+// why: TL-4 — before the draw: the screen point of the anchor and the previous nodes on screen
 export function before(
   id: DrawnId,
   scene: Scene,
@@ -240,21 +320,14 @@ export function before(
 ): Before | null {
   const old = ends.get(id);
   if (old === undefined) return null;
-  const t = cam.transform();
-  const { w, h } = cam.size();
-  const screen = (n: Point) => ({ x: t.x + t.k * n.x, y: t.y + t.k * n.y });
-  const seen = (n: SceneNode) => {
-    const p = screen(n);
-    return p.x >= 0 && p.x <= w && p.y >= 0 && p.y <= h;
-  };
+  const context = seenOf(scene, cam);
+  context.delete(id);
   return {
     id,
-    at: screen(old),
+    at: screenOf(cam.transform(), old),
     old: { x: old.x, y: old.y },
     prev: new Set(ends.keys()),
-    context: new Set(
-      scene.nodes.filter((n) => n.id !== id && seen(n)).map((n) => n.id),
-    ),
+    context,
   };
 }
 

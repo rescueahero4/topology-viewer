@@ -6,6 +6,7 @@ import { setColour } from "./marks";
 import type { Scene, SceneEdge, SceneNode } from "./scene";
 
 export type Ends = ReadonlyMap<DrawnId, SceneNode>;
+export type At = (id: DrawnId) => SceneNode;
 
 // why: mockup tree curves (lib/topology.js lines 1068-1078) — an arrow edge ends 3 px before the
 // side of the object; a Structure edge ends at the side
@@ -96,4 +97,24 @@ export function drawEdges(
     .attr("class", classOf)
     .attr("d", pathsOf(scene, ends))
     .each((edge, i, paths) => styleEdge(paths[i], edge, markers));
+}
+
+// why: STORY-003-05 frame writes — the `d` of each edge or hit path with a moving end
+export function edgeMover(
+  layer: SVGGElement,
+  selector: "path.qt-edge" | "path.qt-ehit",
+  moving: ReadonlySet<DrawnId>,
+  layout: LayoutName,
+): (at: At) => void {
+  const els: [SVGPathElement, SceneEdge][] = [];
+  select(layer)
+    .selectAll<SVGPathElement, SceneEdge>(selector)
+    .each((e, i, paths) => {
+      if (moving.has(e.subject) || moving.has(e.object))
+        els.push([paths[i], e]);
+    });
+  return (at) => {
+    for (const [el, e] of els)
+      el.setAttribute("d", edgePath(e, at(e.subject), at(e.object), layout));
+  };
 }

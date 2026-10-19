@@ -3,7 +3,8 @@ import {
   before,
   boxOf,
   createCamera,
-  planOf,
+  instant,
+  seenOf,
   type CameraControl,
 } from "./camera";
 import { cullLabels } from "./cull";
@@ -17,7 +18,7 @@ import {
   showLights,
   showSelection,
 } from "./highlight";
-import { drawHits, hitEdges } from "./hits";
+import { drawHits, hitEdges, keptHits } from "./hits";
 import {
   bindCanvas,
   bindHits,
@@ -29,6 +30,17 @@ import {
 import { createLayers, type Layers } from "./layers";
 import { createLod, type Lod } from "./lod";
 import { drawMarkers } from "./markers";
+import {
+  cameraNow,
+  cameraPart,
+  createPlayer,
+  motionOf,
+  stagesOf,
+  type DrawMotion,
+  type Plans,
+  type Player,
+  type StageHost,
+} from "./motion";
 import { drawNodes } from "./nodes";
 import { drawPills, pillEdges, scalePills } from "./pills";
 import type { Scene } from "./scene";
@@ -36,16 +48,17 @@ import { drawSymbols } from "./sprite";
 import type { RendererText } from "./text";
 import { createTooltip, type Tooltip } from "./tooltip";
 
-export type Motion = { anchor: DrawnId | null };
-export type Report = { kind: "zero-size" } | { kind: "ended" };
+export type Report =
+  { kind: "zero-size" } | { kind: "ended" } | { kind: "error" };
 
 export type Renderer = {
-  draw(scene: Scene, motion?: Motion): void;
+  draw(scene: Scene, motion?: DrawMotion): void;
   fit(options?: { animate?: boolean }): void;
   transform(): Camera;
   onIntent(handler: (intent: Intent) => void): void;
   onReport(handler: (report: Report) => void): void;
   onSettle(handler: (camera: Camera) => void): void;
+  ended(): boolean;
 };
 
 export type RendererOptions = { text: RendererText; camera?: Camera };
@@ -142,6 +155,7 @@ function paint(
   const hrefOf = drawSymbols(layers.defs, scene.nodes, prefix);
   const markers = drawMarkers(layers.defs, scene.edges, prefix);
   drawEdges(layers, scene, ends, markers);
+  keptHits(layers.hits, scene.edges, pathsOf(scene, ends));
   drawNodes(layers.nodes, scene.nodes, { hrefOf, labelId, big: lod.big() });
   bindNodes(layers, pointer);
   showSelection(layers, scene);
@@ -176,10 +190,21 @@ type Ctx = {
   pointer: Pointer;
   lod: Lod;
   cam: CameraControl;
+  player: Player;
+  stage: StageHost;
   start: Camera | null;
   drawn: boolean;
   settled(): void;
 };
+
+function show(c: Ctx, scene: Scene): void {
+  const { parts, now, pointer, lod, cam } = c;
+  now.scene = scene;
+  now.ends = endsOf(scene.nodes);
+  const { k } = cam.transform();
+  lod.count(scene.nodes.length, k);
+  paint(parts, now, pointer, lod, k);
+}
 
 function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
   const { root, layers, tip } = parts;
@@ -198,30 +223,34 @@ function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
   });
 }
 
-// why: TL-4 — a draw with an anchor plans the camera from the scene before and after the draw;
-// the first draw fits, or keeps a valid `camera` option, or reports a 0 × 0 container once
-function drawScene(c: Ctx, scene: Scene, motion: Motion | undefined): void {
+// why: STORY-003-05 — a new draw first jumps a running motion to its end; the first draw fits, or
+// keeps a valid `camera` option, or reports a 0 × 0 container once; under reduced motion or a
+// hidden document every change is in the DOM before `draw` returns (NF-8)
+function drawScene(c: Ctx, scene: Scene, motion: DrawMotion | undefined) {
+  const m = motionOf(motion);
+  c.player.jump(false);
   const { parts, now, pointer, lod, cam } = c;
-  const anchor = motion?.anchor ?? null;
-  const b =
-    c.drawn && anchor !== null
-      ? before(anchor, now.scene, now.ends, cam)
-      : null;
-  now.scene = scene;
-  now.ends = endsOf(scene.nodes);
+  const prev = now.scene;
+  const plans: Plans = {
+    b:
+      c.drawn && m.anchor !== null
+        ? before(m.anchor, prev, now.ends, cam)
+        : null,
+    seen: c.drawn && m.focus !== null ? seenOf(prev, cam) : null,
+  };
   parts.root.classList.toggle("qt-paused", parts.doc.hidden);
-  const { k } = cam.transform();
-  lod.count(scene.nodes.length, k);
-  paint(parts, now, pointer, lod, k);
-  let moving = false;
+  if (c.drawn && m.kind !== "none" && !instant(parts.doc)) {
+    const { stages, local } = stagesOf(c.stage, prev, scene, m);
+    c.player.play(stages, () => cameraPart(cam, prev, now, m, plans, local));
+    return;
+  }
+  show(c, scene);
   if (!c.drawn) {
     c.drawn = true;
     if (cam.first(c.start !== null)) now.on.report?.({ kind: "zero-size" });
-  } else if (b !== null) {
-    const next = planOf(b, scene, now.ends, cam);
-    if (next !== null) moving = cam.reveal(next.plan, next.p, b.at);
-  }
-  if (moving) endWork(parts, now, pointer, lod, cam);
+    c.settled();
+  } else if (cameraNow(cam, prev, now, m, plans))
+    endWork(parts, now, pointer, lod, cam);
   else c.settled();
 }
 
@@ -245,7 +274,31 @@ function api(c: Ctx): Renderer {
     onSettle(handler) {
       now.on.settle = handler;
     },
+    ended: () => !pointer.live(),
   };
+}
+
+const stageOf = (parts: Parts, now: Current, ctx: () => Ctx): StageHost => ({
+  layers: parts.layers,
+  root: parts.root,
+  paint: (scene) => show(ctx(), scene),
+  scene: () => now.scene,
+  ends: () => now.ends,
+  k: () => ctx().cam.transform().k,
+});
+
+// why: SA §4.5, NF-8 — the pulse stops while the document is hidden, and a motion jumps to its end
+function watchHidden(c: Ctx, live: () => boolean, signal: AbortSignal) {
+  const { doc, root } = c.parts;
+  doc.addEventListener(
+    "visibilitychange",
+    () => {
+      if (!live()) return;
+      root.classList.toggle("qt-paused", doc.hidden);
+      if (doc.hidden) c.player.jump(true);
+    },
+    { signal },
+  );
 }
 
 export function createRenderer(
@@ -253,7 +306,7 @@ export function createRenderer(
   options: RendererOptions,
 ): Renderer {
   const parts = mount(container, options.text);
-  const { doc, root, layers, tip } = parts;
+  const { root, layers, tip } = parts;
   const abort = new AbortController();
   const on: Handlers = { intent: null, report: null, settle: null };
   const now: Current = { scene: EMPTY, ends: new Map(), on };
@@ -266,6 +319,7 @@ export function createRenderer(
     if (!ended && !root.isConnected) {
       ended = true;
       c.cam.end();
+      c.player.stop();
       unbind(layers);
       abort.abort();
       tip.hide();
@@ -280,20 +334,23 @@ export function createRenderer(
     pointer,
     lod,
     cam: cameraOf(parts, now, lod, () => c),
+    player: createPlayer({
+      live,
+      settled: () => c.settled(),
+      failed: () => on.report?.({ kind: "error" }),
+    }),
+    stage: stageOf(parts, now, () => c),
     start: validCamera(options.camera) ? options.camera : null,
     drawn: false,
+    // why: STORY-003-05 — while a motion runs, its end does the end work and the one `onSettle`
     settled() {
+      if (c.player.running()) return;
       endWork(parts, now, pointer, lod, c.cam);
       on.settle?.(c.cam.transform());
     },
   };
   if (c.start !== null) c.cam.jump(c.start);
-  // why: SA §4.5, NF-8 — the pulse stops while the document is hidden
-  doc.addEventListener(
-    "visibilitychange",
-    () => live() && root.classList.toggle("qt-paused", doc.hidden),
-    { signal: abort.signal },
-  );
+  watchHidden(c, live, abort.signal);
   bindCanvas(layers, pointer);
   return api(c);
 }

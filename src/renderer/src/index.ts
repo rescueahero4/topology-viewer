@@ -1,9 +1,5 @@
-export {
-  createRenderer,
-  type Motion,
-  type Renderer,
-  type Report,
-} from "./renderer";
+export { createRenderer, type Renderer, type Report } from "./renderer";
+export type { DrawMotion, Motion, MotionKind } from "./motion";
 export {
   fitTransform,
   revealPlan,

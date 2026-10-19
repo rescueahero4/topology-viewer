@@ -1,5 +1,5 @@
 import { select, type Selection } from "d3-selection";
-import type { DrawnId } from "@qdic-topology/engine";
+import type { DrawnId, Point } from "@qdic-topology/engine";
 import { drawBadge, drawChip } from "./badges";
 import { setColour } from "./marks";
 import type { SceneNode } from "./scene";
@@ -16,6 +16,8 @@ export type NodeContext = {
 // why: mockup `iconFor` fallback (lib/topology.js line 306) in the 20 × 20 engine box; TL-7 — a
 // node with no visual (only `custom_category` in 0.1.0) is an outline circle until ISSUE-009
 const NO_MARK_R = 8.5;
+
+export const translate = (p: Point) => `translate(${p.x},${p.y})`;
 
 function classOf(d: SceneNode): string {
   if (d.kind === "group") return "qt-node qt-grouped";
@@ -101,6 +103,26 @@ export function drawNodes(
         .attr("aria-labelledby", (d) => ctx.labelId(d.id)),
     )
     .attr("class", classOf)
-    .attr("transform", (d) => `translate(${d.x},${d.y})`)
+    .attr("transform", translate)
     .each((d, i, groups) => fillNode(groups[i], d, ctx));
+}
+
+// why: STORY-003-05 frame writes — the `transform` of the moving nodes only; drawn ids are `Map`
+// keys, never part of a selector (Security A9)
+export function nodeMover(
+  layer: SVGGElement,
+  moving: ReadonlySet<DrawnId>,
+): (at: ReadonlyMap<DrawnId, Point>) => void {
+  const els = new Map<DrawnId, SVGGElement>();
+  select(layer)
+    .selectAll<SVGGElement, SceneNode>("g.qt-node")
+    .each((d, i, groups) => {
+      if (moving.has(d.id)) els.set(d.id, groups[i]);
+    });
+  return (at) => {
+    for (const [id, el] of els) {
+      const p = at.get(id);
+      if (p !== undefined) el.setAttribute("transform", translate(p));
+    }
+  };
 }
