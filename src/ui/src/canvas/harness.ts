@@ -20,6 +20,7 @@ import {
 } from "@qdic-topology/renderer";
 import { auditStrings, domAudit } from "./domAudit";
 import { sceneOf } from "./scene";
+import "../tokens.css";
 
 // why: epic question 14 — a dev page for the QA browser checks (S19); never exported or bundled.
 // Its labels are dev text, not product text: EPIC-004 gives the real strings (P4-1)
