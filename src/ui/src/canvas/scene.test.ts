@@ -23,6 +23,7 @@ import {
   createRenderer,
   iconMetrics,
   type RendererText,
+  type Scene,
 } from "@qdic-topology/renderer";
 import { describe, expect, it } from "vitest";
 import { sceneOf } from "./scene";
@@ -34,6 +35,20 @@ const TEXT: RendererText = {
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) => `${count} × ${typeLabel}`,
+  tipOpened: (sub) => `${sub} · expanded`,
+  tipMore: (sub, more) => `${sub} · ${more} more`,
+  tipMember: (sub) => `${sub} · member`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+};
+
+// why: STORY-003-03 — a scene of nodes only: no edge, no selection
+const BARE: Omit<Scene, "nodes"> = {
+  edges: [],
+  selection: { node: null, edge: null },
+  layout: "force",
 };
 const TABLE_GROUP = 'g:["tag_pii","taggedWith","<","table"]';
 
@@ -111,7 +126,7 @@ describe("S18 sceneOf branches", () => {
     expect(node.colour).toBe(guardColor([0x71, 0x71, 0x7a], CANVAS));
     const div = document.createElement("div");
     document.body.appendChild(div);
-    createRenderer(div, { text: TEXT }).draw({ nodes: [node] });
+    createRenderer(div, { text: TEXT }).draw({ ...BARE, nodes: [node] });
     const circle = div.querySelector("g.qt-node > circle.qt-nomark");
     expect(circle?.getAttribute("r")).toBe("8.5");
     expect(div.querySelector("g.qt-node use")).toBeNull();

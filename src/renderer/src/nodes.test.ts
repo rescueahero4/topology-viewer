@@ -12,6 +12,20 @@ const TEXT: RendererText = {
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) => `${count} × ${typeLabel}`,
+  tipOpened: (sub) => `${sub} · expanded`,
+  tipMore: (sub, more) => `${sub} · ${more} more`,
+  tipMember: (sub) => `${sub} · member`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+};
+
+// why: STORY-003-03 — a scene of nodes only: no edge, no selection
+const BARE: Omit<Scene, "nodes"> = {
+  edges: [],
+  selection: { node: null, edge: null },
+  layout: "force",
 };
 
 function mount() {
@@ -71,6 +85,7 @@ const SHAPES = [
 ] as const;
 
 const S5: Scene = {
+  ...BARE,
   nodes: [
     node("e:t"),
     ...SHAPES.map((shape) =>
@@ -173,7 +188,8 @@ describe("S5 node drawing", () => {
 
   it("names a node with no full label by its subtitle", () => {
     const { doc: d2, div: div2 } = mount();
-    const scene = {
+    const scene: Scene = {
+      ...BARE,
       nodes: [node("e:x", { fullLabel: "", sub: "Constructor" })],
     };
     createRenderer(div2, { text: TEXT }).draw(scene);
@@ -202,6 +218,7 @@ describe("S22 (c) colour re-check", () => {
     const { div } = mount();
     const bad = (value: string) => value as Hex;
     const scene: Scene = {
+      ...BARE,
       nodes: [
         ...["#GGGGGG", "red", "#ABCDEF"].map((colour, i) =>
           node(`g:${i}`, { kind: "group", count: 2, colour: bad(colour) }),
@@ -238,7 +255,10 @@ describe("S22 (c) colour re-check", () => {
 describe("S23 end rule (H8)", () => {
   it("ends renderer A when its root leaves the page, and A stays ended", () => {
     const { doc, div } = mount();
-    const scene2: Scene = { nodes: [node("e:other"), node("e:more")] };
+    const scene2: Scene = {
+      ...BARE,
+      nodes: [node("e:other"), node("e:more")],
+    };
     const a = createRenderer(div, { text: TEXT });
     a.draw(S5);
     const rootA = div.firstElementChild as Element;

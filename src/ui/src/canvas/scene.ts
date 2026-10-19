@@ -1,15 +1,15 @@
 import {
   canvasColor,
   entitySlots,
-  guardColor,
   type CanvasState,
   type Designed,
+  type DrawnEdge,
   type DrawnId,
   type DrawnNode,
   type Frontier,
   type Hex,
   type Point,
-  type Rgb,
+  type Selection,
   type Tier,
   type Vocab,
 } from "@qdic-topology/engine";
@@ -18,8 +18,10 @@ import {
   spriteColours,
   type RendererText,
   type Scene,
+  type SceneEdge,
   type SceneNode,
 } from "@qdic-topology/renderer";
+import { edgeStyles, guarded, type EdgeStyle } from "./edgeColours";
 
 export type SceneInput = {
   state: CanvasState;
@@ -41,17 +43,6 @@ const NO_MARK_GREY = canvasColor("#71717a");
 // why: epic question 12, TL-9 — the subtitle reads only this slot entry
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
-const HEX_CHANNELS = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/;
-
-function rgbOf(hex: Hex | null | undefined): Rgb {
-  const match = HEX_CHANNELS.exec(hex ?? "");
-  if (match === null) throw new Error("sceneOf: a colour is not #rrggbb");
-  return [
-    parseInt(match[1], 16),
-    parseInt(match[2], 16),
-    parseInt(match[3], 16),
-  ];
-}
 
 // why: mockup `truncate` (lib/topology.js line 322) in UTF-16 units; a cut never leaves a lone
 // high surrogate. "…" is a symbol, not UI text
@@ -89,9 +80,8 @@ function boxOf(type: string | null, vocab: Vocab): Box {
 // why: hand-off item 3 — every canvas colour goes through `guardColor`; a designed colour is
 // already guarded by `resolveVocab` against the same canvas
 function colourOf(visual: Visual, canvas: Hex): Hex {
-  if (visual === null) return guardColor(rgbOf(NO_MARK_GREY), canvas);
-  if ("icon" in visual)
-    return guardColor(rgbOf(spriteColours.get(visual.icon)), canvas);
+  if (visual === null) return guarded(NO_MARK_GREY, canvas);
+  if ("icon" in visual) return guarded(spriteColours.get(visual.icon), canvas);
   return (visual satisfies Designed).color;
 }
 
@@ -150,17 +140,51 @@ function nodeOf(
   };
 }
 
+function edgeOf(
+  edge: DrawnEdge,
+  vocab: Vocab,
+  styles: ReadonlyMap<string, EdgeStyle>,
+): SceneEdge {
+  const predicate = vocab.predicates.get(edge.predicate);
+  const style = styles.get(edge.predicate);
+  if (predicate === undefined || style === undefined)
+    throw new Error("sceneOf: a predicate is not in vocab");
+  return {
+    key: edge.key,
+    subject: edge.subject,
+    object: edge.object,
+    label: predicate.label,
+    ...style,
+    muted: edge.muted,
+    // why: FR-QDIC-5, story question 1 — a group edge counts the links behind it
+    count: edge.count,
+  };
+}
+
+// why: SA §6 row 19 — an edge pick keeps its anchor as the selected node
+function selectionOf(selection: Selection): Scene["selection"] {
+  if (selection === null) return { node: null, edge: null };
+  if ("edge" in selection)
+    return { node: selection.anchor, edge: selection.edge };
+  return { node: selection.node, edge: null };
+}
+
 // why: SA §4.5 — the controller makes the scene from engine results; the scene keeps no
 // reference to `vocab` or `state`
 export function sceneOf(input: SceneInput, text: RendererText): Scene {
-  const positions = new Map<DrawnId, Point>(input.state.positions);
+  const { state, frontier, vocab, canvas } = input;
+  const positions = new Map<DrawnId, Point>(state.positions);
+  const styles = edgeStyles(vocab, canvas);
   return {
-    nodes: input.frontier.nodes.map((node) => {
+    nodes: frontier.nodes.map((node) => {
       const at = positions.get(node.id);
       // why: SA §4.5, §5 — the engine commits positions before the first frame
       if (at === undefined)
         throw new Error("sceneOf: a drawn node has no position");
       return nodeOf(node, at, input, text);
     }),
+    edges: frontier.edges.map((edge) => edgeOf(edge, vocab, styles)),
+    selection: selectionOf(state.selection),
+    layout: state.layout,
   };
 }

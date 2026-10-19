@@ -1,127 +1,22 @@
-// why: TL-8 — the one DOM allow-list of EPIC-003 (rules DA-1 to DA-5, SA §10 guardrail 8, SA §11
-// harm criterion 2). A later story adds only its own element, attribute and class names
+// why: TL-8 — the checks of the one DOM allow-list of EPIC-003 (rules DA-1 to DA-5, SA §10
+// guardrail 8, SA §11 harm criterion 2); the lists are in `domAllowList.ts`
 
 import type { Graph, Vocab } from "@qdic-topology/engine";
-import type { Scene, SceneNode } from "@qdic-topology/renderer";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
-const HTML_NS = "http://www.w3.org/1999/xhtml";
-
-export const CLASS_NAMES: readonly string[] = [
-  "qt-root",
-  "qt-svg",
-  "qt-viewport",
-  "qt-node",
-  "qt-grouped",
-  "qt-leaf",
-  "qt-name",
-  "qt-sub",
-  "qt-a11y",
-  "qt-badge",
-  "qt-more",
-  "qt-open",
-  "qt-mark",
-  "qt-nomark",
-  "qt-lod-mid",
-  "qt-lod-low",
-  "qt-big",
-  "qt-culled",
-  "qt-hl",
-];
-
-// why: the attributes of the sprite allow-list of `scripts/build-icons.mjs`
-const SPRITE = [
-  "fill",
-  "stroke",
-  "d",
-  "transform",
-  "points",
-  "stroke-linecap",
-  "stroke-linejoin",
-  "fill-rule",
-  "clip-rule",
-  "fill-opacity",
-  "stroke-width",
-  "stroke-opacity",
-  "opacity",
-  "cx",
-  "cy",
-  "r",
-  "rx",
-  "ry",
-  "x",
-  "y",
-  "x1",
-  "y1",
-  "x2",
-  "y2",
-  "width",
-  "height",
-];
-const SHAPE = ["class", ...SPRITE];
-
-const ATTRIBUTES: Readonly<Record<string, readonly string[]>> = {
-  div: ["class"],
-  svg: ["class", "role", "aria-label"],
-  defs: [],
-  symbol: ["id", "viewBox", "fill"],
-  g: ["class", "tabindex", "aria-labelledby", ...SPRITE],
-  use: ["href", "x", "y", "width", "height"],
-  path: SHAPE,
-  rect: SHAPE,
-  circle: SHAPE,
-  ellipse: SHAPE,
-  line: SHAPE,
-  polyline: SHAPE,
-  polygon: SHAPE,
-  text: ["class", "id", "x", "y", "dy", "fill", "font-size"],
-  tspan: ["class"],
-  marker: [],
-};
-
-const NUMERIC = new Set([
-  "fill-opacity",
-  "stroke-width",
-  "stroke-opacity",
-  "opacity",
-  "cx",
-  "cy",
-  "r",
-  "rx",
-  "ry",
-  "x",
-  "y",
-  "x1",
-  "y1",
-  "x2",
-  "y2",
-  "width",
-  "height",
-  "font-size",
-  "tabindex",
-]);
-
-const NUMBER = String.raw`-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?`;
-const NUMBERS = String.raw`${NUMBER}(?:[\s,]+${NUMBER})*`;
-// why: SA §4.1 — the path-data pattern and the glyph cap
-const PATH_DATA = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-eE]+$/;
-const GLYPH_CAP = 512;
-const FORMS: Readonly<Record<string, RegExp>> = {
-  d: PATH_DATA,
-  dy: /^\d+(\.\d+)?em$/,
-  points: new RegExp(String.raw`^${NUMBERS}$`),
-  role: /^group$/,
-  transform: new RegExp(
-    String.raw`^(?:\s*(?:translate|scale|rotate|matrix)\(${NUMBERS}\)\s*)+$`,
-  ),
-  viewBox: new RegExp(String.raw`^${NUMBER} ${NUMBER} ${NUMBER} ${NUMBER}$`),
-  "stroke-linecap": /^(butt|round|square)$/,
-  "stroke-linejoin": /^(miter|round|bevel)$/,
-  "fill-rule": /^(nonzero|evenodd)$/,
-  "clip-rule": /^(nonzero|evenodd)$/,
-};
-const ONE_NUMBER = new RegExp(`^${NUMBER}$`);
-const COLOUR = /^#[0-9a-f]{6}$/;
+import type { Scene, SceneEdge, SceneNode } from "@qdic-topology/renderer";
+import {
+  ATTRIBUTES,
+  CLASS_NAMES,
+  COLOUR,
+  FORMS,
+  GLYPH_CAP,
+  HTML_NS,
+  KEYWORD_FORMS,
+  NUMERIC,
+  ONE_NUMBER,
+  PATH_DATA,
+  STYLES,
+  SVG_NS,
+} from "./domAllowList";
 
 type Audit = {
   root: Element;
@@ -137,15 +32,19 @@ function prefixOf(elements: readonly Element[]): string | null {
   return match === null ? null : match[1];
 }
 
+const hasClass = (el: Element | null, name: string) =>
+  el?.classList.contains(name) === true;
+
+// why: STORY-003-03 — the root and the tooltip also carry state classes (`qt-dim`, `qt-paused`,
+// `qt-on`), so DA-1 reads the class tokens; DA-3 checks each token against the list
 function divAllowed(el: Element, root: Element): boolean {
   const parent = el.parentElement;
-  const cls = el.getAttribute("class");
-  if (el === root) return cls === "qt-root";
-  if (cls === "qt-tip") return parent === root;
+  if (el === root) return hasClass(el, "qt-root");
+  if (hasClass(el, "qt-tip")) return parent === root;
   return (
-    (cls === "qt-tip-main" || cls === "qt-tip-sub") &&
-    parent?.getAttribute("class") === "qt-tip" &&
-    parent.parentElement === root
+    (hasClass(el, "qt-tip-main") || hasClass(el, "qt-tip-sub")) &&
+    hasClass(parent, "qt-tip") &&
+    parent?.parentElement === root
   );
 }
 
@@ -166,11 +65,11 @@ function inRoot(el: Element, id: string, a: Audit): Element | null {
   return target !== null && a.root.contains(target) ? target : null;
 }
 
-function symbolInDefs(el: Element, id: string, a: Audit): boolean {
+function inDefs(el: Element, id: string, tag: string, a: Audit): boolean {
   const target = inRoot(el, id, a);
   const defs = target?.parentElement;
   return (
-    target?.localName === "symbol" &&
+    target?.localName === tag &&
     defs?.localName === "defs" &&
     defs.parentElement === el.closest("svg")
   );
@@ -189,13 +88,18 @@ function checkReference(el: Element, name: string, value: string, a: Audit) {
     a.out.push(`DA-1 <${el.localName}> id does not match the id form`);
   if (name === "href") {
     const ok = new RegExp(`^#${p}-s-[0-9]+$`).test(value);
-    if (!ok || !symbolInDefs(el, value.slice(1), a))
+    if (!ok || !inDefs(el, value.slice(1), "symbol", a))
       a.out.push("DA-1 <use> href does not resolve to a symbol");
   }
   if (name === "aria-labelledby") {
     const ok = new RegExp(`^${p}-l-[0-9a-f]+$`).test(value);
     if (!ok || !a11yText(el, value, a))
       a.out.push("DA-1 aria-labelledby does not resolve to a text.qt-a11y");
+  }
+  if (name === "marker-end") {
+    const ok = new RegExp(String.raw`^url\(#${p}-a-[0-9a-f]{6}\)$`).test(value);
+    if (!ok || !inDefs(el, value.slice(5, -1), "marker", a))
+      a.out.push("DA-1 marker-end does not resolve to a marker");
   }
   if (name === "aria-label" && value !== a.canvasName)
     a.out.push("DA-1 aria-label is not the canvas name");
@@ -233,6 +137,9 @@ function isGlyph(el: Element, name: string, value: string): boolean {
 
 function checkModel(el: Element, name: string, value: string, a: Audit) {
   if (name === "class" || isGlyph(el, name, value)) return;
+  // why: a value of a closed keyword form (for example `markerUnits="userSpaceOnUse"`, which
+  // holds the type key "user") is a constant of the renderer and carries no model data
+  if (KEYWORD_FORMS.has(name) && FORMS[name].test(value)) return;
   if (
     COLOUR.test(value) ||
     (ONE_NUMBER.test(value) && Number.isFinite(Number(value)))
@@ -265,23 +172,6 @@ function checkAttribute(el: Element, attr: Attr, a: Audit): void {
         );
   checkModel(el, name, value, a);
 }
-
-const RGBA_ZERO = /^rgba\(0,0,0,0\)$/;
-const K = /^[0-9]+(\.[0-9]+)?$/;
-const PX = /^-?[0-9]+(\.[0-9]+)?(e[+-]?[0-9]+)?px$/;
-const STYLES: Readonly<
-  Record<string, Readonly<Record<string, (v: string) => boolean>>>
-> = {
-  "div.qt-root": {
-    "--k": (v) => K.test(v) && Number(v) >= 0.05 && Number(v) <= 6,
-  },
-  "svg.qt-svg": { "-webkit-tap-highlight-color": (v) => RGBA_ZERO.test(v) },
-  "g.qt-node": {
-    "touch-action": (v) => v === "none",
-    "-webkit-tap-highlight-color": (v) => RGBA_ZERO.test(v),
-  },
-  "div.qt-tip": { left: (v) => PX.test(v), top: (v) => PX.test(v) },
-};
 
 function styleKey(el: Element): string | null {
   for (const key of Object.keys(STYLES)) if (el.matches(key)) return key;
@@ -340,7 +230,7 @@ export function domAudit(
 }
 
 // why: scene fields with a fixed set of values, not model text
-const NOT_TEXT: ReadonlySet<keyof SceneNode> = new Set([
+const NOT_TEXT: ReadonlySet<keyof SceneNode | keyof SceneEdge> = new Set([
   "kind",
   "tier",
   "colour",
@@ -362,8 +252,8 @@ export function auditStrings(
   for (const t of graph.triples) add(t.subject, t.predicate, t.object);
   for (const [key, type] of vocab.types) add(key, type.label);
   for (const [key, predicate] of vocab.predicates) add(key, predicate.label);
-  for (const node of scene.nodes)
-    for (const [key, value] of Object.entries(node))
+  for (const item of [...scene.nodes, ...scene.edges])
+    for (const [key, value] of Object.entries(item))
       if (typeof value === "string" && !NOT_TEXT.has(key as keyof SceneNode))
         add(value);
   return [...out];

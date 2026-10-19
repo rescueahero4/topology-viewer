@@ -1,4 +1,11 @@
-import type { Designed, DrawnId, Hex, Tier } from "@qdic-topology/engine";
+import type {
+  Designed,
+  DrawnId,
+  EdgeKey,
+  Hex,
+  LayoutName,
+  Tier,
+} from "@qdic-topology/engine";
 
 export type SceneVisual = { icon: string } | Designed | null;
 
@@ -24,4 +31,23 @@ export type SceneNode = {
   y: number;
 };
 
-export type Scene = { nodes: SceneNode[] };
+export type SceneEdge = {
+  key: EdgeKey;
+  subject: DrawnId;
+  object: DrawnId;
+  label: string;
+  colour: Hex;
+  muted: boolean;
+  structure: boolean;
+  dashed: boolean;
+  count: number;
+};
+
+export type SceneSelection = { node: DrawnId | null; edge: EdgeKey | null };
+
+export type Scene = {
+  nodes: SceneNode[];
+  edges: SceneEdge[];
+  selection: SceneSelection;
+  layout: LayoutName;
+};

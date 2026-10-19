@@ -3,7 +3,7 @@
 import type { Designed, Hex } from "@qdic-topology/engine";
 import { describe, expect, it } from "vitest";
 import { createRenderer } from "./renderer";
-import type { SceneNode } from "./scene";
+import type { Scene, SceneNode } from "./scene";
 import type { RendererText } from "./text";
 
 const TEXT: RendererText = {
@@ -11,6 +11,20 @@ const TEXT: RendererText = {
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) => `${count} × ${typeLabel}`,
+  tipOpened: (sub) => `${sub} · expanded`,
+  tipMore: (sub, more) => `${sub} · ${more} more`,
+  tipMember: (sub) => `${sub} · member`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+};
+
+// why: STORY-003-03 — a scene of nodes only: no edge, no selection
+const BARE: Omit<Scene, "nodes"> = {
+  edges: [],
+  selection: { node: null, edge: null },
+  layout: "force",
 };
 
 function symbolOf(visual: Designed): Element {
@@ -38,7 +52,7 @@ function symbolOf(visual: Designed): Element {
     x: 0,
     y: 0,
   };
-  createRenderer(div, { text: TEXT }).draw({ nodes: [node] });
+  createRenderer(div, { text: TEXT }).draw({ ...BARE, nodes: [node] });
   return div.querySelector("defs > symbol") as Element;
 }
 

@@ -1,4 +1,4 @@
-/* Light canvas tokens: values of the v56 mockup (styles.css, lib/topology.js lines 69-103, 266). */
+/* Light canvas tokens: values of the v56 mockup (styles.css, lib/topology.js lines 69-137, 266, 1046). */
 :root {
   --canvas: #f4f4f5;
   --ink: #0f172a;
@@ -11,6 +11,12 @@
   --chip-open: #f4f4f5;
   --focus: #4f46e5;
   --node-outline: #ffffff;
+  --edge-muted: #c4c4cc;
+  --edge-dim: #d0cdc6;
+  --pill-text: #ffffff;
+  --tip-bg: #18181b;
+  --tip-text: #ffffff;
+  --tip-sub: #a1a1aa;
 }
 
 .qt-root {
@@ -176,4 +182,147 @@
 .qt-root .qt-node.qt-hl .qt-name,
 .qt-root .qt-node.qt-hl .qt-sub {
   display: block;
+}
+
+/* The selected node keeps its labels at each level of detail (FR-CANVAS-13). */
+.qt-root .qt-node.qt-selected .qt-name,
+.qt-root .qt-node.qt-selected .qt-sub {
+  display: block;
+}
+
+.qt-edge {
+  fill: none;
+  stroke-width: 1.1;
+  opacity: 0.5;
+  vector-effect: non-scaling-stroke;
+  transition: opacity 0.15s;
+}
+
+/* Focus: everything off the lit neighbourhood is ghosted. */
+.qt-dim .qt-node:not(.qt-hl) {
+  opacity: 0.1;
+}
+
+/* A family outside the five hue families: dashed. */
+.qt-edge.qt-dashed {
+  stroke-dasharray: 4 3;
+}
+
+/* Relationship filter off (FR-FILTER-6): the line stays, light grey and dotted; after the dash
+   rule, so muted wins. */
+.qt-edge.qt-muted {
+  stroke: var(--edge-muted);
+  stroke-dasharray: 0.5 4;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+
+/* Each edge has an invisible 12 px hit path for hover and click. */
+.qt-ehit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.qt-root .qt-edge.qt-picked,
+.qt-root.qt-dim .qt-edge.qt-picked {
+  opacity: 1;
+  stroke-width: 3;
+}
+
+.qt-dim .qt-edge:not(.qt-hl) {
+  opacity: 0.08;
+  stroke: var(--edge-dim) !important;
+  stroke-dasharray: 3 3;
+}
+
+.qt-dim .qt-edge.qt-hl {
+  opacity: 1;
+  stroke-width: 2.2;
+}
+
+.qt-focus circle {
+  pointer-events: none;
+}
+
+.qt-focus .qt-pulse {
+  fill: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qt-pulse 1.8s ease-out infinite;
+}
+
+@keyframes qt-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qt-focus .qt-pulse {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* The pulse stops while the document is hidden (NF-8). */
+.qt-paused .qt-pulse {
+  animation: none;
+  opacity: 0;
+}
+
+.qt-elabel rect {
+  rx: 4;
+}
+
+.qt-elabel text {
+  fill: var(--pill-text);
+  font-size: 11px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.qt-tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--tip-bg);
+  color: var(--tip-text);
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: 280px;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 10px));
+  transition: opacity 0.08s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Each tooltip line is a block, so each cuts its own text with an ellipsis. */
+.qt-tip-main,
+.qt-tip-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qt-tip-sub {
+  color: var(--tip-sub);
+  font-size: 11px;
+}
+
+.qt-tip.qt-on {
+  opacity: 1;
 }

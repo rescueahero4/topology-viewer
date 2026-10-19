@@ -6,16 +6,33 @@ import type { Designed, Hex } from "@qdic-topology/engine";
 import {
   createRenderer,
   type RendererText,
+  type Scene,
+  type SceneEdge,
   type SceneNode,
 } from "@qdic-topology/renderer";
 import { describe, expect, it } from "vitest";
-import { CLASS_NAMES, domAudit } from "./domAudit";
+import { domAudit } from "./domAudit";
+import { CLASS_NAMES } from "./domAllowList";
 
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) => `${count} × ${typeLabel}`,
+  tipOpened: (sub) => `${sub} · expanded`,
+  tipMore: (sub, more) => `${sub} · ${more} more`,
+  tipMember: (sub) => `${sub} · member`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+};
+
+// why: STORY-003-03 — a scene of nodes only: no edge, no selection
+const BARE: Omit<Scene, "nodes"> = {
+  edges: [],
+  selection: { node: null, edge: null },
+  layout: "force",
 };
 const GLYPH = "M3 12h18";
 const LABEL = "Revenue";
@@ -55,12 +72,28 @@ function node(id: string, over: Partial<SceneNode>): SceneNode {
   };
 }
 
-// A canvas made by the renderer, so each case changes one thing of a clean tree.
+const EDGE: SceneEdge = {
+  key: "k",
+  subject: "e:t",
+  object: "g:t",
+  label: LABEL,
+  colour: "#2e9e6a" as Hex,
+  muted: false,
+  structure: false,
+  dashed: false,
+  count: 1,
+};
+
+// A canvas made by the renderer, so each case changes one thing of a clean tree: nodes, one
+// edge with its marker, and a selection with its pill and halo.
 function canvas() {
   const doc = document.implementation.createHTMLDocument("t");
   const div = doc.createElement("div");
   doc.body.appendChild(div);
   createRenderer(div, { text: TEXT }).draw({
+    ...BARE,
+    edges: [EDGE],
+    selection: { node: "e:t", edge: null },
     nodes: [
       node("e:t", {}),
       node("g:t", { kind: "group", count: 5, more: 0 }),
@@ -127,6 +160,32 @@ const BAD: [string, string, (c: Canvas) => string[] | void][] = [
     "DA-1",
     "svg aria-label from a node label",
     (c) => c.q("svg").setAttribute("aria-label", LABEL),
+  ],
+  [
+    "DA-1",
+    "marker-end to a missing marker",
+    (c) => c.q("path.qt-edge").setAttribute("marker-end", "url(#qt1-a-000000)"),
+  ],
+  [
+    "DA-1",
+    "marker-end with another prefix",
+    (c) => {
+      c.q("marker").setAttribute("id", "qt9-a-2e9e6a");
+      c.q("path.qt-edge").setAttribute("marker-end", "url(#qt9-a-2e9e6a)");
+    },
+  ],
+  [
+    "DA-1",
+    "orient from a model string",
+    (c) => {
+      c.q("marker").setAttribute("orient", "abcde");
+      return ["abcde"];
+    },
+  ],
+  [
+    "DA-3",
+    "a pill class made from the predicate",
+    (c) => c.q("g.qt-elabel").setAttribute("class", "qt-elabel qt-ownedBy"),
   ],
   [
     "DA-2",
@@ -264,6 +323,15 @@ const ALLOWED: [string, (c: Canvas) => string[] | void][] = [
   ["a model string of 3 characters inside a value", () => ["can"]],
   ["the empty string", () => [""]],
   ["a glyph d that is also a model string", () => [GLYPH]],
+  // why: STORY-003-03 — a closed keyword value is a constant, also when a type key is in it
+  ["markerUnits userSpaceOnUse with the model string user", () => ["user"]],
+  [
+    "stroke-linecap round with the model string round",
+    (c) => {
+      c.q("symbol path").setAttribute("stroke-linecap", "round");
+      return ["round"];
+    },
+  ],
 ];
 
 describe("S24 allowed forms", () => {
@@ -273,11 +341,10 @@ describe("S24 allowed forms", () => {
     expect(audit(c, strings)).toEqual([]);
   });
 
-  it("tooltip left: 12.5px; top: -3px gives no DA-5 finding", () => {
+  it("tooltip left: 12.5px; top: -3px gives no finding", () => {
     const c = canvas();
     tip(c, "left: 12.5px; top: -3px");
-    // why: STORY-003-03 adds the class `qt-tip` to CLASS_NAMES and tokens.css (DA-3)
-    expect(audit(c).filter((line) => ruleOf(line) !== "DA-3")).toEqual([]);
+    expect(audit(c)).toEqual([]);
   });
 
   it("the glyph sits in the d of the designed symbol", () => {

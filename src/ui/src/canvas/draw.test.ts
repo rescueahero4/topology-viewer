@@ -35,6 +35,13 @@ const TEXT: RendererText = {
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) => `${count} × ${typeLabel}`,
+  tipOpened: (sub) => `${sub} · expanded`,
+  tipMore: (sub, more) => `${sub} · ${more} more`,
+  tipMember: (sub) => `${sub} · member`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""} · ${count}`,
 };
 const GLYPH = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-eE]+$/;
 
