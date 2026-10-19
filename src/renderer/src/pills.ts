@@ -37,21 +37,29 @@ function fillPill(g: SVGGElement, edge: SceneEdge): void {
   pill.append("text").attr("y", 0.5).text(edge.label);
 }
 
-// why: mockup `mid` (lib/topology.js lines 1097-1101) — a pill sits halfway between the centres
+// why: mockup `mid` and `placeOverlays` (lib/topology.js lines 1090-1101) — a pill sits halfway
+// between the centres and keeps its screen size at each zoom `k`
+export function scalePills(layer: SVGGElement, ends: Ends, k: number): void {
+  select(layer)
+    .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
+    .attr("transform", (e) => {
+      const s = endOf(ends, e.subject);
+      const t = endOf(ends, e.object);
+      return `translate(${(s.x + t.x) / 2},${(s.y + t.y) / 2}) scale(${1 / k})`;
+    });
+}
+
 export function drawPills(
   layer: SVGGElement,
   edges: readonly SceneEdge[],
   ends: Ends,
+  k: number,
 ): void {
   select(layer)
     .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
     .data(edges, (e) => e.key)
     .join("g")
     .attr("class", "qt-elabel")
-    .attr("transform", (e) => {
-      const s = endOf(ends, e.subject);
-      const t = endOf(ends, e.object);
-      return `translate(${(s.x + t.x) / 2},${(s.y + t.y) / 2})`;
-    })
     .each((e, i, groups) => fillPill(groups[i], e));
+  scalePills(layer, ends, k);
 }

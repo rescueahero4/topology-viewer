@@ -18,9 +18,18 @@ import {
   type RendererText,
   type SceneNode,
 } from "@qdic-topology/renderer";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { auditStrings, domAudit } from "./domAudit";
 import { sceneOf } from "./scene";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
 
 const NOW = "2026-10-19";
 const CANVAS = canvasColor("#F4F4F5") as Hex;

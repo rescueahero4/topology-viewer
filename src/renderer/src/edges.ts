@@ -71,32 +71,29 @@ function styleEdge(el: SVGPathElement, edge: SceneEdge, markers: Markers) {
   if (marker !== null) el.setAttribute("marker-end", marker);
 }
 
-// why: SA §5 Renderer — one `path.qt-edge` and one `path.qt-ehit` per scene edge, joined by the
-// edge key, in scene order. STORY-003-04 limits the hit paths to the viewport (T10)
-export function drawEdges(
-  layers: Layers,
-  scene: Scene,
-  ends: Ends,
-  markers: Markers,
-): void {
-  const d = (edge: SceneEdge) =>
+export const pathsOf =
+  (scene: Scene, ends: Ends) =>
+  (edge: SceneEdge): string =>
     edgePath(
       edge,
       endOf(ends, edge.subject),
       endOf(ends, edge.object),
       scene.layout,
     );
+
+// why: SA §5 Renderer — one `path.qt-edge` per scene edge, joined by the edge key, in scene
+// order; `hits.ts` draws the hit paths of the edges in the viewport (T10)
+export function drawEdges(
+  layers: Layers,
+  scene: Scene,
+  ends: Ends,
+  markers: Markers,
+): void {
   select(layers.edges)
     .selectAll<SVGPathElement, SceneEdge>("path.qt-edge")
     .data(scene.edges, (e) => e.key)
     .join("path")
     .attr("class", classOf)
-    .attr("d", d)
+    .attr("d", pathsOf(scene, ends))
     .each((edge, i, paths) => styleEdge(paths[i], edge, markers));
-  select(layers.hits)
-    .selectAll<SVGPathElement, SceneEdge>("path.qt-ehit")
-    .data(scene.edges, (e) => e.key)
-    .join("path")
-    .attr("class", "qt-ehit")
-    .attr("d", d);
 }

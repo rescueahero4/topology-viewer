@@ -1,5 +1,14 @@
 import type { DrawnId } from "@qdic-topology/engine";
-import { drawEdges, endOf, endsOf, type Ends } from "./edges";
+import {
+  before,
+  boxOf,
+  createCamera,
+  planOf,
+  type CameraControl,
+} from "./camera";
+import { cullLabels } from "./cull";
+import { drawEdges, endOf, endsOf, pathsOf, type Ends } from "./edges";
+import { validCamera, type Camera } from "./fit";
 import { drawHalo } from "./halo";
 import {
   edgeLights,
@@ -8,6 +17,7 @@ import {
   showLights,
   showSelection,
 } from "./highlight";
+import { drawHits, hitEdges } from "./hits";
 import {
   bindCanvas,
   bindHits,
@@ -17,20 +27,28 @@ import {
   type Pointer,
 } from "./intents";
 import { createLayers, type Layers } from "./layers";
+import { createLod, type Lod } from "./lod";
 import { drawMarkers } from "./markers";
 import { drawNodes } from "./nodes";
-import { drawPills, pillEdges } from "./pills";
+import { drawPills, pillEdges, scalePills } from "./pills";
 import type { Scene } from "./scene";
 import { drawSymbols } from "./sprite";
 import type { RendererText } from "./text";
 import { createTooltip, type Tooltip } from "./tooltip";
 
+export type Motion = { anchor: DrawnId | null };
+export type Report = { kind: "zero-size" } | { kind: "ended" };
+
 export type Renderer = {
-  draw(scene: Scene): void;
+  draw(scene: Scene, motion?: Motion): void;
+  fit(options?: { animate?: boolean }): void;
+  transform(): Camera;
   onIntent(handler: (intent: Intent) => void): void;
+  onReport(handler: (report: Report) => void): void;
+  onSettle(handler: (camera: Camera) => void): void;
 };
 
-export type RendererOptions = { text: RendererText };
+export type RendererOptions = { text: RendererText; camera?: Camera };
 
 const instances = new WeakMap<Document, number>();
 
@@ -58,11 +76,13 @@ type Parts = {
   labelId: (id: DrawnId) => string;
 };
 
-type Current = {
-  scene: Scene;
-  ends: Ends;
-  handler: ((intent: Intent) => void) | null;
+type Handlers = {
+  intent: ((intent: Intent) => void) | null;
+  report: ((report: Report) => void) | null;
+  settle: ((camera: Camera) => void) | null;
 };
+
+type Current = { scene: Scene; ends: Ends; on: Handlers };
 
 function mount(container: HTMLElement, text: RendererText): Parts {
   const doc = container.ownerDocument;
@@ -93,7 +113,7 @@ function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
   return {
     live,
     scene: () => now.scene,
-    emit: (intent) => now.handler?.(intent),
+    emit: (intent) => now.on.intent?.(intent),
     hoverNode(node, event) {
       showLights(root, layers, nodeLights(now.scene.edges, node.id));
       tip.showNode(node, event);
@@ -110,20 +130,122 @@ function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
   };
 }
 
-function paint(parts: Parts, now: Current, pointer: Pointer): void {
+function paint(
+  parts: Parts,
+  now: Current,
+  pointer: Pointer,
+  lod: Lod,
+  k: number,
+) {
   const { layers, prefix, labelId } = parts;
   const { scene, ends } = now;
   const hrefOf = drawSymbols(layers.defs, scene.nodes, prefix);
   const markers = drawMarkers(layers.defs, scene.edges, prefix);
   drawEdges(layers, scene, ends, markers);
-  drawNodes(layers.nodes, scene.nodes, { hrefOf, labelId });
+  drawNodes(layers.nodes, scene.nodes, { hrefOf, labelId, big: lod.big() });
   bindNodes(layers, pointer);
-  bindHits(layers, pointer);
   showSelection(layers, scene);
   restore(parts, now);
   const node = scene.selection.node;
   drawHalo(layers.focus, node === null ? null : (ends.get(node) ?? null));
-  drawPills(layers.edgeLabels, pillEdges(scene), ends);
+  drawPills(layers.edgeLabels, pillEdges(scene), ends, k);
+}
+
+// why: STORY-003-04 Context "Labels", "Viewport hit paths" — at the end of each gesture or camera
+// move and after each draw, never per frame: `--k`, culling and the hit paths in the viewport
+function endWork(
+  parts: Parts,
+  now: Current,
+  pointer: Pointer,
+  lod: Lod,
+  cam: CameraControl,
+) {
+  const { layers } = parts;
+  const { scene, ends } = now;
+  const camera = cam.transform();
+  lod.ended(camera.k);
+  cullLabels(layers.nodes, scene, camera.k, lod.level(), lod.big());
+  const edges = hitEdges(scene.edges, ends, { camera, ...cam.size() });
+  drawHits(layers.hits, edges, pathsOf(scene, ends));
+  bindHits(layers, pointer);
+}
+
+type Ctx = {
+  parts: Parts;
+  now: Current;
+  pointer: Pointer;
+  lod: Lod;
+  cam: CameraControl;
+  start: Camera | null;
+  drawn: boolean;
+  settled(): void;
+};
+
+function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
+  const { root, layers, tip } = parts;
+  return createCamera({
+    root,
+    svg: layers.svg,
+    viewport: layers.viewport,
+    live: () => ctx().pointer.live(),
+    zoomed(camera) {
+      lod.zoomed(camera.k, now.scene.nodes.length);
+      scalePills(layers.edgeLabels, now.ends, camera.k);
+      tip.hide();
+    },
+    settled: () => ctx().settled(),
+    boxes: () => now.scene.nodes.map(boxOf),
+  });
+}
+
+// why: TL-4 — a draw with an anchor plans the camera from the scene before and after the draw;
+// the first draw fits, or keeps a valid `camera` option, or reports a 0 × 0 container once
+function drawScene(c: Ctx, scene: Scene, motion: Motion | undefined): void {
+  const { parts, now, pointer, lod, cam } = c;
+  const anchor = motion?.anchor ?? null;
+  const b =
+    c.drawn && anchor !== null
+      ? before(anchor, now.scene, now.ends, cam)
+      : null;
+  now.scene = scene;
+  now.ends = endsOf(scene.nodes);
+  parts.root.classList.toggle("qt-paused", parts.doc.hidden);
+  const { k } = cam.transform();
+  lod.count(scene.nodes.length, k);
+  paint(parts, now, pointer, lod, k);
+  let moving = false;
+  if (!c.drawn) {
+    c.drawn = true;
+    if (cam.first(c.start !== null)) now.on.report?.({ kind: "zero-size" });
+  } else if (b !== null) {
+    const next = planOf(b, scene, now.ends, cam);
+    if (next !== null) moving = cam.reveal(next.plan, next.p, b.at);
+  }
+  if (moving) endWork(parts, now, pointer, lod, cam);
+  else c.settled();
+}
+
+function api(c: Ctx): Renderer {
+  const { now, pointer, cam } = c;
+  return {
+    draw(scene, motion) {
+      if (pointer.live()) drawScene(c, scene, motion);
+    },
+    fit(options) {
+      if (pointer.live() && cam.fit(options?.animate ?? true) === "now")
+        c.settled();
+    },
+    transform: () => cam.transform(),
+    onIntent(handler) {
+      now.on.intent = handler;
+    },
+    onReport(handler) {
+      now.on.report = handler;
+    },
+    onSettle(handler) {
+      now.on.settle = handler;
+    },
+  };
 }
 
 export function createRenderer(
@@ -133,36 +255,45 @@ export function createRenderer(
   const parts = mount(container, options.text);
   const { doc, root, layers, tip } = parts;
   const abort = new AbortController();
-  const now: Current = { scene: EMPTY, ends: new Map(), handler: null };
+  const on: Handlers = { intent: null, report: null, settle: null };
+  const now: Current = { scene: EMPTY, ends: new Map(), on };
+  const lod = createLod(root);
   let ended = false;
-  // why: owner decision H8 — every listener and every draw first checks that the root is on the
-  // page; when it is not, the renderer removes its listeners, hides the tooltip and stays ended
+  // why: owner decision H8 — every listener, zoom handler, observer callback, camera frame and draw
+  // first checks that the root is on the page; when it is not, the renderer stops its camera,
+  // removes its listeners, hides the tooltip, reports `ended` once and stays ended
   const live = () => {
     if (!ended && !root.isConnected) {
       ended = true;
+      c.cam.end();
       unbind(layers);
       abort.abort();
       tip.hide();
+      on.report?.({ kind: "ended" });
     }
     return !ended;
   };
   const pointer = pointerOf(parts, now, live);
-  // why: SA §4.5, NF-8 — the pulse stops while the document is hidden
-  const pause = () => root.classList.toggle("qt-paused", doc.hidden);
-  doc.addEventListener("visibilitychange", () => live() && pause(), {
-    signal: abort.signal,
-  });
-  bindCanvas(layers, pointer);
-  return {
-    draw(scene) {
-      if (!live()) return;
-      now.scene = scene;
-      now.ends = endsOf(scene.nodes);
-      pause();
-      paint(parts, now, pointer);
-    },
-    onIntent(handler) {
-      now.handler = handler;
+  const c: Ctx = {
+    parts,
+    now,
+    pointer,
+    lod,
+    cam: cameraOf(parts, now, lod, () => c),
+    start: validCamera(options.camera) ? options.camera : null,
+    drawn: false,
+    settled() {
+      endWork(parts, now, pointer, lod, c.cam);
+      on.settle?.(c.cam.transform());
     },
   };
+  if (c.start !== null) c.cam.jump(c.start);
+  // why: SA §4.5, NF-8 — the pulse stops while the document is hidden
+  doc.addEventListener(
+    "visibilitychange",
+    () => live() && root.classList.toggle("qt-paused", doc.hidden),
+    { signal: abort.signal },
+  );
+  bindCanvas(layers, pointer);
+  return api(c);
 }

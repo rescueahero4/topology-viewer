@@ -1,11 +1,20 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
 import type { Designed, Hex } from "@qdic-topology/engine";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { badgeText } from "./badges";
 import { createRenderer } from "./renderer";
 import type { Scene, SceneNode } from "./scene";
 import type { RendererText } from "./text";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
 
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,
@@ -167,9 +176,12 @@ describe("S5 node drawing", () => {
   });
 
   it("sets the classes qt-grouped and qt-leaf", () => {
-    expect(byId("g:t")?.getAttribute("class")).toBe("qt-node qt-grouped");
-    expect(byId("e:more")?.getAttribute("class")).toBe("qt-node qt-leaf");
-    expect(byId("e:t")?.getAttribute("class")).toBe("qt-node");
+    // why: the nodes of this scene overlap, so the STORY-003-04 culling adds `qt-culled`
+    const drawing = (id: string) =>
+      (byId(id)?.getAttribute("class") ?? "").replace(" qt-culled", "");
+    expect(drawing("g:t")).toBe("qt-node qt-grouped");
+    expect(drawing("e:more")).toBe("qt-node qt-leaf");
+    expect(drawing("e:t")).toBe("qt-node");
   });
 
   it("makes each node focusable with a name from a hidden text", () => {

@@ -10,6 +10,7 @@ type NodeSelection = Selection<SVGGElement, SceneNode, null, undefined>;
 export type NodeContext = {
   hrefOf: Hrefs;
   labelId: (id: DrawnId) => string;
+  big: boolean;
 };
 
 // why: mockup `iconFor` fallback (lib/topology.js line 306) in the 20 × 20 engine box; TL-7 — a
@@ -52,23 +53,25 @@ function drawMark(node: NodeSelection, d: SceneNode, href: string | null) {
 
 // why: epic question 15 — the accessible name comes from a hidden text by `aria-labelledby`, so
 // no model string goes into an attribute and no `<title>` gives a second tooltip
-function drawLabels(node: NodeSelection, d: SceneNode, labelId: string) {
+function drawLabels(node: NodeSelection, d: SceneNode, ctx: NodeContext) {
   node
     .append("text")
     .attr("class", "qt-name")
     .attr("y", d.h / 2)
     .attr("dy", "1.15em")
     .text(d.label);
-  node
-    .append("text")
-    .attr("class", "qt-sub")
-    .attr("y", d.h / 2)
-    .attr("dy", "2.55em")
-    .text(d.sub);
+  // why: mockup big mode (lib/topology.js line 1000) — above 1,200 nodes no subtitle is drawn
+  if (!ctx.big)
+    node
+      .append("text")
+      .attr("class", "qt-sub")
+      .attr("y", d.h / 2)
+      .attr("dy", "2.55em")
+      .text(d.sub);
   node
     .append("text")
     .attr("class", "qt-a11y")
-    .attr("id", labelId)
+    .attr("id", ctx.labelId(d.id))
     .text(d.fullLabel === "" ? d.sub : d.fullLabel);
 }
 
@@ -77,7 +80,7 @@ function fillNode(el: SVGGElement, d: SceneNode, ctx: NodeContext): void {
   const node = select<SVGGElement, SceneNode>(el);
   if (d.kind === "group") drawHalo(node, d);
   drawMark(node, d, ctx.hrefOf(d));
-  drawLabels(node, d, ctx.labelId(d.id));
+  drawLabels(node, d, ctx);
   if (d.kind === "group") drawBadge(node, d);
   drawChip(node, d);
 }

@@ -21,8 +21,30 @@ import {
   type RendererText,
   type SceneEdge,
 } from "@qdic-topology/renderer";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { sceneOf } from "./scene";
+
+// why: jsdom has no ResizeObserver; the STORY-003-04 camera observes the root
+vi.stubGlobal(
+  "ResizeObserver",
+  class {
+    observe() {}
+    disconnect() {}
+  },
+);
+// why: STORY-003-04 — hit paths exist only in a viewport, and jsdom gives each element 0 × 0;
+// the tests that use hit paths stub an 800 × 600 container
+HTMLElement.prototype.getBoundingClientRect = () =>
+  ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 800,
+    bottom: 600,
+    width: 800,
+    height: 600,
+  }) as DOMRect;
 
 const NOW = "2026-10-19";
 const CANVAS = canvasColor("#F4F4F5") as Hex;
@@ -183,6 +205,20 @@ describe("S7 s-dirty self-loop", () => {
     });
     for (const e of tree.view.edges) expect(d(tree, e.key)).toMatch(/^M.+C.+$/);
     expect(d(tree, LOOP)).not.toMatch(STRAIGHT);
+  });
+});
+
+describe("epic build-time item B10: the scene edge count (FR-QDIC-5)", () => {
+  it("gives the s-star group edge the scene count 300, equal to the engine count", () => {
+    const d = draw(firstOf(loadFixture("s-star").input));
+    const scene = new Map(d.scene.edges.map((e) => [e.key, e]));
+    const group = d.view.edges.find((e) => e.count === 300);
+    const groups = d.scene.nodes.filter((n) => n.kind === "group");
+    const ends = [group?.subject, group?.object];
+    expect(groups.some((n) => ends.includes(n.id))).toBe(true);
+    expect(scene.get(group?.key ?? "")?.count).toBe(300);
+    for (const e of d.view.edges) expect(scene.get(e.key)?.count).toBe(e.count);
+    d.div.remove();
   });
 });
 
