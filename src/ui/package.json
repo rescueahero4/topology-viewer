@@ -1,0 +1,17 @@
+{
+  "name": "@qdic-topology/ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "harness": "vite src/canvas"
+  },
+  "dependencies": {
+    "@qdic-topology/engine": "workspace:*",
+    "@qdic-topology/renderer": "workspace:*"
+  },
+  "devDependencies": {
+    "@qdic-topology/contract": "workspace:*",
+    "@qdic-topology/fixtures": "workspace:*",
+    "jsdom": "30.1.2"
+  }
+}

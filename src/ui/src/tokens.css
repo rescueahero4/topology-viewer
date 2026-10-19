@@ -1,0 +1,179 @@
+/* Light canvas tokens: values of the v56 mockup (styles.css, lib/topology.js lines 69-103, 266). */
+:root {
+  --canvas: #f4f4f5;
+  --ink: #0f172a;
+  --label-sub: #475569;
+  --label-halo: #ffffff;
+  --grouped-sub: #94a3b8;
+  --badge: #f7310e;
+  --chip-line: #71717a;
+  --chip-text: #3f3f46;
+  --chip-open: #f4f4f5;
+  --focus: #4f46e5;
+  --node-outline: #ffffff;
+}
+
+.qt-root {
+  --k: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--canvas);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  user-select: none;
+}
+
+.qt-root svg.qt-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.qt-root svg.qt-svg:active {
+  cursor: grabbing;
+}
+
+/* The camera transform of the viewport works from the SVG origin. */
+.qt-viewport {
+  transform-origin: 0 0;
+}
+
+.qt-node {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.qt-node use {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* No outline on a click; keyboard focus gets a ring on the icon, not a box. */
+.qt-node:focus {
+  outline: none;
+}
+
+.qt-node:focus-visible use {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Labels keep one on-screen size at each zoom: the font size is divided by the zoom --k. */
+.qt-name,
+.qt-sub {
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--label-halo);
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.qt-name {
+  font-size: calc(13px / var(--k));
+  font-weight: 700;
+  fill: var(--ink);
+  stroke-width: calc(3px / var(--k));
+}
+
+.qt-sub {
+  font-size: calc(11px / var(--k));
+  font-weight: 500;
+  fill: var(--label-sub);
+  stroke-width: calc(2.5px / var(--k));
+}
+
+/* Big graphs: labels scale with the geometry. */
+.qt-big .qt-name {
+  font-size: 13px;
+  stroke-width: 3px;
+}
+
+.qt-node.qt-grouped .qt-sub {
+  fill: var(--grouped-sub);
+}
+
+.qt-a11y {
+  display: none;
+}
+
+.qt-badge rect {
+  fill: var(--badge);
+  stroke: var(--node-outline);
+  stroke-width: 1;
+}
+
+.qt-badge text {
+  fill: var(--node-outline);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* "+N": neighbours that are not on the canvas. */
+.qt-more rect {
+  fill: var(--label-halo);
+  stroke: var(--chip-line);
+  stroke-width: 1;
+  stroke-dasharray: 2 1.5;
+}
+
+.qt-more text {
+  fill: var(--chip-text);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.qt-more.qt-open rect {
+  stroke-dasharray: none;
+  fill: var(--chip-open);
+}
+
+/* Designed mark: the white outline keeps the node apart from edges that run into or past it. */
+.qt-mark {
+  stroke: var(--node-outline);
+  stroke-width: 1.5;
+}
+
+.qt-svg symbol text {
+  font-family: system-ui, sans-serif;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* A type with no icon and no designed visual (TL-7). */
+.qt-nomark {
+  fill: var(--canvas);
+  stroke: var(--chip-line);
+  stroke-width: 1.5;
+}
+
+/* Label level of detail. mid: leaf names and all subtitles hide; low: every label hides. */
+.qt-lod-mid .qt-sub,
+.qt-lod-mid .qt-leaf .qt-name,
+.qt-lod-low .qt-name,
+.qt-lod-low .qt-sub {
+  display: none;
+}
+
+/* Label culling: a label that would overlap a label of higher priority hides. */
+.qt-node.qt-culled .qt-name,
+.qt-node.qt-culled .qt-sub {
+  display: none;
+}
+
+.qt-root .qt-node.qt-hl .qt-name,
+.qt-root .qt-node.qt-hl .qt-sub {
+  display: block;
+}
