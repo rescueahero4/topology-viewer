@@ -1,0 +1,16 @@
+{
+  "name": "@qdic-topology/renderer",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@qdic-topology/engine": "workspace:*",
+    "d3-selection": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/d3-selection": "3.0.12",
+    "jsdom": "30.1.2"
+  }
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canvas harness (development only)</title>
+    <style>
+      body {
+        margin: 0;
+        font:
+          12px system-ui,
+          sans-serif;
+      }
+      #bar {
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+      }
+      #canvas {
+        height: 70vh;
+      }
+      #report {
+        margin: 0;
+        padding: 8px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <label
+        >Fixture
+        <select id="fixture"></select
+      ></label>
+      <label
+        >Layout
+        <select id="layout"></select
+      ></label>
+      <button id="audit" type="button">Audit</button>
+    </div>
+    <div id="canvas"></div>
+    <pre id="report"></pre>
+    <script type="module" src="./harness.ts"></script>
+  </body>
+</html>
