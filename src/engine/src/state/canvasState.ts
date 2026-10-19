@@ -116,7 +116,8 @@ export type Action =
   | { kind: "hide"; node: DrawnId }
   | { kind: "hideMany"; ids: string[] }
   | { kind: "restore"; keys: DrawnId[] }
-  | { kind: "showMany"; ids: string[] };
+  | { kind: "showMany"; ids: string[] }
+  | { kind: "approach"; approach: Approach };
 
 export type Direction = ">" | "<";
 

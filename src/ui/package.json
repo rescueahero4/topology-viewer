@@ -2,6 +2,9 @@
   "name": "@qdic-topology/ui",
   "private": true,
   "type": "module",
+  "exports": {
+    "./canvas": "./src/canvas/index.ts"
+  },
   "scripts": {
     "harness": "vite src/canvas"
   },

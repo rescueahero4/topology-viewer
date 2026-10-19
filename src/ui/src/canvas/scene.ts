@@ -178,9 +178,10 @@ export function sceneOf(input: SceneInput, text: RendererText): Scene {
   return {
     nodes: frontier.nodes.map((node) => {
       const at = positions.get(node.id);
-      // why: SA §4.5, §5 — the engine commits positions before the first frame
-      if (at === undefined)
-        throw new Error("sceneOf: a drawn node has no position");
+      // why: SA §4.5, §5 — the engine commits positions before the first frame; Security round 2
+      // item 2 — a saved state with a position that is not finite never reaches an attribute
+      if (at === undefined || !Number.isFinite(at.x) || !Number.isFinite(at.y))
+        throw new Error("sceneOf: a drawn node has no finite position");
       return nodeOf(node, at, input, text);
     }),
     edges: frontier.edges.map((edge) => edgeOf(edge, vocab, styles)),

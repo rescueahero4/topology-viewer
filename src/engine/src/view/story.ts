@@ -253,6 +253,17 @@ function selectEdge(
   return { ...state, selection: { edge: key, anchor: end } };
 }
 
+// why: gap G1 (epic question 17), FR-CANVAS-13 — the approach and its story selection change;
+// no layout runs and no other field changes (mockup `applyStory`, lib/topology.js lines 1144-1148)
+function approached(
+  top: Topology,
+  state: CanvasState,
+  approach: Approach,
+): CanvasState {
+  const next = { ...state, approach };
+  return { ...next, selection: storySelection(top, next) };
+}
+
 function select(
   top: Topology,
   state: CanvasState,
@@ -269,7 +280,10 @@ function select(
   };
 }
 
-type Step = Exclude<Action, { kind: "budget" | "reset" | "selectEdge" }>;
+type Step = Exclude<
+  Action,
+  { kind: "budget" | "reset" | "selectEdge" | "approach" }
+>;
 type Hide = Extract<Action, { kind: "hide" | "hideMany" }>;
 
 function hideStep(top: Topology, state: CanvasState, action: Hide) {
@@ -357,5 +371,7 @@ export function transition(
   if (action.kind === "reset") return restart(top, state);
   if (action.kind === "selectEdge")
     return selectEdge(top, state, action.edge, action.anchor);
+  if (action.kind === "approach")
+    return approached(top, state, action.approach);
   return finish(top, state, step(top, state, action, vocab), action);
 }

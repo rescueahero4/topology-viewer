@@ -1,37 +1,32 @@
 import { profile } from "@qdic-topology/contract";
 import {
   canvasColor,
-  firstView,
-  frontier,
   normalize,
-  place,
   resolveVocab,
-  setLayout,
-  transition,
-  type Action,
-  type CanvasState,
-  type DrawnId,
-  type Graph,
+  type Budget,
   type Hex,
   type LayoutName,
-  type Vocab,
 } from "@qdic-topology/engine";
-import { fixtures, loadFixture } from "@qdic-topology/fixtures";
+import { fixtures, generate, loadFixture } from "@qdic-topology/fixtures";
 import {
   createRenderer,
   iconMetrics,
-  type Intent,
-  type Renderer,
   type RendererText,
-  type Scene,
   type SceneNode,
 } from "@qdic-topology/renderer";
 import { auditStrings, domAudit } from "./domAudit";
+import { measure } from "./harness-timing";
+import {
+  createCanvas,
+  type Canvas,
+  type CanvasEvent,
+  type CanvasModel,
+} from "./index";
 import { sceneOf } from "./scene";
 import "../tokens.css";
 
-// why: epic question 14 — a dev page for the QA browser checks (S19); never exported or bundled.
-// Its labels are dev text after the mockup, not product text: EPIC-004 gives the real strings (P4-1)
+// why: epic question 14 — a dev page for the QA browser checks (S27, S29); never exported or
+// bundled. Its labels are dev text after the mockup, not product text: EPIC-004 gives them (P4-1)
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,
   collapsed: "Collapsed",
@@ -47,125 +42,100 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""}${count > 1 ? ` · ${count} links` : ""} · click to select`,
 };
-const LAYOUTS: LayoutName[] = [
-  "force",
-  "atomic",
-  "bubbles",
-  "tree-h",
-  "tree-v",
-];
 const NOW = "2026-10-19";
-const CANVAS = canvasColor("#F4F4F5") as Hex;
+const COLOURS: Record<string, Hex> = {
+  light: canvasColor("#F4F4F5") as Hex,
+  dark: canvasColor("#18181b") as Hex,
+};
+const LAYOUTS = ["force", "atomic", "bubbles", "tree-h", "tree-v"];
+const BUDGETS = ["10", "20", "50", "all"];
 // why: STORY-003-04 S15 — a built scene above the big-mode limit of 1,200 nodes; no fixture under
 // the caps draws that many nodes
 const BUILT = "built-1500";
-const BUILT_COUNT = 1500;
 
 const byId = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
-const fixturePick = byId<HTMLSelectElement>("fixture");
-const layoutPick = byId<HTMLSelectElement>("layout");
+const pick = (id: string) => byId<HTMLSelectElement>(id);
 const container = byId<HTMLDivElement>("canvas");
 const report = byId<HTMLPreElement>("report");
-const filters = byId<HTMLDivElement>("filters");
-const log = byId<HTMLPreElement>("intents");
+const log = byId<HTMLPreElement>("events");
 const zoom = byId<HTMLSpanElement>("zoom");
+const target = byId<HTMLInputElement>("target");
 
-type Drawn = {
-  graph: Graph;
-  vocab: Vocab;
-  state: CanvasState;
-  renderer: Renderer;
-  scene: Scene | null;
+type Open = {
+  model: CanvasModel;
+  canvas: Canvas;
+  last: CanvasEvent["settle"] | null;
 };
-let drawn: Drawn | null = null;
+let open: Open | null = null;
+const counts = new Map<string, number>();
 
-function option(select: HTMLSelectElement, value: string): void {
-  const item = document.createElement("option");
-  item.value = value;
-  item.textContent = value;
-  select.appendChild(item);
+function options(select: HTMLSelectElement, values: string[]): void {
+  for (const value of values) {
+    const item = document.createElement("option");
+    item.value = value;
+    item.textContent = value;
+    select.appendChild(item);
+  }
 }
 
-const note = (line: string) => {
-  log.textContent = `${line}\n${log.textContent ?? ""}`;
-};
-
-// why: S15 — the zoom readout after each settle, and the reports (`zero-size`, `ended`) in the log
-function rendererIn(): Renderer {
-  const renderer = createRenderer(container, { text: TEXT });
-  renderer.onSettle((c) => {
-    zoom.textContent = `k ${c.k.toFixed(3)}`;
-  });
-  renderer.onReport((r) => note(`report ${r.kind}`));
-  return renderer;
+// why: Security notes "Harness" — the log shows event names and counts by `textContent`, no JSON
+// of the payload, the state or the frontier
+function count(name: string): void {
+  counts.set(name, (counts.get(name) ?? 0) + 1);
+  log.textContent = [...counts].map(([k, n]) => `${k} ${n}`).join("\n");
 }
 
-function redraw(d: Drawn, anchor: DrawnId | null = null): void {
-  const view = frontier(d.state, d.graph, d.vocab);
-  d.scene = sceneOf(
-    { state: d.state, frontier: view, vocab: d.vocab, canvas: CANVAS },
-    TEXT,
-  );
-  d.renderer.draw(d.scene, { anchor });
-  const { node, edge } = d.scene.selection;
-  const picked = edge === null ? "" : `, edge ${edge}`;
+function show(o: Open): void {
+  const e = o.last;
+  if (e === null) return;
+  zoom.textContent = `k ${e.camera.k.toFixed(3)}`;
+  const s = e.state.selection;
+  const picked =
+    s === null ? "none" : "edge" in s ? `edge, anchor ${s.anchor}` : s.node;
   report.textContent =
-    `${fixturePick.value}: ${view.nodes.length} nodes, ${view.edges.length} edges, ` +
-    `${d.state.layout}; selection: ${node ?? "none"}${picked}`;
+    `${pick("fixture").value}: ${e.frontier.nodes.length} nodes, ${e.frontier.edges.length} edges, ` +
+    `${e.state.layout}, budget ${e.state.budget}, hidden ${e.state.hidden.length}; selection: ${picked}`;
 }
 
-function act(action: Action): void {
-  if (drawn === null) return;
-  drawn.state = transition(drawn.state, action, drawn.graph, drawn.vocab);
-  redraw(drawn);
+function modelOf(input: unknown, canvas: Hex): CanvasModel | null {
+  const r = normalize(input, { now: NOW });
+  if (!r.ok) {
+    report.textContent = `fatal: ${r.fatal.code}`;
+    return null;
+  }
+  const { vocab } = resolveVocab(r.graph, r.payload, profile, canvas);
+  return { graph: r.graph, payload: r.payload, hash: r.hash, vocab, canvas };
 }
 
-// why: S15 — a group expand or an explore through the engine `place`, drawn with its anchor, so the
-// camera keeps the clicked node at its screen point (TL-4)
-function expand(d: Drawn, node: SceneNode): void {
-  const action: Action =
-    node.kind === "group"
-      ? { kind: "expandGroup", group: node.id }
-      : { kind: "explore", id: node.id.slice(2) };
-  const next = transition(d.state, action, d.graph, d.vocab);
-  const before = frontier(d.state, d.graph, d.vocab);
-  const after = frontier(next, d.graph, d.vocab);
-  d.state = place(next, { action, before, after }, d.vocab, iconMetrics).state;
-  redraw(d, node.id);
+// why: H8 — new data, a canvas colour switch and Undo are each a new canvas; the old one ends
+function start(model: CanvasModel, keep: Open | null = null): void {
+  const canvas = createCanvas(container, {
+    text: TEXT,
+    model,
+    state: keep?.last?.state,
+    camera: keep?.last?.camera,
+  });
+  const o: Open = { model, canvas, last: null };
+  open = o;
+  canvas.on("settle", (e) => {
+    o.last = e;
+    count("settle");
+    show(o);
+  });
+  canvas.on("select", () => count("select"));
+  canvas.on("explore", () => count("explore"));
+  canvas.on("notice", (e) => count(`notice ${e.kind}`));
 }
 
-// why: STORY-003-03 T5 — the controller of STORY-003-05 routes the intents; the harness applies the
-// two selection intents, a group expand and an explore, and only logs the other activations
-function onIntent(intent: Intent): void {
-  note(JSON.stringify(intent));
-  if (intent.kind !== "activate") return act(intent);
-  const node = drawn?.scene?.nodes.find((n) => n.id === intent.node);
-  if (drawn === null || node === undefined) return;
-  if (node.kind === "group" || node.more > 0) expand(drawn, node);
-}
-
-function toggle(name: string, on: boolean, change: (on: boolean) => void) {
-  const label = document.createElement("label");
-  const box = document.createElement("input");
-  box.type = "checkbox";
-  box.checked = on;
-  box.addEventListener("change", () => change(box.checked));
-  label.append(box, name);
-  filters.appendChild(label);
-}
-
-function filterPanel(d: Drawn): void {
-  filters.replaceChildren();
-  const off = d.state.filters;
-  for (const { key } of d.vocab.families)
-    toggle(key, !off.familiesOff.includes(key), (on) =>
-      act({ kind: "toggleFamily", family: key, on }),
-    );
-  for (const key of [...d.vocab.predicates.keys()].sort())
-    toggle(key, !off.predicatesOff.includes(key), (on) =>
-      act({ kind: "togglePredicate", predicate: key, on }),
-    );
+function load(): void {
+  counts.clear();
+  log.textContent = "";
+  const key = pick("fixture").value;
+  if (key === BUILT) return loadBuilt();
+  const model = modelOf(loadFixture(key).input, COLOURS[pick("colour").value]);
+  if (model === null) container.replaceChildren();
+  else start(model);
 }
 
 function builtNode(i: number): SceneNode {
@@ -173,12 +143,13 @@ function builtNode(i: number): SceneNode {
   const angle = i * 2.399963;
   const radius = 30 * Math.sqrt(i);
   const { w, h, tier } = iconMetrics.table;
+  const label = `node ${i}`;
   return {
     id: `built:${i}`,
     kind: "entity",
     type: "table",
-    label: `node ${i}`,
-    fullLabel: `node ${i}`,
+    label,
+    fullLabel: label,
     typeLabel: "Table",
     sub: "Table",
     visual: { icon: "table" },
@@ -197,84 +168,119 @@ function builtNode(i: number): SceneNode {
 }
 
 function loadBuilt(): void {
-  const nodes = Array.from({ length: BUILT_COUNT }, (_, i) => builtNode(i));
-  const edges = nodes.slice(1).map((n, i) => ({
-    key: `built:${i}|${i + 1}`,
-    subject: nodes[i].id,
-    object: n.id,
-    label: "next",
-    colour: "#2e9d6a" as Hex,
-    muted: false,
-    structure: false,
-    dashed: false,
-    count: 1,
-  }));
-  filters.replaceChildren();
-  rendererIn().draw({
+  open = null;
+  const nodes = Array.from({ length: 1500 }, (_, i) => builtNode(i));
+  const renderer = createRenderer(container, { text: TEXT });
+  renderer.onSettle((c) => (zoom.textContent = `k ${c.k.toFixed(3)}`));
+  renderer.draw({
     nodes,
-    edges,
+    edges: [],
     selection: { node: null, edge: null },
     layout: "force",
   });
-  report.textContent = `${BUILT}: ${nodes.length} nodes, ${edges.length} edges`;
+  report.textContent = `${BUILT}: ${nodes.length} nodes`;
 }
 
-function load(key: string, layout: LayoutName | null): void {
-  drawn = null;
-  log.textContent = "";
-  if (key === BUILT) return loadBuilt();
-  const result = normalize(loadFixture(key).input, { now: NOW });
-  if (!result.ok) {
-    container.replaceChildren();
-    filters.replaceChildren();
-    report.textContent = `fatal: ${result.fatal.code}`;
-    return;
-  }
-  const { graph, payload, hash } = result;
-  const { vocab } = resolveVocab(graph, payload, profile, CANVAS);
-  const first = firstView(graph, vocab, payload, hash);
-  const name = layout ?? first.layout;
-  layoutPick.value = name;
-  const state = setLayout(
-    first,
-    frontier(first, graph, vocab),
-    vocab,
-    name,
-    iconMetrics,
-  );
-  const renderer = rendererIn();
-  renderer.onIntent(onIntent);
-  drawn = { graph, vocab, state, renderer, scene: null };
-  filterPanel(drawn);
-  redraw(drawn);
-}
-
-function audit(): void {
+function audit(o: Open): void {
   const root = container.firstElementChild;
-  if (drawn?.scene == null || root === null) return;
-  const strings = auditStrings(drawn.graph, drawn.vocab, drawn.scene);
-  const findings = domAudit(root, strings, TEXT.canvasName);
+  if (o.last === null || root === null) return;
+  const { state, frontier } = o.last;
+  const { vocab, canvas, graph } = o.model;
+  const scene = sceneOf({ state, frontier, vocab, canvas }, TEXT);
+  const findings = domAudit(
+    root,
+    auditStrings(graph, vocab, scene),
+    TEXT.canvasName,
+  );
   report.textContent =
     findings.length === 0 ? "domAudit: no finding" : findings.join("\n");
 }
 
-for (const key of Object.keys(fixtures).sort()) option(fixturePick, key);
-option(fixturePick, BUILT);
-for (const name of LAYOUTS) option(layoutPick, name);
-fixturePick.addEventListener("change", () => load(fixturePick.value, null));
-layoutPick.addEventListener("change", () =>
-  load(fixturePick.value, layoutPick.value as LayoutName),
+const selected = (o: Open) => {
+  const s = o.last?.state.selection ?? null;
+  return s === null ? null : "edge" in s ? s.anchor : s.node;
+};
+const ids = () => target.value.split(/\s+/).filter((id) => id !== "");
+
+// why: one control per SA §4.5 method; each acts on the open canvas
+const ACTIONS: Record<string, (o: Open) => void> = {
+  setdata: (o) => {
+    if (o.last !== null) o.canvas.setData(o.last.frontier);
+  },
+  clear: (o) => o.canvas.select(null),
+  expand: (o) => o.canvas.expand(selected(o) ?? ""),
+  collapse: (o) => o.canvas.collapse(selected(o) ?? ""),
+  hide: (o) => o.canvas.hide([selected(o) ?? ""]),
+  restore: (o) =>
+    o.canvas.restore(o.last?.state.hidden.map((h) => h.key) ?? []),
+  focus: (o) => o.canvas.focus(ids()[0] ?? ""),
+  reveal: (o) => o.canvas.reveal(ids()),
+  oncanvas: (o) => {
+    report.textContent = `onCanvas: ${o.canvas.onCanvas(ids()[0] ?? "")}`;
+  },
+  reset: (o) => o.canvas.resetView(),
+  showall: (o) => o.canvas.setFilters({ kind: "showAllTypes" }),
+  fit: (o) => o.canvas.fit(),
+  audit,
+};
+
+for (const [id, act] of Object.entries(ACTIONS))
+  byId<HTMLButtonElement>(id).addEventListener(
+    "click",
+    () => open !== null && act(open),
+  );
+
+options(pick("fixture"), [...Object.keys(fixtures).sort(), BUILT]);
+options(pick("layout"), LAYOUTS);
+options(pick("colour"), Object.keys(COLOURS));
+options(pick("budget"), BUDGETS);
+options(pick("approach"), ["active", "passive"]);
+pick("fixture").addEventListener("change", load);
+pick("layout").addEventListener("change", () =>
+  open?.canvas.setLayout(pick("layout").value as LayoutName),
 );
-byId<HTMLButtonElement>("audit").addEventListener("click", audit);
-byId<HTMLButtonElement>("clear").addEventListener("click", () =>
-  act({ kind: "select", node: null }),
+pick("budget").addEventListener("change", () => {
+  const v = pick("budget").value;
+  open?.canvas.setBudget((v === "all" ? v : Number(v)) as Budget);
+});
+pick("approach").addEventListener("change", () =>
+  open?.canvas.setApproach(pick("approach").value as "active" | "passive"),
 );
-byId<HTMLButtonElement>("fit").addEventListener("click", () =>
-  drawn?.renderer.fit(),
-);
-// why: S15, owner decision H8 — the root leaves the page, so the renderer ends itself
+// why: S27, NF-9 — a new canvas for the new canvas colour with the state and camera of the last settle
+pick("colour").addEventListener("change", () => {
+  const was = open;
+  if (was === null) return;
+  const key = pick("fixture").value;
+  const model = modelOf(loadFixture(key).input, COLOURS[pick("colour").value]);
+  if (model !== null) start(model, was);
+});
+// why: STORY-003-04 S15, owner decision H8 — the root leaves the page, so the canvas ends itself
 byId<HTMLButtonElement>("remove").addEventListener("click", () => {
-  drawn = null;
+  open = null;
   container.replaceChildren();
 });
-load(fixturePick.value, null);
+byId<HTMLButtonElement>("timing").addEventListener("click", () => {
+  const out = byId<HTMLPreElement>("timings");
+  out.textContent = "";
+  const big = (n: number, e: number, layout: object = {}) =>
+    modelOf(
+      { ...generate.random(n, e, 1), view: { budget: "all", ...layout } },
+      COLOURS.light,
+    );
+  const models = {
+    force: big(500, 1000),
+    atomic: big(500, 1000, { layout: "atomic" }),
+    big: big(2000, 4000),
+  };
+  if (models.force === null || models.atomic === null || models.big === null)
+    return;
+  void measure(
+    container,
+    TEXT,
+    { force: models.force, atomic: models.atomic, big: models.big },
+    (line) => {
+      out.textContent = `${out.textContent ?? ""}${line}\n`;
+    },
+  );
+});
+load();

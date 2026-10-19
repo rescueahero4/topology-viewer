@@ -61,6 +61,30 @@
   transform-origin: center;
 }
 
+/* Emerging nodes start hidden and small on their origin and grow in while they travel out;
+   qt-born is the start state, qt-emerge the transition (mockup lib/topology.js lines 74-81). A
+   collapse puts both on the leaving nodes, so they fade and shrink while they glide back. */
+.qt-node.qt-born,
+.qt-edge.qt-born {
+  opacity: 0;
+}
+
+.qt-node.qt-born use {
+  transform: scale(0.35);
+}
+
+.qt-node.qt-emerge {
+  transition: opacity 0.32s ease-out;
+}
+
+.qt-node.qt-emerge use {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.qt-edge.qt-emerge {
+  transition: opacity 0.45s ease-out 0.08s;
+}
+
 /* No outline on a click; keyboard focus gets a ring on the icon, not a box. */
 .qt-node:focus {
   outline: none;
@@ -270,6 +294,13 @@
   .qt-focus .qt-pulse {
     animation: none;
     opacity: 0;
+  }
+
+  /* NF-8, SA §5 Accessibility — no emerge or retract under reduced motion. */
+  .qt-node.qt-emerge,
+  .qt-node.qt-emerge use,
+  .qt-edge.qt-emerge {
+    transition: none;
   }
 }
 

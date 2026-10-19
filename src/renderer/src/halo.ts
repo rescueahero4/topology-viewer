@@ -1,5 +1,7 @@
 import { select } from "d3-selection";
+import type { Point } from "@qdic-topology/engine";
 import { setColour } from "./marks";
+import { translate } from "./nodes";
 import type { SceneNode } from "./scene";
 
 // why: mockup `renderFocus` (lib/topology.js lines 1120-1126) — three soft rings, scale and
@@ -37,6 +39,14 @@ export function drawHalo(layer: SVGGElement, node: SceneNode | null): void {
     .data(node === null ? [] : [node])
     .join("g")
     .attr("class", "qt-focus")
-    .attr("transform", (d) => `translate(${d.x},${d.y})`)
+    .attr("transform", translate)
     .each((d, i, groups) => fillHalo(groups[i], d));
+}
+
+// why: STORY-003-05 frame writes — the halo follows its node while the node moves
+export function haloMover(layer: SVGGElement): (p: Point) => void {
+  const halo = select(layer).select<SVGGElement>("g.qt-focus");
+  return (p) => {
+    halo.attr("transform", translate(p));
+  };
 }

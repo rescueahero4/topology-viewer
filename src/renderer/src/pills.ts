@@ -1,8 +1,9 @@
 import { select } from "d3-selection";
-import { endOf, type Ends } from "./edges";
+import type { DrawnId } from "@qdic-topology/engine";
+import { endOf, type At, type Ends } from "./edges";
 import { pickedEdge } from "./highlight";
 import { setColour } from "./marks";
-import type { Scene, SceneEdge } from "./scene";
+import type { Scene, SceneEdge, SceneNode } from "./scene";
 
 // why: mockup `renderEdgeLabels` (lib/topology.js lines 1103-1115) — the pill size
 const CHAR_W = 6.4;
@@ -39,14 +40,36 @@ function fillPill(g: SVGGElement, edge: SceneEdge): void {
 
 // why: mockup `mid` and `placeOverlays` (lib/topology.js lines 1090-1101) — a pill sits halfway
 // between the centres and keeps its screen size at each zoom `k`
+const pillTransform = (s: SceneNode, t: SceneNode, k: number) =>
+  `translate(${(s.x + t.x) / 2},${(s.y + t.y) / 2}) scale(${1 / k})`;
+
 export function scalePills(layer: SVGGElement, ends: Ends, k: number): void {
   select(layer)
     .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
-    .attr("transform", (e) => {
-      const s = endOf(ends, e.subject);
-      const t = endOf(ends, e.object);
-      return `translate(${(s.x + t.x) / 2},${(s.y + t.y) / 2}) scale(${1 / k})`;
+    .attr("transform", (e) =>
+      pillTransform(endOf(ends, e.subject), endOf(ends, e.object), k),
+    );
+}
+
+// why: STORY-003-05 frame writes — the pill of an edge with a moving end
+export function pillMover(
+  layer: SVGGElement,
+  moving: ReadonlySet<DrawnId>,
+): (at: At, k: number) => void {
+  const els: [SVGGElement, SceneEdge][] = [];
+  select(layer)
+    .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
+    .each((e, i, groups) => {
+      if (moving.has(e.subject) || moving.has(e.object))
+        els.push([groups[i], e]);
     });
+  return (at, k) => {
+    for (const [el, e] of els)
+      el.setAttribute(
+        "transform",
+        pillTransform(at(e.subject), at(e.object), k),
+      );
+  };
 }
 
 export function drawPills(

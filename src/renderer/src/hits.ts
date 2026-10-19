@@ -46,3 +46,23 @@ export function drawHits(
     .attr("class", "qt-ehit")
     .attr("d", d);
 }
+
+// why: STORY-003-05 — a draw keeps only the hit paths of its own edges, with their new `d`; the
+// viewport set changes at the end of the motion (STORY-003-04)
+export function keptHits(
+  layer: SVGGElement,
+  edges: readonly SceneEdge[],
+  d: (edge: SceneEdge) => string,
+): void {
+  const keys = new Set(
+    select(layer)
+      .selectAll<SVGPathElement, SceneEdge>("path.qt-ehit")
+      .data()
+      .map((e) => e.key),
+  );
+  drawHits(
+    layer,
+    edges.filter((e) => keys.has(e.key)),
+    d,
+  );
+}

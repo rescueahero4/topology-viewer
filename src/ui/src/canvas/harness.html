@@ -10,27 +10,24 @@
           12px system-ui,
           sans-serif;
       }
-      #bar {
+      #bar,
+      #bar2 {
         display: flex;
+        flex-wrap: wrap;
         gap: 8px;
-        padding: 8px;
+        padding: 4px 8px;
       }
       #canvas {
         height: 70vh;
       }
-      #filters {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 12px;
-        padding: 0 8px;
-      }
       #report,
-      #intents {
+      #events,
+      #timings {
         margin: 0;
         padding: 8px;
         white-space: pre-wrap;
       }
-      #intents {
+      #events {
         max-height: 8em;
         overflow: auto;
       }
@@ -46,16 +43,42 @@
         >Layout
         <select id="layout"></select
       ></label>
-      <button id="audit" type="button">Audit</button>
-      <button id="clear" type="button">Clear selection</button>
-      <button id="fit" type="button">Fit</button>
-      <button id="remove" type="button">Remove</button>
+      <label
+        >Budget
+        <select id="budget"></select
+      ></label>
+      <label
+        >Approach
+        <select id="approach"></select
+      ></label>
+      <label
+        >Canvas colour
+        <select id="colour"></select
+      ></label>
       <span id="zoom"></span>
     </div>
+    <div id="bar2">
+      <button id="setdata" type="button">setData</button>
+      <button id="clear" type="button">select(null)</button>
+      <button id="expand" type="button">expand</button>
+      <button id="collapse" type="button">collapse</button>
+      <button id="hide" type="button">hide</button>
+      <button id="restore" type="button">restore all</button>
+      <button id="reset" type="button">resetView</button>
+      <button id="showall" type="button">Show all types</button>
+      <button id="fit" type="button">fit</button>
+      <input id="target" placeholder="entity ids" />
+      <button id="focus" type="button">focus</button>
+      <button id="reveal" type="button">reveal</button>
+      <button id="oncanvas" type="button">onCanvas</button>
+      <button id="audit" type="button">Audit</button>
+      <button id="remove" type="button">Remove</button>
+      <button id="timing" type="button">Timing</button>
+    </div>
     <div id="canvas"></div>
-    <div id="filters"></div>
     <pre id="report"></pre>
-    <pre id="intents"></pre>
+    <pre id="events"></pre>
+    <pre id="timings"></pre>
     <script type="module" src="./harness.ts"></script>
   </body>
 </html>

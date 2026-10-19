@@ -40,6 +40,9 @@ export const CLASS_NAMES: readonly string[] = [
   "qt-tip-main",
   "qt-tip-sub",
   "qt-on",
+  // why: STORY-003-05 — the emerge and retract classes of the motion (mockup lines 74-81)
+  "qt-born",
+  "qt-emerge",
 ];
 
 // why: the attributes of the sprite allow-list of `scripts/build-icons.mjs`
