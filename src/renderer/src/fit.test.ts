@@ -103,6 +103,18 @@ describe("S2 revealPlan built cases", () => {
     expect(revealPlan(t, 0, 0, a, [box(0, 0)], [])).toBeNull();
   });
 
+  // why: in S3 the must set alone sets the zoom of both "must only" rows, so only this built
+  // case shows the 0.55 fallback (memo 2026-10-20-implementer-story-04-decisions.md)
+  it("(d) drops the context below 55 % of the zoom", () => {
+    const one = { k: 1, x: 400, y: 300 };
+    const a = { s: { x: 400, y: 300 }, p: { x: 0, y: 0 } };
+    expect(
+      revealPlan(one, 800, 600, a, [box(0, 0)], [box(2000, 0)]),
+    ).toBeNull();
+    const near = revealPlan(one, 800, 600, a, [box(0, 0)], [box(500, 0)]);
+    expect(near?.k).toBeCloseTo(384 / 550, 12);
+  });
+
   it("gives null when everything fits and the anchor did not move", () => {
     const p = { x: ACCESS[0].x, y: ACCESS[0].y };
     const s = { x: t.x + t.k * p.x, y: t.y + t.k * p.y };

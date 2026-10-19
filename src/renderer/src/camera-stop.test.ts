@@ -71,7 +71,7 @@ vi.useFakeTimers({
 vi.resetModules();
 const { createRenderer } = await import("./index");
 const { select } = await import("d3-selection");
-const { zoomIdentity } = await import("d3-zoom");
+const { zoomIdentity, zoomTransform } = await import("d3-zoom");
 
 type Observer = { cb: ResizeObserverCallback; off: boolean };
 const observers: Observer[] = [];
@@ -273,6 +273,26 @@ describe("S13 the end when the root leaves the document", () => {
       expect(observers[observers.length - 1].off).toBe(true);
       vi.advanceTimersByTime(500);
       expect(vi.getTimerCount()).toBe(0);
+    },
+  );
+
+  const ALONE: [string, (m: Mounted) => void][] = [
+    ["the resize callback", (m) => m.resize(1000, 700)],
+    ["the camera frame", () => vi.advanceTimersByTime(16)],
+  ];
+  it.each(ALONE)(
+    "%s after the removal ends the renderer before it moves the d3-zoom state",
+    (_n, first) => {
+      const m = mount(FIRST, { k: 0.5, x: 10, y: 20 });
+      m.renderer.fit();
+      vi.advanceTimersByTime(48);
+      const state = zoomTransform(m.svg);
+      const settles = m.settles.length;
+      m.div.remove();
+      first(m);
+      expect(m.reports).toEqual([{ kind: "ended" }]);
+      expect(zoomTransform(m.svg)).toEqual(state);
+      expect(m.settles.length).toBe(settles);
     },
   );
 });
