@@ -5,4 +5,10 @@ export interface RendererText {
   collapsed: string;
   unknownType: string;
   canvasName: string;
+  tipGroup(count: number, typeLabel: string): string;
+  tipOpened(sub: string): string;
+  tipMore(sub: string, more: number): string;
+  tipMember(sub: string): string;
+  tipEdge(subjectLabel: string, objectLabel: string): string;
+  tipEdgeAction(label: string, muted: boolean, count: number): string;
 }

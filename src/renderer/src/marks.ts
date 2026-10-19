@@ -13,6 +13,10 @@ const SIDES: Readonly<Record<string, number>> = {
   octagon: 8,
 };
 
+export function isHex(value: string): boolean {
+  return HEX.test(value);
+}
+
 // why: SA §5 Renderer — a colour attribute takes only a re-checked `#rrggbb`; a bad value sets
 // nothing, so the element keeps the colour of its token class
 export function setColour(
@@ -20,7 +24,7 @@ export function setColour(
   name: "fill" | "stroke",
   value: string,
 ): void {
-  if (HEX.test(value)) el.setAttribute(name, value);
+  if (isHex(value)) el.setAttribute(name, value);
 }
 
 function svgElement(doc: Document, tag: string, attrs: [string, string][]) {

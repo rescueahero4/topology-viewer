@@ -18,10 +18,21 @@
       #canvas {
         height: 70vh;
       }
-      #report {
+      #filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        padding: 0 8px;
+      }
+      #report,
+      #intents {
         margin: 0;
         padding: 8px;
         white-space: pre-wrap;
+      }
+      #intents {
+        max-height: 8em;
+        overflow: auto;
       }
     </style>
   </head>
@@ -36,9 +47,12 @@
         <select id="layout"></select
       ></label>
       <button id="audit" type="button">Audit</button>
+      <button id="clear" type="button">Clear selection</button>
     </div>
     <div id="canvas"></div>
+    <div id="filters"></div>
     <pre id="report"></pre>
+    <pre id="intents"></pre>
     <script type="module" src="./harness.ts"></script>
   </body>
 </html>

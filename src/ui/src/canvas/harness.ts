@@ -6,6 +6,9 @@ import {
   normalize,
   resolveVocab,
   setLayout,
+  transition,
+  type Action,
+  type CanvasState,
   type Graph,
   type Hex,
   type LayoutName,
@@ -15,6 +18,8 @@ import { fixtures, loadFixture } from "@qdic-topology/fixtures";
 import {
   createRenderer,
   iconMetrics,
+  type Intent,
+  type Renderer,
   type RendererText,
   type Scene,
 } from "@qdic-topology/renderer";
@@ -23,12 +28,21 @@ import { sceneOf } from "./scene";
 import "../tokens.css";
 
 // why: epic question 14 — a dev page for the QA browser checks (S19); never exported or bundled.
-// Its labels are dev text, not product text: EPIC-004 gives the real strings (P4-1)
+// Its labels are dev text after the mockup, not product text: EPIC-004 gives the real strings (P4-1)
 const TEXT: RendererText = {
   groupLabel: (typeLabel, count) => `${count} ${typeLabel}`,
   collapsed: "Collapsed",
   unknownType: "Unknown",
   canvasName: "Topology canvas",
+  tipGroup: (count, typeLabel) =>
+    `${count} × ${typeLabel} · double-click to expand`,
+  tipOpened: (sub) => `${sub} · expanded · double-click to collapse`,
+  tipMore: (sub, more) =>
+    `${sub} · ${more} more connection${more === 1 ? "" : "s"} · double-click to show`,
+  tipMember: (sub) => `${sub} · double-click to collapse`,
+  tipEdge: (subject, object) => `${subject} → ${object}`,
+  tipEdgeAction: (label, muted, count) =>
+    `${label}${muted ? " (filtered out)" : ""}${count > 1 ? ` · ${count} links` : ""} · click to select`,
 };
 const LAYOUTS: LayoutName[] = [
   "force",
@@ -46,8 +60,16 @@ const fixturePick = byId<HTMLSelectElement>("fixture");
 const layoutPick = byId<HTMLSelectElement>("layout");
 const container = byId<HTMLDivElement>("canvas");
 const report = byId<HTMLPreElement>("report");
+const filters = byId<HTMLDivElement>("filters");
+const log = byId<HTMLPreElement>("intents");
 
-type Drawn = { graph: Graph; vocab: Vocab; scene: Scene };
+type Drawn = {
+  graph: Graph;
+  vocab: Vocab;
+  state: CanvasState;
+  renderer: Renderer;
+  scene: Scene | null;
+};
 let drawn: Drawn | null = null;
 
 function option(select: HTMLSelectElement, value: string): void {
@@ -57,11 +79,63 @@ function option(select: HTMLSelectElement, value: string): void {
   select.appendChild(item);
 }
 
-function draw(key: string, layout: LayoutName | null): void {
+function redraw(d: Drawn): void {
+  const view = frontier(d.state, d.graph, d.vocab);
+  d.scene = sceneOf(
+    { state: d.state, frontier: view, vocab: d.vocab, canvas: CANVAS },
+    TEXT,
+  );
+  d.renderer.draw(d.scene);
+  const { node, edge } = d.scene.selection;
+  const picked = edge === null ? "" : `, edge ${edge}`;
+  report.textContent =
+    `${fixturePick.value}: ${view.nodes.length} nodes, ${view.edges.length} edges, ` +
+    `${d.state.layout}; selection: ${node ?? "none"}${picked}`;
+}
+
+function act(action: Action): void {
+  if (drawn === null) return;
+  drawn.state = transition(drawn.state, action, drawn.graph, drawn.vocab);
+  redraw(drawn);
+}
+
+// why: STORY-003-03 T5 — the controller of STORY-003-05 routes the intents; the harness applies
+// the two selection intents and only logs `activate`
+function onIntent(intent: Intent): void {
+  log.textContent = `${JSON.stringify(intent)}\n${log.textContent ?? ""}`;
+  if (intent.kind !== "activate") act(intent);
+}
+
+function toggle(name: string, on: boolean, change: (on: boolean) => void) {
+  const label = document.createElement("label");
+  const box = document.createElement("input");
+  box.type = "checkbox";
+  box.checked = on;
+  box.addEventListener("change", () => change(box.checked));
+  label.append(box, name);
+  filters.appendChild(label);
+}
+
+function filterPanel(d: Drawn): void {
+  filters.replaceChildren();
+  const off = d.state.filters;
+  for (const { key } of d.vocab.families)
+    toggle(key, !off.familiesOff.includes(key), (on) =>
+      act({ kind: "toggleFamily", family: key, on }),
+    );
+  for (const key of [...d.vocab.predicates.keys()].sort())
+    toggle(key, !off.predicatesOff.includes(key), (on) =>
+      act({ kind: "togglePredicate", predicate: key, on }),
+    );
+}
+
+function load(key: string, layout: LayoutName | null): void {
   drawn = null;
+  log.textContent = "";
   const result = normalize(loadFixture(key).input, { now: NOW });
   if (!result.ok) {
     container.replaceChildren();
+    filters.replaceChildren();
     report.textContent = `fatal: ${result.fatal.code}`;
     return;
   }
@@ -77,16 +151,16 @@ function draw(key: string, layout: LayoutName | null): void {
     name,
     iconMetrics,
   );
-  const view = frontier(state, graph, vocab);
-  const scene = sceneOf({ state, frontier: view, vocab, canvas: CANVAS }, TEXT);
-  createRenderer(container, { text: TEXT }).draw(scene);
-  drawn = { graph, vocab, scene };
-  report.textContent = `${key}: ${scene.nodes.length} nodes, ${name}`;
+  const renderer = createRenderer(container, { text: TEXT });
+  renderer.onIntent(onIntent);
+  drawn = { graph, vocab, state, renderer, scene: null };
+  filterPanel(drawn);
+  redraw(drawn);
 }
 
 function audit(): void {
   const root = container.firstElementChild;
-  if (drawn === null || root === null) return;
+  if (drawn?.scene == null || root === null) return;
   const strings = auditStrings(drawn.graph, drawn.vocab, drawn.scene);
   const findings = domAudit(root, strings, TEXT.canvasName);
   report.textContent =
@@ -95,9 +169,12 @@ function audit(): void {
 
 for (const key of Object.keys(fixtures).sort()) option(fixturePick, key);
 for (const name of LAYOUTS) option(layoutPick, name);
-fixturePick.addEventListener("change", () => draw(fixturePick.value, null));
+fixturePick.addEventListener("change", () => load(fixturePick.value, null));
 layoutPick.addEventListener("change", () =>
-  draw(fixturePick.value, layoutPick.value as LayoutName),
+  load(fixturePick.value, layoutPick.value as LayoutName),
 );
 byId<HTMLButtonElement>("audit").addEventListener("click", audit);
-draw(fixturePick.value, null);
+byId<HTMLButtonElement>("clear").addEventListener("click", () =>
+  act({ kind: "select", node: null }),
+);
+load(fixturePick.value, null);
