@@ -4,6 +4,8 @@ import {
   normalize,
   resolveVocab,
   type Budget,
+  type CanvasState,
+  type Frontier,
   type Hex,
   type LayoutName,
 } from "@qdic-topology/engine";
@@ -66,6 +68,8 @@ type Open = {
   model: CanvasModel;
   canvas: Canvas;
   last: CanvasEvent["settle"] | null;
+  base: CanvasState | null;
+  drag: string;
 };
 let open: Open | null = null;
 const counts = new Map<string, number>();
@@ -95,7 +99,49 @@ function show(o: Open): void {
     s === null ? "none" : "edge" in s ? `edge, anchor ${s.anchor}` : s.node;
   report.textContent =
     `${pick("fixture").value}: ${e.frontier.nodes.length} nodes, ${e.frontier.edges.length} edges, ` +
-    `${e.state.layout}, budget ${e.state.budget}, hidden ${e.state.hidden.length}; selection: ${picked}`;
+    `${e.state.layout}, budget ${e.state.budget}, hidden ${e.state.hidden.length}; selection: ${picked}` +
+    o.drag;
+}
+
+function hopsOf(drawn: Frontier, from: string): Map<string, number> {
+  const hops = new Map([[from, 0]]);
+  for (let h = 1, ring = [from]; h <= 3; h++) {
+    const near = new Set(ring);
+    ring = [];
+    for (const e of drawn.edges)
+      for (const [a, b] of [
+        [e.subject, e.object],
+        [e.object, e.subject],
+      ])
+        if (near.has(a) && !hops.has(b)) {
+          hops.set(b, h);
+          ring.push(b);
+        }
+  }
+  return hops;
+}
+
+// why: S13 — the distance of each follower from its position before the drag, by hop over the
+// frontier edges (both ways), and the largest move of the nodes beyond 3 hops, as text
+function readout(o: Open, state: CanvasState): string {
+  const before = new Map(o.base?.positions ?? []);
+  const moves = state.positions.map(([id, p]): [string, number] => {
+    const b = before.get(id);
+    return [id, b === undefined ? 0 : Math.hypot(p.x - b.x, p.y - b.y)];
+  });
+  const [dragged] = moves.reduce((a, b) => (b[1] > a[1] ? b : a), ["", 0]);
+  const hops = o.last === null ? new Map() : hopsOf(o.last.frontier, dragged);
+  const lines = moves
+    .filter(([id]) => (hops.get(id) ?? 0) > 0)
+    .map(([id, d]) => `  ${hops.get(id)} hop: ${id} ${d.toFixed(3)}`)
+    .sort();
+  const beyond = Math.max(
+    0,
+    ...moves.filter(([id]) => !hops.has(id)).map(([, d]) => d),
+  );
+  return [`drag ${dragged}; beyond 3 hops ${beyond.toFixed(3)}`, ...lines]
+    .map((line) => `\n${line}`)
+    .join("");
 }
 
 function modelOf(input: unknown, canvas: Hex): CanvasModel | null {
@@ -116,11 +162,18 @@ function start(model: CanvasModel, keep: Open | null = null): void {
     state: keep?.last?.state,
     camera: keep?.last?.camera,
   });
-  const o: Open = { model, canvas, last: null };
+  const o: Open = { model, canvas, last: null, base: null, drag: "" };
   open = o;
   canvas.on("settle", (e) => {
     o.last = e;
+    o.base = e.state;
     count("settle");
+    show(o);
+  });
+  canvas.on("drag-end", (e) => {
+    o.drag = readout(o, e.state);
+    o.base = e.state;
+    count("drag-end");
     show(o);
   });
   canvas.on("select", () => count("select"));

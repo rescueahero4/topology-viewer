@@ -12,6 +12,7 @@ import {
   type RendererText,
 } from "@qdic-topology/renderer";
 import { intentOf } from "./activate";
+import { draggingOf } from "./dragging";
 import { createEvents } from "./events";
 import { methodsOf, type Canvas } from "./methods";
 import {
@@ -71,6 +72,7 @@ function wire(ctx: Ctx, canvas: Canvas): void {
   });
   const pick = (edge: string, anchor: string) =>
     guard(ctx, () => {
+      renderer.endDrag();
       if (ctx.frontier.edges.some((e) => e.key === edge))
         act(ctx, { kind: "selectEdge", edge, anchor });
     });
@@ -94,7 +96,12 @@ export function createCanvas(
 ): Canvas {
   const { text, model } = options;
   const metrics = options.metrics ?? iconMetrics;
-  const renderer = createRenderer(container, { text, camera: options.camera });
+  let held: Ctx | undefined;
+  const renderer = createRenderer(container, {
+    text,
+    camera: options.camera,
+    drag: draggingOf(() => held),
+  });
   try {
     const state = startOf(model, options.state, metrics);
     const { graph, vocab, canvas } = model;
@@ -112,6 +119,7 @@ export function createCanvas(
       hold: null,
       known: null,
     };
+    held = ctx;
     const api = methodsOf(ctx);
     wire(ctx, api);
     const hold = drawHeld(ctx, scene, motionOf("none", {}));

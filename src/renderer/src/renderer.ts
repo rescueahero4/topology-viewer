@@ -8,6 +8,7 @@ import {
   type CameraControl,
 } from "./camera";
 import { cullLabels } from "./cull";
+import { createDrag, type Drag, type DragHandlers } from "./drag";
 import { drawEdges, endOf, endsOf, pathsOf, type Ends } from "./edges";
 import { validCamera, type Camera } from "./fit";
 import { drawHalo } from "./halo";
@@ -58,10 +59,15 @@ export type Renderer = {
   onIntent(handler: (intent: Intent) => void): void;
   onReport(handler: (report: Report) => void): void;
   onSettle(handler: (camera: Camera) => void): void;
+  endDrag(): void;
   ended(): boolean;
 };
 
-export type RendererOptions = { text: RendererText; camera?: Camera };
+export type RendererOptions = {
+  text: RendererText;
+  camera?: Camera;
+  drag?: DragHandlers;
+};
 
 const instances = new WeakMap<Document, number>();
 
@@ -192,6 +198,7 @@ type Ctx = {
   cam: CameraControl;
   player: Player;
   stage: StageHost;
+  drag: Drag | null;
   start: Camera | null;
   drawn: boolean;
   settled(): void;
@@ -204,6 +211,7 @@ function show(c: Ctx, scene: Scene): void {
   const { k } = cam.transform();
   lod.count(scene.nodes.length, k);
   paint(parts, now, pointer, lod, k);
+  c.drag?.bind();
 }
 
 function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
@@ -223,11 +231,12 @@ function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
   });
 }
 
-// why: STORY-003-05 — a new draw first jumps a running motion to its end; the first draw fits, or
-// keeps a valid `camera` option, or reports a 0 × 0 container once; under reduced motion or a
-// hidden document every change is in the DOM before `draw` returns (NF-8)
+// why: STORY-003-05 — a new draw first ends a drag and jumps a running motion to its end; the first
+// draw fits, or keeps a valid `camera` option, or reports a 0 × 0 container once; under reduced
+// motion or a hidden document every change is in the DOM before `draw` returns (NF-8)
 function drawScene(c: Ctx, scene: Scene, motion: DrawMotion | undefined) {
   const m = motionOf(motion);
+  c.drag?.end();
   c.player.jump(false);
   const { parts, now, pointer, lod, cam } = c;
   const prev = now.scene;
@@ -274,6 +283,9 @@ function api(c: Ctx): Renderer {
     onSettle(handler) {
       now.on.settle = handler;
     },
+    endDrag() {
+      if (pointer.live()) c.drag?.end();
+    },
     ended: () => !pointer.live(),
   };
 }
@@ -287,7 +299,8 @@ const stageOf = (parts: Parts, now: Current, ctx: () => Ctx): StageHost => ({
   k: () => ctx().cam.transform().k,
 });
 
-// why: SA §4.5, NF-8 — the pulse stops while the document is hidden, and a motion jumps to its end
+// why: SA §4.5, NF-8 — the pulse stops while the document is hidden; a motion and a drag release
+// jump to their end
 function watchHidden(c: Ctx, live: () => boolean, signal: AbortSignal) {
   const { doc, root } = c.parts;
   doc.addEventListener(
@@ -295,11 +308,26 @@ function watchHidden(c: Ctx, live: () => boolean, signal: AbortSignal) {
     () => {
       if (!live()) return;
       root.classList.toggle("qt-paused", doc.hidden);
-      if (doc.hidden) c.player.jump(true);
+      if (!doc.hidden) return;
+      c.player.jump(true);
+      c.drag?.hidden();
     },
     { signal },
   );
 }
+
+const dragHost = (c: Ctx, live: () => boolean, signal: AbortSignal) => ({
+  layers: c.parts.layers,
+  doc: c.parts.doc,
+  view: c.now,
+  signal,
+  live,
+  k: () => c.cam.transform().k,
+  instant: () => instant(c.parts.doc),
+  jump: () => c.player.jump(false),
+  settled: () => c.settled(),
+  failed: () => c.now.on.report?.({ kind: "error" }),
+});
 
 export function createRenderer(
   container: HTMLElement,
@@ -320,6 +348,7 @@ export function createRenderer(
       ended = true;
       c.cam.end();
       c.player.stop();
+      c.drag?.drop();
       unbind(layers);
       abort.abort();
       tip.hide();
@@ -340,15 +369,19 @@ export function createRenderer(
       failed: () => on.report?.({ kind: "error" }),
     }),
     stage: stageOf(parts, now, () => c),
+    drag: null,
     start: validCamera(options.camera) ? options.camera : null,
     drawn: false,
-    // why: STORY-003-05 — while a motion runs, its end does the end work and the one `onSettle`
+    // why: STORY-003-05 — while a motion, a drag or its release runs, its end does the end work
+    // and the one `onSettle`
     settled() {
-      if (c.player.running()) return;
+      if (c.player.running() || c.drag?.busy() === true) return;
       endWork(parts, now, pointer, lod, c.cam);
       on.settle?.(c.cam.transform());
     },
   };
+  if (options.drag !== undefined)
+    c.drag = createDrag(dragHost(c, live, abort.signal), options.drag);
   if (c.start !== null) c.cam.jump(c.start);
   watchHidden(c, live, abort.signal);
   bindCanvas(layers, pointer);
