@@ -216,6 +216,7 @@ function setData(ctx: Ctx, given: unknown): void {
   const scene = sceneOf(
     { state: ctx.state, frontier: f, vocab, canvas },
     ctx.text,
+    ctx.metrics,
   );
   ctx.fit = null;
   flush(ctx, drawHeld(ctx, scene, motionOf("none", {})));

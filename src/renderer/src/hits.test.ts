@@ -55,6 +55,7 @@ const TEXT = {
   tipMember: () => "",
   tipEdge: () => "",
   tipEdgeAction: () => "",
+  bubbleCount: (n: number) => ` · ${n}`,
 } satisfies RendererText;
 
 const node = (i: number): SceneNode => ({
@@ -78,6 +79,7 @@ const node = (i: number): SceneNode => ({
   group: null,
   x: 100 * i,
   y: 0,
+  room: 0,
 });
 
 const edge = (i: number): SceneEdge => ({
@@ -97,6 +99,7 @@ const CHAIN: Scene = {
   edges: Array.from({ length: 13 }, (_, i) => edge(i)),
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 
 const keys = (div: HTMLElement, selector: string) =>

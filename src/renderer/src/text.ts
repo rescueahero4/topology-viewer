@@ -11,4 +11,6 @@ export interface RendererText {
   tipMember(sub: string): string;
   tipEdge(subjectLabel: string, objectLabel: string): string;
   tipEdgeAction(label: string, muted: boolean, count: number): string;
+  // why: FR-CANVAS-15 — the count part of the bubble pill `<Type> · N`, with its separator
+  bubbleCount(count: number): string;
 }

@@ -91,8 +91,9 @@ function checkReference(el: Element, name: string, value: string, a: Audit) {
     if (!ok || !inDefs(el, value.slice(1), "symbol", a))
       a.out.push("DA-1 <use> href does not resolve to a symbol");
   }
+  // why: STORY-003-06b "Accessible names" — a node label id (`-l-`) or a bubble pill id (`-b-`)
   if (name === "aria-labelledby") {
-    const ok = new RegExp(`^${p}-l-[0-9a-f]+$`).test(value);
+    const ok = new RegExp(`^${p}-[lb]-[0-9a-f]+$`).test(value);
     if (!ok || !a11yText(el, value, a))
       a.out.push("DA-1 aria-labelledby does not resolve to a text.qt-a11y");
   }

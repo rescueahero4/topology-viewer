@@ -45,6 +45,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""}${count > 1 ? ` · ${count} links` : ""} · click to select`,
+  bubbleCount: (count) => ` · ${count}`,
 };
 const NOW = "2026-10-19";
 const COLOURS: Record<string, Hex> = {
@@ -221,6 +222,7 @@ function builtNode(i: number): SceneNode {
     opened: 0,
     group: null,
     faded: false,
+    room: 0,
     x: radius * Math.cos(angle),
     y: radius * Math.sin(angle),
   };
@@ -236,6 +238,7 @@ function loadBuilt(): void {
     edges: [],
     selection: { node: null, edge: null },
     layout: "force",
+    types: [],
   });
   report.textContent = `${BUILT}: ${nodes.length} nodes`;
 }

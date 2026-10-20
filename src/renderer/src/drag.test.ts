@@ -65,6 +65,7 @@ const node = (id: string, x: number, y: number): SceneNode => ({
   group: null,
   x,
   y,
+  room: 0,
 });
 const EDGE: SceneEdge = {
   key: JSON.stringify(["e:a", "p", "e:b"]),
@@ -82,6 +83,7 @@ const SCENE: Scene = {
   edges: [EDGE],
   selection: { node: "e:a", edge: null },
   layout: "force",
+  types: [],
 };
 
 type Positions = [DrawnId, Point][];

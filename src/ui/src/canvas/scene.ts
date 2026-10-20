@@ -8,6 +8,7 @@ import {
   type DrawnNode,
   type Frontier,
   type Hex,
+  type IconMetrics,
   type Point,
   type Selection,
   type Tier,
@@ -22,6 +23,7 @@ import {
   type SceneNode,
 } from "@qdic-topology/renderer";
 import { edgeStyles, guarded, type EdgeStyle } from "./edgeColours";
+import { roomsOf, typesOf } from "./sceneBubbles";
 
 export type SceneInput = {
   state: CanvasState;
@@ -103,7 +105,10 @@ function typeLabelOf(type: string | null, vocab: Vocab, text: RendererText) {
 function nodeOf(
   node: DrawnNode,
   at: Point,
-  input: SceneInput & { faded: ReadonlySet<DrawnId> },
+  input: SceneInput & {
+    faded: ReadonlySet<DrawnId>;
+    rooms: ReadonlyMap<DrawnId, number>;
+  },
   text: RendererText,
 ): SceneNode {
   const { vocab, canvas } = input;
@@ -131,6 +136,7 @@ function nodeOf(
     opened: node.opened,
     group: group ? null : node.group,
     faded: input.faded.has(node.id),
+    room: input.rooms.get(node.id) ?? 0,
     x: at.x,
     y: at.y,
   };
@@ -166,25 +172,32 @@ function selectionOf(selection: Selection): Scene["selection"] {
 }
 
 // why: SA §4.5 — the controller makes the scene from engine results; the scene keeps no
-// reference to `vocab` or `state`
-export function sceneOf(input: SceneInput, text: RendererText): Scene {
+// reference to `vocab` or `state`. The icon metrics are those of the canvas (`createCanvas`)
+export function sceneOf(
+  input: SceneInput,
+  text: RendererText,
+  metrics: IconMetrics = iconMetrics,
+): Scene {
   const { state, frontier, vocab, canvas } = input;
   const positions = new Map<DrawnId, Point>(state.positions);
   const styles = edgeStyles(vocab, canvas);
   // why: FR-CANVAS-14, hand-off item 16 — the fade flags come from `fadeSet` only, never from
   // `around.shown`, and they join by the drawn id
   const faded = new Set(fadeSet(state, frontier).map((f) => f.id));
+  const rooms = roomsOf(state.layout, frontier, vocab, metrics);
+  const nodes = frontier.nodes.map((node) => {
+    const at = positions.get(node.id);
+    // why: SA §4.5, §5 — the engine commits positions before the first frame; Security round 2
+    // item 2 — a saved state with a position that is not finite never reaches an attribute
+    if (at === undefined || !Number.isFinite(at.x) || !Number.isFinite(at.y))
+      throw new Error("sceneOf: a drawn node has no finite position");
+    return nodeOf(node, at, { ...input, faded, rooms }, text);
+  });
   return {
-    nodes: frontier.nodes.map((node) => {
-      const at = positions.get(node.id);
-      // why: SA §4.5, §5 — the engine commits positions before the first frame; Security round 2
-      // item 2 — a saved state with a position that is not finite never reaches an attribute
-      if (at === undefined || !Number.isFinite(at.x) || !Number.isFinite(at.y))
-        throw new Error("sceneOf: a drawn node has no finite position");
-      return nodeOf(node, at, { ...input, faded }, text);
-    }),
+    nodes,
     edges: frontier.edges.map((edge) => edgeOf(edge, vocab, styles)),
     selection: selectionOf(state.selection),
     layout: state.layout,
+    types: typesOf(state.layout, nodes),
   };
 }

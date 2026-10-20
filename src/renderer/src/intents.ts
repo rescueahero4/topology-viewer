@@ -92,5 +92,6 @@ export function bindCanvas(layers: Layers, p: Pointer): void {
 export function unbind(layers: Layers): void {
   nodesOf(layers).on(".qt", null);
   hitsOf(layers).on(".qt", null);
+  select(layers.bubbles).selectAll("circle").on(".qt", null);
   select(layers.svg).on(".qt", null);
 }

@@ -35,6 +35,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 // why: STORY-003-03 — a scene of nodes only: no edge, no selection
@@ -42,6 +43,7 @@ const BARE: Omit<Scene, "nodes"> = {
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 const GLYPH = "M3 12h18";
 const LABEL = "Revenue";
@@ -75,6 +77,7 @@ function node(id: string, over: Partial<SceneNode>): SceneNode {
     more: 3,
     opened: 0,
     faded: false,
+    room: 0,
     group: null,
     x: 0,
     y: 0,

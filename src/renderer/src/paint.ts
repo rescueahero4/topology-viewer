@@ -1,4 +1,5 @@
 import type { DrawnId } from "@qdic-topology/engine";
+import { drawBubbles } from "./bubbles";
 import type { CameraControl } from "./camera";
 import type { Camera } from "./fit";
 import { cullLabels } from "./cull";
@@ -37,7 +38,9 @@ export type Parts = {
   tip: Tooltip;
   layers: Layers;
   prefix: string;
+  text: RendererText;
   labelId: (id: DrawnId) => string;
+  pillId: (type: string | null) => string;
 };
 
 export type Handlers = {
@@ -66,7 +69,18 @@ export function mount(container: HTMLElement, text: RendererText): Parts {
     }
     return label;
   };
-  return { doc, root, tip, layers, prefix, labelId };
+  // why: story "Accessible names" — the pill ids come from their own counter keyed by the type key,
+  // in first-use order, never from the type key text, so no pill id equals a node label id
+  const pills = new Map<string | null, string>();
+  const pillId = (type: string | null) => {
+    let id = pills.get(type);
+    if (id === undefined) {
+      id = `${prefix}-b-${pills.size}`;
+      pills.set(type, id);
+    }
+    return id;
+  };
+  return { doc, root, tip, layers, prefix, text, labelId, pillId };
 }
 
 export const restore = ({ root, layers }: Parts, { scene }: Current) =>
@@ -79,9 +93,10 @@ export function paint(
   lod: Lod,
   k: number,
 ) {
-  const { layers, prefix, labelId } = parts;
+  const { layers, prefix, labelId, pillId, text } = parts;
   const { scene, ends } = now;
   const hrefOf = drawSymbols(layers.defs, scene.nodes, prefix);
+  drawBubbles(layers, scene, ends, { text, pillId, pointer, k });
   const markers = drawMarkers(layers.defs, scene.edges, prefix);
   drawEdges(layers, scene, ends, markers);
   keptHits(layers.hits, scene.edges, pathsOf(scene, ends));

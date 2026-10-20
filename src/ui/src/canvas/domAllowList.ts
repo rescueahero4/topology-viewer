@@ -44,6 +44,12 @@ export const CLASS_NAMES: readonly string[] = [
   "qt-emerge",
   // why: STORY-003-07 — the Group around root fade (DA-3)
   "qt-off",
+  // why: STORY-003-06b — the bubbles and their pills (mockup classes `n` → `qt-bn`, lines 128-134)
+  "qt-bubble",
+  "qt-blabel",
+  "qt-bn",
+  "qt-bdrag",
+  "qt-bdragging",
 ];
 
 // why: the attributes of the sprite allow-list of `scripts/build-icons.mjs`
@@ -178,6 +184,11 @@ export const STYLES: Readonly<
   },
   "svg.qt-svg": { "-webkit-tap-highlight-color": (v) => RGBA_ZERO.test(v) },
   "g.qt-node": {
+    "touch-action": (v) => v === "none",
+    "-webkit-tap-highlight-color": (v) => RGBA_ZERO.test(v),
+  },
+  // why: lead decision D2 (TL-8 note) — the same two `d3-drag` touch declarations on the pill
+  "g.qt-blabel": {
     "touch-action": (v) => v === "none",
     "-webkit-tap-highlight-color": (v) => RGBA_ZERO.test(v),
   },

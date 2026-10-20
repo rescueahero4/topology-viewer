@@ -41,6 +41,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `edge(${subject}, ${object})`,
   tipEdgeAction: (label, muted, count) =>
     `action(${label}, ${muted}, ${count})`,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 const SUB = "Snowflake · Table";
@@ -67,6 +68,7 @@ function node(id: string, over: Partial<SceneNode> = {}): SceneNode {
     more: 0,
     opened: 0,
     faded: false,
+    room: 0,
     group: null,
     x: 0,
     y: 0,
@@ -116,6 +118,7 @@ function mount() {
     edges: EDGES,
     selection: { node: null, edge: null },
     layout: "force",
+    types: [],
   };
   createRenderer(div, { text: TEXT }).draw(scene);
   const root = div.firstElementChild as HTMLDivElement;

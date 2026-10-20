@@ -40,6 +40,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 const hex = (value: string) => value as Hex;
@@ -66,6 +67,7 @@ function node(id: string, x: number, y: number): SceneNode {
     group: null,
     x,
     y,
+    room: 0,
   };
 }
 
@@ -107,6 +109,7 @@ function draw(layout: LayoutName, over: Partial<Scene> = {}) {
     edges: EDGES,
     selection: { node: null, edge: null },
     layout,
+    types: [],
     ...over,
   };
   createRenderer(div, { text: TEXT }).draw(scene);
@@ -255,6 +258,7 @@ describe("S4 style, markers and hit paths", () => {
       edges: EDGES,
       selection: { node: null, edge: null },
       layout: "force",
+      types: [],
     };
     renderer.draw(scene);
     renderer.draw({ ...scene, edges: [EDGES[2]] });

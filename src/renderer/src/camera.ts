@@ -26,6 +26,8 @@ export type CameraHost = {
   live(): boolean;
   zoomed(camera: Camera): void;
   settled(): void;
+  // why: STORY-003-06b "Second press" — true while a node drag or a pill drag runs
+  running(): boolean;
   boxes(): Box[];
 };
 
@@ -89,13 +91,20 @@ type State = {
   follow: object | null;
 };
 
-// why: STORY-003-04 Context "Camera" — the default filter, the scale extent, no double-click
-// zoom; the extent comes from the observed size (jsdom has no SVG geometry, T1). A gesture
-// (`start` with a `sourceEvent`) stops a camera move. Only a gesture end runs the end work here:
-// the camera's own `zoom.transform` calls have no `sourceEvent`, so their `end` does nothing
-// and the camera runs the end work once at the end of its move (Implementer round 2 item (1))
+// why: STORY-003-04 Context "Camera" — the default filter terms (STORY-003-06b: a press during a
+// drag starts no pan, a wheel zoom stays), the scale extent, no double-click zoom; the extent
+// comes from the observed size (jsdom has no SVG geometry, T1). A gesture (`start` with a
+// `sourceEvent`) stops a camera move. Only a gesture end runs the end work here: the camera's
+// own `zoom.transform` calls have no `sourceEvent`, so their `end` does nothing and the camera
+// runs the end work once at the end of its move (Implementer round 2 item (1))
 function behaviourOf(host: CameraHost, st: State, stop: () => void) {
   return zoom<SVGSVGElement, unknown>()
+    .filter(
+      (event: MouseEvent) =>
+        (!event.ctrlKey || event.type === "wheel") &&
+        !event.button &&
+        !(/^(mousedown|touchstart)$/.test(event.type) && host.running()),
+    )
     .scaleExtent([K_MIN, K_MAX])
     .extent((): [[number, number], [number, number]] => [
       [0, 0],

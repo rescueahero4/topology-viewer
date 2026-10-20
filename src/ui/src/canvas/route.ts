@@ -228,6 +228,7 @@ export function play(
     scene: sceneOf(
       { state: s.state, frontier: s.frontier, vocab, canvas },
       ctx.text,
+      ctx.metrics,
     ),
     motion: s.motion,
   }));

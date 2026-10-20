@@ -12,7 +12,7 @@ import {
   type RendererText,
 } from "@qdic-topology/renderer";
 import { intentOf } from "./activate";
-import { draggingOf } from "./dragging";
+import { bubblingOf, draggingOf } from "./dragging";
 import { createEvents } from "./events";
 import { methodsOf, type Canvas } from "./methods";
 import {
@@ -103,12 +103,17 @@ export function createCanvas(
     text,
     camera: options.camera,
     drag: draggingOf(() => held),
+    bubble: bubblingOf(() => held),
   });
   try {
     const state = startOf(model, options.state, metrics);
     const { graph, vocab, canvas } = model;
     const drawn = frontier(state, graph, vocab);
-    const scene = sceneOf({ state, frontier: drawn, vocab, canvas }, text);
+    const scene = sceneOf(
+      { state, frontier: drawn, vocab, canvas },
+      text,
+      metrics,
+    );
     const ctx: Ctx = {
       model,
       text,

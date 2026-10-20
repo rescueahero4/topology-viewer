@@ -68,6 +68,7 @@ const TEXT = {
   tipMember: (sub: string) => sub,
   tipEdge: (subject: string, object: string) => `${subject} → ${object}`,
   tipEdgeAction: (label: string) => label,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 function modelOf(key: string): CanvasModel {
   const r = engine.normalize(loadFixture(key).input, { now: "2026-10-19" });

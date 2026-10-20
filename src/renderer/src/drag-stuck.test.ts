@@ -57,12 +57,14 @@ const node = (id: string, x: number): SceneNode => ({
   group: null,
   x,
   y: 0,
+  room: 0,
 });
 const SCENE: Scene = {
   nodes: [node("e:a", 0), node("e:b", 100)],
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 type Positions = [DrawnId, Point][];
 const LAST: Positions = [

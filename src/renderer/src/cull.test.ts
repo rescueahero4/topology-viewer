@@ -52,6 +52,7 @@ const TEXT = {
   tipMember: () => "",
   tipEdge: () => "",
   tipEdgeAction: () => "",
+  bubbleCount: (n: number) => ` · ${n}`,
 } satisfies RendererText;
 
 type Part = Partial<SceneNode> & { id: string; x: number; y: number };
@@ -73,6 +74,7 @@ const node = (p: Part): SceneNode => ({
   more: 0,
   opened: 0,
   faded: false,
+  room: 0,
   group: null,
   ...p,
 });
@@ -123,6 +125,7 @@ const SCENE: Scene = {
   ],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 
 function mount() {

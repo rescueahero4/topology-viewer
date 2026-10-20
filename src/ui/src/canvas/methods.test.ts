@@ -75,6 +75,7 @@ const TEXT = {
   tipMember: (sub: string) => sub,
   tipEdge: (subject: string, object: string) => `${subject} → ${object}`,
   tipEdgeAction: (label: string) => label,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 function modelOf(key: string): CanvasModel {

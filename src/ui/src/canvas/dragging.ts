@@ -1,11 +1,13 @@
 import {
   beginDrag,
+  dragBubble,
   dragStep,
   fadeSet,
   release,
   type DragCtx,
+  type DrawnId,
 } from "@qdic-topology/engine";
-import type { DragHandlers } from "@qdic-topology/renderer";
+import type { BubbleHandlers, DragHandlers } from "@qdic-topology/renderer";
 import { jumpChain, type Ctx } from "./route";
 
 // why: SA §4.5 (A23.2), FR-CANVAS-9 — the renderer asks for the positions of each drag frame; the
@@ -43,6 +45,42 @@ export function draggingOf(get: () => Ctx | undefined): DragHandlers {
       ctx.state = state;
       ctx.events.emit("drag-end", { state });
       return steps;
+    },
+  };
+}
+
+// why: FR-CANVAS-15, FR-CANVAS-14 — the shown members of a type: drawn nodes of the type key that
+// `fadeSet` does not fade (the members that `dragBubble` moves)
+function shownOf(ctx: Ctx, type: string | null): Set<DrawnId> {
+  const faded = new Set(fadeSet(ctx.state, ctx.frontier).map((f) => f.id));
+  return new Set(
+    ctx.frontier.nodes
+      .filter((n) => n.type === type && !faded.has(n.id))
+      .map((n) => n.id),
+  );
+}
+
+// why: SA §4.5 (A23.2), FR-CANVAS-15 — the pill drag moves the shown members of its type through
+// the engine `dragBubble`, committed at each frame (NF-8); `drag-end` carries the state
+export function bubblingOf(get: () => Ctx | undefined): BubbleHandlers {
+  return {
+    start(type) {
+      const ctx = get();
+      if (ctx === undefined || ctx.renderer.ended()) return false;
+      // why: STORY-003-07 "Waiting steps" — a drag start first puts the last step in the DOM
+      jumpChain(ctx);
+      return shownOf(ctx, type).size > 0;
+    },
+    move(type, vector) {
+      const ctx = get();
+      if (ctx === undefined) return [];
+      ctx.state = dragBubble(ctx.state, ctx.frontier, type, vector);
+      const members = shownOf(ctx, type);
+      return ctx.state.positions.filter(([id]) => members.has(id));
+    },
+    end() {
+      const ctx = get();
+      if (ctx !== undefined) ctx.events.emit("drag-end", { state: ctx.state });
     },
   };
 }

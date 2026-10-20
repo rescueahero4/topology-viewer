@@ -331,6 +331,53 @@
     visibility 0s 0.25s;
 }
 
+/* Bubbles (FR-CANVAS-15; mockup lib/topology.js lines 126-134): one soft bubble per type behind
+   the nodes, with a pill of constant size. Only the pill drags (Q25); a press on the body pans. */
+.qt-bubble circle {
+  fill-opacity: 0.07;
+  stroke-opacity: 0.4;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  pointer-events: visiblePainted;
+  cursor: grab;
+  transition:
+    fill-opacity 0.15s,
+    stroke-opacity 0.15s;
+}
+
+.qt-bubble:hover circle,
+.qt-bubble.qt-bdrag circle {
+  fill-opacity: 0.12;
+  stroke-opacity: 0.75;
+}
+
+.qt-blabel {
+  cursor: grab;
+}
+
+.qt-root.qt-bdragging,
+.qt-root.qt-bdragging * {
+  cursor: grabbing !important;
+}
+
+.qt-blabel rect {
+  fill: var(--label-halo);
+  stroke-width: 1;
+}
+
+.qt-blabel text {
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* The count is grey; this rule wins over the type colour of the text fill attribute. */
+.qt-blabel .qt-bn {
+  font-weight: 500;
+  fill: var(--chip-line);
+}
+
 .qt-tip {
   position: absolute;
   pointer-events: none;

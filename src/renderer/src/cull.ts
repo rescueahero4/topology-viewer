@@ -46,12 +46,12 @@ function ranked(scene: Scene, full: boolean): SceneNode[] {
 function grid() {
   const cells = new Map<string, Rect[]>();
   const each = (b: Rect, fn: (key: string) => boolean | void) => {
-    for (let gx = Math.floor(b[0] / CELL); gx <= Math.floor(b[2] / CELL); gx++)
-      for (
-        let gy = Math.floor(b[1] / CELL);
-        gy <= Math.floor(b[3] / CELL);
-        gy++
-      )
+    const [x0, y0, x1, y1] = b.map((v) => Math.floor(v / CELL));
+    // why: STORY-003-06b S11 — above 2^53 a cell index does not change on `++`, so the loop
+    // would not end; such a box takes no part
+    if (![x0, y0, x1, y1].every(Number.isSafeInteger)) return false;
+    for (let gx = x0; gx <= x1; gx++)
+      for (let gy = y0; gy <= y1; gy++)
         if (fn(`${gx},${gy}`) === true) return true;
     return false;
   };

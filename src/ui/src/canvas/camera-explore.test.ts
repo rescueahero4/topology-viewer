@@ -62,6 +62,7 @@ const TEXT: RendererText = {
   tipMember: (sub) => `${sub} · member`,
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label) => label,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 type Run = { graph: Graph; vocab: Vocab; state: CanvasState };

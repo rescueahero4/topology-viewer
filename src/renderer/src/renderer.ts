@@ -6,6 +6,12 @@ import {
   seenOf,
   type CameraControl,
 } from "./camera";
+import {
+  createBubbleDrag,
+  type BubbleDrag,
+  type BubbleHandlers,
+} from "./bubbleDrag";
+import { scaleBubbles } from "./bubbles";
 import { createDrag, type Drag, type DragHandlers } from "./drag";
 import { endOf, endsOf } from "./edges";
 import { validCamera, type Camera, type FitOptions } from "./fit";
@@ -54,6 +60,7 @@ export type RendererOptions = {
   text: RendererText;
   camera?: Camera;
   drag?: DragHandlers;
+  bubble?: BubbleHandlers;
 };
 
 const EMPTY: Scene = {
@@ -61,6 +68,7 @@ const EMPTY: Scene = {
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 
 function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
@@ -94,6 +102,7 @@ type Ctx = {
   player: Player;
   stage: StageHost;
   drag: Drag | null;
+  bubble: BubbleDrag | null;
   start: Camera | null;
   drawn: boolean;
   settled(): void;
@@ -107,6 +116,7 @@ function show(c: Ctx, scene: Scene): void {
   lod.count(scene.nodes.length, k);
   paint(parts, now, pointer, lod, k);
   c.drag?.bind();
+  c.bubble?.bind();
 }
 
 function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
@@ -119,9 +129,11 @@ function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
     zoomed(camera) {
       lod.zoomed(camera.k, now.scene.nodes.length);
       scalePills(layers.edgeLabels, now.ends, camera.k);
+      scaleBubbles(layers.bubbleLabels, camera.k);
       tip.hide();
     },
     settled: () => ctx().settled(),
+    running: () => running(ctx()),
     // why: mockup `fit` (lib/topology.js line 2165) — while grouped only the shown nodes count,
     // for `fit()`, the first visibility and a resize
     boxes: () => now.scene.nodes.filter((n) => !n.faded).map(boxOf),
@@ -133,7 +145,7 @@ function cameraOf(parts: Parts, now: Current, lod: Lod, ctx: () => Ctx) {
 // motion or a hidden document every change is in the DOM before `draw` returns (NF-8)
 function drawScene(c: Ctx, scene: Scene, motion: DrawMotion | undefined) {
   const m = motionOf(motion);
-  c.drag?.end();
+  endDrags(c);
   c.player.jump(false);
   const { parts, now, pointer, lod, cam } = c;
   const prev = now.scene;
@@ -180,7 +192,7 @@ function api(c: Ctx): Renderer {
       now.on.settle = handler;
     },
     endDrag() {
-      if (pointer.live()) c.drag?.end();
+      if (pointer.live()) endDrags(c);
     },
     ended: () => !pointer.live(),
   };
@@ -212,18 +224,54 @@ function watchHidden(c: Ctx, live: () => boolean, signal: AbortSignal) {
   );
 }
 
+// why: story "Second press" — one check for both gestures: a node press or a pill press runs
+const running = (c: Ctx) =>
+  c.drag?.running() === true || c.bubble?.running() === true;
+
+// why: STORY-003-06a interrupt rule — `endDrag()` and a draw end a node drag and a pill drag
+function endDrags(c: Ctx): void {
+  c.drag?.end();
+  c.bubble?.end();
+}
+
 const dragHost = (c: Ctx, live: () => boolean, signal: AbortSignal) => ({
   layers: c.parts.layers,
   doc: c.parts.doc,
   view: c.now,
   signal,
   live,
-  k: () => c.cam.transform().k,
+  transform: () => c.cam.transform(),
+  running: () => running(c),
   instant: () => instant(c.parts.doc),
   jump: () => c.player.jump(false),
   settled: () => c.settled(),
   failed: () => c.now.on.report?.({ kind: "error" }),
 });
+
+// why: story "Pill drag" — at the drag start a release playback (`Drag.end()`) and a motion jump
+// to their end, and the tooltip hides (mockup lines 1840-1842)
+const bubbleHost = (c: Ctx, live: () => boolean, signal: AbortSignal) => ({
+  ...dragHost(c, live, signal),
+  root: c.parts.root,
+  jump: () => {
+    c.drag?.end();
+    c.player.jump(false);
+  },
+  hideTip: () => c.parts.tip.hide(),
+});
+
+// why: SA §4.5 (A23.2) — no `d3-drag` on the nodes or the pills when the caller gives no handlers
+function gestures(
+  c: Ctx,
+  options: RendererOptions,
+  live: () => boolean,
+  signal: AbortSignal,
+): void {
+  if (options.drag !== undefined)
+    c.drag = createDrag(dragHost(c, live, signal), options.drag);
+  if (options.bubble !== undefined)
+    c.bubble = createBubbleDrag(bubbleHost(c, live, signal), options.bubble);
+}
 
 export function createRenderer(
   container: HTMLElement,
@@ -245,6 +293,7 @@ export function createRenderer(
       c.cam.end();
       c.player.stop();
       c.drag?.drop();
+      c.bubble?.drop();
       unbind(layers);
       abort.abort();
       tip.hide();
@@ -266,18 +315,18 @@ export function createRenderer(
     }),
     stage: stageOf(parts, now, () => c),
     drag: null,
+    bubble: null,
     start: validCamera(options.camera) ? options.camera : null,
     drawn: false,
-    // why: STORY-003-05 — while a motion, a drag or its release runs, its end does the end work
-    // and the one `onSettle`
+    // why: STORY-003-05 — while a motion, a drag or its release, or a pill drag runs, its end does
+    // the end work and the one `onSettle`
     settled() {
-      if (c.player.running() || c.drag?.busy() === true) return;
+      if (c.player.running() || c.drag?.busy() === true || running(c)) return;
       endWork(parts, now, pointer, lod, c.cam);
       on.settle?.(c.cam.transform());
     },
   };
-  if (options.drag !== undefined)
-    c.drag = createDrag(dragHost(c, live, abort.signal), options.drag);
+  gestures(c, options, live, abort.signal);
   if (c.start !== null) c.cam.jump(c.start);
   watchHidden(c, live, abort.signal);
   bindCanvas(layers, pointer);
