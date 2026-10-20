@@ -42,6 +42,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 function node(id: string, x: number, y: number): SceneNode {
@@ -66,6 +67,7 @@ function node(id: string, x: number, y: number): SceneNode {
     group: null,
     x,
     y,
+    room: 0,
   };
 }
 
@@ -97,6 +99,7 @@ const sceneOf = (selection: SceneSelection): Scene => ({
   edges: EDGES,
   selection,
   layout: "force",
+  types: [],
 });
 
 function mount(selection: SceneSelection, hidden = false) {

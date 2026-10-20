@@ -103,6 +103,7 @@ const node = (id: string, x: number, y: number): SceneNode => ({
   group: null,
   x,
   y,
+  room: 0,
 });
 const edge = (subject: string, object: string): SceneEdge => ({
   key: JSON.stringify([subject, "p", object]),
@@ -120,6 +121,7 @@ const scene = (nodes: SceneNode[], edges: SceneEdge[] = []): Scene => ({
   edges,
   selection: { node: nodes[0]?.id ?? null, edge: null },
   layout: "force",
+  types: [],
 });
 const motion = (kind: Motion["kind"], more: Partial<Motion> = {}): Motion => ({
   kind,

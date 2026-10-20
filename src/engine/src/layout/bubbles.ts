@@ -16,8 +16,8 @@ export type Bubble = { key: string | null; x: number; y: number; r: number };
 // why: mockup `BUBBLE_PAD` 14 + 10 for the bubble label (lib/topology.js lines 1779, 1792)
 const BUBBLE_PAD = 14;
 const BUBBLE_ROOM = BUBBLE_PAD + 10;
-// why: mockup lines 1788, 1794 — the room between members and between bubbles; a PRD Q29 DDR on
-// the bubble pill changes only `OUTER` (lead decision D9)
+// why: mockup lines 1788, 1794 — the room between members and between bubbles; owner decision
+// H11 (no DDR): the pill keeps the mockup height 20, so `OUTER` stays 26 (STORY-003-06b)
 const MEMBER_GAP = 4;
 const OUTER = 26;
 

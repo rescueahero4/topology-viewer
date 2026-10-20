@@ -28,6 +28,7 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 // why: STORY-003-03 — a scene of nodes only: no edge, no selection
@@ -35,6 +36,7 @@ const BARE: Omit<Scene, "nodes"> = {
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 };
 
 function mount() {
@@ -76,6 +78,7 @@ function node(id: string, over: Partial<SceneNode> = {}): SceneNode {
     more: 0,
     opened: 0,
     faded: false,
+    room: 0,
     group: null,
     x: 10,
     y: 20,

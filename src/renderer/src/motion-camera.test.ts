@@ -83,12 +83,14 @@ const node = (id: string, x: number, y: number): SceneNode => ({
   group: null,
   x,
   y,
+  room: 0,
 });
 const scene = (nodes: SceneNode[]): Scene => ({
   nodes,
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 });
 const motion = (kind: Motion["kind"], more: Partial<Motion> = {}): Motion => ({
   kind,

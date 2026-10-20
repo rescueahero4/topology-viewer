@@ -29,6 +29,9 @@ export type SceneNode = {
   group: DrawnId | null;
   // why: FR-CANVAS-14, epic hand-off item 16 — the controller sets it from the engine `fadeSet` only
   faded: boolean;
+  // why: STORY-003-01 `bubbleRooms`, epic question 7 — the room of the node in its bubble; 0 when
+  // the layout is not `bubbles`
+  room: number;
   x: number;
   y: number;
 };
@@ -47,9 +50,15 @@ export type SceneEdge = {
 
 export type SceneSelection = { node: DrawnId | null; edge: EdgeKey | null };
 
+// why: FR-CANVAS-15 — the label and the guarded colour of a type for its bubble
+export type SceneType = { label: string; colour: Hex };
+
 export type Scene = {
   nodes: SceneNode[];
   edges: SceneEdge[];
   selection: SceneSelection;
   layout: LayoutName;
+  // why: FR-CANVAS-15 — in layout `bubbles` the types of the scene nodes in first-use order, else
+  // empty; a type key is a `Map` key only
+  types: [type: string | null, SceneType][];
 };

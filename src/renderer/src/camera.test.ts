@@ -109,6 +109,7 @@ const node = (id: string, x: number, y: number, r: number): SceneNode => ({
   group: null,
   x,
   y,
+  room: 0,
 });
 
 // The s-access first view of the story test plan.
@@ -126,6 +127,7 @@ const scene = (nodes: SceneNode[]): Scene => ({
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
 });
 const FIRST = scene(ACCESS);
 const S1 = {

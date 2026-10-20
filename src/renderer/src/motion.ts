@@ -2,6 +2,7 @@ import { easeCubicIn, easeCubicInOut, easeCubicOut } from "d3-ease";
 import { select } from "d3-selection";
 import { timer, type Timer } from "d3-timer";
 import type { DrawnId, Point } from "@qdic-topology/engine";
+import { bubbleMover } from "./bubbles";
 import {
   boxOf,
   planOf,
@@ -93,7 +94,8 @@ function classed(
 }
 
 // why: STORY-003-05 frame writes — finite numbers only, for the moving nodes, the edges and hit
-// paths with a moving end, the halo of a moving selected node and the pills with a moving end
+// paths with a moving end, the halo of a moving selected node, the pills with a moving end and
+// the bubbles (STORY-003-06b)
 function writerOf(host: StageHost, tracks: Track[], ease: Ease) {
   const { layers } = host;
   const scene = host.scene();
@@ -103,6 +105,7 @@ function writerOf(host: StageHost, tracks: Track[], ease: Ease) {
   const edges = edgeMover(layers.edges, "path.qt-edge", moving, scene.layout);
   const hits = edgeMover(layers.hits, "path.qt-ehit", moving, scene.layout);
   const pills = pillMover(layers.edgeLabels, moving);
+  const bubbles = bubbleMover(layers, scene);
   const selected = scene.selection.node;
   const halo =
     selected !== null && moving.has(selected) ? haloMover(layers.focus) : null;
@@ -117,6 +120,7 @@ function writerOf(host: StageHost, tracks: Track[], ease: Ease) {
     edges(at);
     hits(at);
     pills(at, host.k());
+    bubbles(at, host.k());
     const p = selected === null ? undefined : pos.get(selected);
     if (halo !== null && p !== undefined) halo(p);
   };

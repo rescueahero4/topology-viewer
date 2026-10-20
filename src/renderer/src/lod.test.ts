@@ -54,6 +54,7 @@ const TEXT: RendererText = {
   tipMember: (sub) => `${sub} · member`,
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label) => label,
+  bubbleCount: (n: number) => ` · ${n}`,
 };
 
 const node = (i: number): SceneNode => ({
@@ -77,6 +78,7 @@ const node = (i: number): SceneNode => ({
   group: null,
   x: (i % 40) * 50,
   y: Math.floor(i / 40) * 50,
+  room: 0,
 });
 
 const edge = (s: number, o: number): SceneEdge => ({
@@ -96,6 +98,7 @@ const sceneOf = (count: number, extra: Partial<Scene> = {}): Scene => ({
   edges: [],
   selection: { node: null, edge: null },
   layout: "force",
+  types: [],
   ...extra,
 });
 
