@@ -182,13 +182,6 @@
   dominant-baseline: central;
 }
 
-/* A type with no icon and no designed visual (TL-7). */
-.qt-nomark {
-  fill: var(--canvas);
-  stroke: var(--chip-line);
-  stroke-width: 1.5;
-}
-
 /* Label level of detail. mid: leaf names and all subtitles hide; low: every label hides. */
 .qt-lod-mid .qt-sub,
 .qt-lod-mid .qt-leaf .qt-name,

@@ -18,7 +18,6 @@ export const CLASS_NAMES: readonly string[] = [
   "qt-more",
   "qt-open",
   "qt-mark",
-  "qt-nomark",
   "qt-lod-mid",
   "qt-lod-low",
   "qt-big",

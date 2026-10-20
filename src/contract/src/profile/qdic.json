@@ -239,7 +239,10 @@
       "treeRole": "curation",
       "attributeSet": null,
       "attributes": ["icon"],
-      "icon": "custom_category",
+      "rank": 0,
+      "color": "#8A7B5F",
+      "abbr": "CC",
+      "design": "owner-accepted-2026-10-20",
       "source": {
         "doc": "GV",
         "section": "Node Types"

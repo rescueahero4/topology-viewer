@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadProfile, profile } from "../src/index";
 import qdic from "../src/profile/qdic.json";
@@ -135,11 +135,11 @@ describe("QDIC profile node types", () => {
     expect(role("curation")).toHaveLength(14);
   });
 
-  it("S18 splits 18 icon types from 8 designed types with guarded colours", () => {
+  it("S18 splits 17 icon types from 9 designed types with guarded colours", () => {
     const all = Object.entries(profile.nodeTypes);
     const iconed = all.filter(([, t]) => t.icon !== undefined);
     const designed = all.filter(([, t]) => t.icon === undefined);
-    expect(iconed).toHaveLength(18);
+    expect(iconed).toHaveLength(17);
     for (const [, t] of iconed) {
       expect([t.rank, t.color, t.abbr, t.design]).toEqual([
         undefined,
@@ -151,6 +151,7 @@ describe("QDIC profile node types", () => {
     expect(designed.map(([k]) => k).sort()).toEqual([
       "bk",
       "classification",
+      "custom_category",
       "domain",
       "external_system",
       "keyword",
@@ -165,13 +166,35 @@ describe("QDIC profile node types", () => {
       expect(saturation(t.color ?? ""), k).toBeLessThanOrEqual(55);
       expect(contrast(t.color ?? "", "#F4F4F5"), k).toBeGreaterThanOrEqual(3);
     }
-    expect(new Set(designed.map(([, t]) => t.abbr)).size).toBe(8);
+    expect(new Set(designed.map(([, t]) => t.abbr)).size).toBe(9);
   });
 
   it("S19 marks the 18 Graph Vocabulary types as system types", () => {
-    const system = Object.values(profile.nodeTypes).filter((t) => t.isSystem);
+    const system = Object.entries(profile.nodeTypes).filter(
+      ([, t]) => t.isSystem,
+    );
     expect(system).toHaveLength(18);
-    expect(system.every((t) => t.icon !== undefined)).toBe(true);
+    const noIcon = system.filter(([, t]) => t.icon === undefined);
+    expect(noIcon.map(([k]) => k)).toEqual(["custom_category"]);
+  });
+
+  it("ISSUE-009 gives custom_category the v56 mockup design values and no icon", () => {
+    const t = profile.nodeTypes.custom_category;
+    expect(t?.icon).toBeUndefined();
+    expect([t?.rank, t?.color, t?.abbr, t?.design]).toEqual([
+      0,
+      "#8A7B5F",
+      "CC",
+      "owner-accepted-2026-10-20",
+    ]);
+  });
+
+  it("ISSUE-009 has an icon file for each profile icon key", () => {
+    const files = new Set(readdirSync(new URL("assets/figma-raw/", root)));
+    const missing = Object.entries(profile.nodeTypes)
+      .filter(([, t]) => t.icon !== undefined && !files.has(`${t.icon}.svg`))
+      .map(([k]) => k);
+    expect(missing).toEqual([]);
   });
 
   it("S13 has no pending-ddr marker, or the story header records the Owner acceptance", () => {
