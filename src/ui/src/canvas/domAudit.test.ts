@@ -74,6 +74,7 @@ function node(id: string, over: Partial<SceneNode>): SceneNode {
     count: 0,
     more: 3,
     opened: 0,
+    faded: false,
     group: null,
     x: 0,
     y: 0,

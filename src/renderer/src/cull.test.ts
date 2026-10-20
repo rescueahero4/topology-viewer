@@ -72,6 +72,7 @@ const node = (p: Part): SceneNode => ({
   count: 0,
   more: 0,
   opened: 0,
+  faded: false,
   group: null,
   ...p,
 });

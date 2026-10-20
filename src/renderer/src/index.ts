@@ -7,6 +7,7 @@ export {
   type Anchor,
   type Box,
   type Camera,
+  type FitOptions,
 } from "./fit";
 export type { Intent } from "./intents";
 export { iconMetrics, spriteColours } from "./sprite";

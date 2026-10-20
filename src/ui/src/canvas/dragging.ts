@@ -6,7 +6,7 @@ import {
   type DragCtx,
 } from "@qdic-topology/engine";
 import type { DragHandlers } from "@qdic-topology/renderer";
-import type { Ctx } from "./route";
+import { jumpChain, type Ctx } from "./route";
 
 // why: SA §4.5 (A23.2), FR-CANVAS-9 — the renderer asks for the positions of each drag frame; the
 // engine `beginDrag`, `dragStep` and `release` give them, so the controller copies no drag rule
@@ -17,6 +17,8 @@ export function draggingOf(get: () => Ctx | undefined): DragHandlers {
       drag = null;
       const ctx = get();
       if (ctx === undefined) return false;
+      // why: STORY-003-07 "Waiting steps" — a drag start first puts the last step in the DOM
+      jumpChain(ctx);
       // why: STORY-003-07, SA §6 row 11 — a faded node is in the frontier, so the engine would drag
       // it; the controller refuses it
       if (fadeSet(ctx.state, ctx.frontier).some((f) => f.id === id))

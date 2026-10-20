@@ -73,6 +73,7 @@ const node = (i: number): SceneNode => ({
   count: 0,
   more: 0,
   opened: 0,
+  faded: false,
   group: null,
   x: (i % 40) * 50,
   y: Math.floor(i / 40) * 50,

@@ -20,6 +20,7 @@ import {
   drawHeld,
   flush,
   guard,
+  jumpChain,
   motionOf,
   settleNow,
   type CanvasModel,
@@ -73,6 +74,7 @@ function wire(ctx: Ctx, canvas: Canvas): void {
   const pick = (edge: string, anchor: string) =>
     guard(ctx, () => {
       renderer.endDrag();
+      jumpChain(ctx);
       if (ctx.frontier.edges.some((e) => e.key === edge))
         act(ctx, { kind: "selectEdge", edge, anchor });
     });
@@ -115,7 +117,8 @@ export function createCanvas(
       events: createEvents(() => !renderer.ended()),
       state,
       frontier: drawn,
-      fit: false,
+      fit: null,
+      chain: [],
       hold: null,
       known: null,
     };

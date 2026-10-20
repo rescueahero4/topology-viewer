@@ -105,6 +105,7 @@ const node = (id: string, x: number, y: number, r: number): SceneNode => ({
   count: 0,
   more: 0,
   opened: 0,
+  faded: false,
   group: null,
   x,
   y,
@@ -308,5 +309,22 @@ describe("S11 hidden document and reduced motion", () => {
     expect(m.renderer.transform().k).toBeLessThan(S1.k);
     expect([vi.getTimerCount(), spy.running.size]).toEqual([0, 0]);
     expect(m.settles.length - settles).toBe(1);
+  });
+});
+
+// why: QA verification item 3 (plant Q46), STORY-003-07 — the fit takes its own boxes, pad and
+// lowest zoom (the Group around root frame)
+describe("fit options", () => {
+  it("boxes 10,000 units apart with minK 0.8 give k 0.8; with no options the zoom goes below", () => {
+    const far = scene([node("A", -5000, 0, 12), node("B", 5000, 0, 12)]);
+    const m = mount(far, { k: 1, x: 400, y: 300 });
+    const boxes = [
+      { x: -5000, y: 0, r: 12 },
+      { x: 5000, y: 0, r: 12 },
+    ];
+    m.renderer.fit({ boxes, pad: 60, minK: 0.8, animate: false });
+    expect(m.renderer.transform().k).toBeCloseTo(0.8, 9);
+    m.renderer.fit({ animate: false });
+    expect(m.renderer.transform().k).toBeLessThan(0.8);
   });
 });

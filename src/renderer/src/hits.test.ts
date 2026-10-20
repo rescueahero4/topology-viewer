@@ -74,6 +74,7 @@ const node = (i: number): SceneNode => ({
   count: 0,
   more: 0,
   opened: 0,
+  faded: false,
   group: null,
   x: 100 * i,
   y: 0,

@@ -11,7 +11,8 @@
           sans-serif;
       }
       #bar,
-      #bar2 {
+      #bar2,
+      #bar3 {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
@@ -21,6 +22,7 @@
         height: 70vh;
       }
       #report,
+      #around,
       #events,
       #timings {
         margin: 0;
@@ -75,8 +77,10 @@
       <button id="remove" type="button">Remove</button>
       <button id="timing" type="button">Timing</button>
     </div>
+    <div id="bar3"></div>
     <div id="canvas"></div>
     <pre id="report"></pre>
+    <pre id="around"></pre>
     <pre id="events"></pre>
     <pre id="timings"></pre>
     <script type="module" src="./harness.ts"></script>

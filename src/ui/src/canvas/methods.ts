@@ -15,13 +15,23 @@ import {
   type OnCanvas,
   type Selection,
 } from "@qdic-topology/engine";
+import {
+  fadedAfter,
+  fadedSelect,
+  focusExit,
+  groupAroundRoot,
+  layoutExit,
+  type FocusAction,
+} from "./around";
 import type { CanvasEvent, EventName } from "./events";
 import {
   act,
   commit,
   drawHeld,
+  exited,
   flush,
   guard,
+  jumpChain,
   laid,
   motionOf,
   routeOf,
@@ -57,6 +67,7 @@ export type Canvas = {
   resetView(): void;
   setApproach(a: Approach): void;
   setFilters(f: Filter): void;
+  groupAroundRoot(on: boolean): void;
   fit(): void;
   on<K extends EventName>(
     event: K,
@@ -102,8 +113,10 @@ const anchorOf = (selection: Selection): DrawnId =>
       : selection.node;
 
 // why: Context `focus(id)` — a group drawn id expands the group, an id with no drawn node draws its
-// path; each then selects the entity on the placed state, in one draw with motion `local`
-function placedFocus(ctx: Ctx, action: Action, id: string): void {
+// path; each then selects the entity on the placed state, in one draw with motion `local`.
+// STORY-003-07 — while grouped `exitAround` comes first, and a faded target is exit 3 after it
+function placedFocus(ctx: Ctx, action: FocusAction, id: string): void {
+  if (focusExit(ctx, action, id)) return;
   const { graph, vocab } = ctx.model;
   const next = transition(ctx.state, action, graph, vocab);
   if (next === ctx.state) return;
@@ -111,6 +124,7 @@ function placedFocus(ctx: Ctx, action: Action, id: string): void {
   if (drawn === null) return;
   const after = frontier(next, graph, vocab);
   const change = routeOf(ctx, action, next, after, {});
+  if (fadedAfter(ctx, action, change, drawn)) return;
   const node = after.nodes.find((n) => n.id === drawn);
   const state =
     node === undefined || isGroup(node)
@@ -131,7 +145,8 @@ function focus(ctx: Ctx, id: unknown): void {
   if (node === undefined) return placedFocus(ctx, { kind: "path", id }, id);
   if (isGroup(node))
     return placedFocus(ctx, { kind: "expandGroup", group: node.id }, id);
-  act(ctx, { kind: "select", node: node.id }, { focus: node.id });
+  if (!fadedSelect(ctx, node.id, true))
+    act(ctx, { kind: "select", node: node.id }, { focus: node.id });
 }
 
 function expand(ctx: Ctx, id: unknown): void {
@@ -170,6 +185,7 @@ function hideIds(ctx: Ctx, ids: unknown): void {
           kind: "hideMany",
           ids: nodes.flatMap((n) => (isGroup(n) ? n.members : [n.entity])),
         };
+  if (exited(ctx, action)) return;
   const { graph, vocab } = ctx.model;
   const result = hide(ctx.state, action, graph, vocab);
   if (result.refused === "last-drawn")
@@ -201,7 +217,7 @@ function setData(ctx: Ctx, given: unknown): void {
     { state: ctx.state, frontier: f, vocab, canvas },
     ctx.text,
   );
-  ctx.fit = false;
+  ctx.fit = null;
   flush(ctx, drawHeld(ctx, scene, motionOf("none", {})));
 }
 
@@ -234,39 +250,45 @@ function filterOf(ctx: Ctx, f: unknown): Filter | null {
   return null;
 }
 
-// why: SA §4.5 method list as written (v0.12 text, kept in v0.13); `groupAroundRoot(on)` comes
-// with STORY-003-07. STORY-003-06a interrupt rule — each method first ends a running drag (its
-// release commits and `drag-end` fires) and then runs on the committed state
+// why: SA §4.5 `select(nodeId | edgeKey | null)`; STORY-003-07 — a faded node is exit 3
+function select(ctx: Ctx, id: unknown): void {
+  if (id === null) return act(ctx, { kind: "select", node: null });
+  const node = nodeOf(ctx, id);
+  if (node !== undefined) {
+    if (!fadedSelect(ctx, node.id, false))
+      act(ctx, { kind: "select", node: node.id });
+    return;
+  }
+  if (
+    isString(id) &&
+    id.startsWith("[") &&
+    ctx.frontier.edges.some((e) => e.key === id)
+  )
+    act(ctx, {
+      kind: "selectEdge",
+      edge: id,
+      anchor: anchorOf(ctx.state.selection),
+    });
+}
+
+// why: SA §4.5 method list as written (v0.12 text, kept in v0.13). STORY-003-06a interrupt rule —
+// each method first ends a running drag (its release commits and `drag-end` fires); STORY-003-07 —
+// then it puts the last waiting step in the DOM, and then it runs on the committed state
 export function methodsOf(ctx: Ctx): Canvas {
   const run = (work: () => void) =>
     guard(ctx, () => {
       ctx.renderer.endDrag();
+      jumpChain(ctx);
       work();
     });
   return {
     setData: (f) => run(() => setData(ctx, f)),
     setLayout: (name) =>
       run(() => {
-        if (LAYOUTS.includes(name))
+        if (LAYOUTS.includes(name) && !layoutExit(ctx, name))
           commit(ctx, null, laid(ctx, ctx.state, ctx.frontier, name));
       }),
-    select: (id) =>
-      run(() => {
-        if (id === null) return act(ctx, { kind: "select", node: null });
-        const node = nodeOf(ctx, id);
-        if (node !== undefined)
-          return act(ctx, { kind: "select", node: node.id });
-        if (
-          isString(id) &&
-          id.startsWith("[") &&
-          ctx.frontier.edges.some((e) => e.key === id)
-        )
-          act(ctx, {
-            kind: "selectEdge",
-            edge: id,
-            anchor: anchorOf(ctx.state.selection),
-          });
-      }),
+    select: (id) => run(() => select(ctx, id)),
     focus: (id) => run(() => focus(ctx, id)),
     expand: (id) => run(() => expand(ctx, id)),
     collapse: (id) => run(() => collapse(ctx, id)),
@@ -292,6 +314,7 @@ export function methodsOf(ctx: Ctx): Canvas {
         const action = filterOf(ctx, f);
         if (action !== null) act(ctx, action);
       }),
+    groupAroundRoot: (on) => run(() => groupAroundRoot(ctx, on)),
     fit: () => run(() => ctx.renderer.fit()),
     on: (event, handler) => ctx.events.on(event, handler),
   };

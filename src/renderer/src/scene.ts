@@ -27,6 +27,8 @@ export type SceneNode = {
   more: number;
   opened: number;
   group: DrawnId | null;
+  // why: FR-CANVAS-14, epic hand-off item 16 — the controller sets it from the engine `fadeSet` only
+  faded: boolean;
   x: number;
   y: number;
 };
