@@ -13,10 +13,6 @@ export type NodeContext = {
   big: boolean;
 };
 
-// why: mockup `iconFor` fallback (lib/topology.js line 306) in the 20 × 20 engine box; TL-7 — a
-// node with no visual (only `custom_category` in 0.1.0) is an outline circle until ISSUE-009
-const NO_MARK_R = 8.5;
-
 export const translate = (p: Point) => `translate(${p.x},${p.y})`;
 
 function classOf(d: SceneNode): string {
@@ -39,11 +35,7 @@ function drawHalo(node: NodeSelection, d: SceneNode): void {
   }
 }
 
-function drawMark(node: NodeSelection, d: SceneNode, href: string | null) {
-  if (href === null) {
-    node.append("circle").attr("class", "qt-nomark").attr("r", NO_MARK_R);
-    return;
-  }
+function drawMark(node: NodeSelection, d: SceneNode, href: string) {
   node
     .append("use")
     .attr("href", href)

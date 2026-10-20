@@ -1,5 +1,4 @@
 import {
-  canvasColor,
   entitySlots,
   fadeSet,
   type CanvasState,
@@ -39,8 +38,6 @@ type Visual = SceneNode["visual"];
 const LABEL_CHARS = 22;
 // why: mockup `iconFor` fallback (lib/topology.js line 306), the engine `boxOf` rank-0 box
 const RANK_ZERO: Box = { w: 20, h: 20, tier: "leaf" };
-// why: epic question 10 — the grey of Other and Custom, guarded like every canvas colour
-const NO_MARK_GREY = canvasColor("#71717a");
 // why: epic question 12, TL-9 — the subtitle reads only this slot entry
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
@@ -58,11 +55,9 @@ function cut(label: string): string {
 // why: the scene holds copies, so it keeps no reference into `vocab`
 function visualOf(type: string | null, vocab: Vocab): Visual {
   const visual = type === null ? vocab.untyped : vocab.types.get(type)?.visual;
-  if (visual === undefined || visual === null) return null;
-  if (!("icon" in visual)) return { ...visual };
-  // why: TL-7, gap G2, ISSUE-009 — an icon key with no sprite icon (`custom_category`) is drawn
-  // as the outline circle until the engine gives that type a designed visual
-  return Object.hasOwn(iconMetrics, visual.icon) ? { icon: visual.icon } : null;
+  if (visual === undefined || visual === null)
+    throw new Error("sceneOf: a drawn type has no visual");
+  return "icon" in visual ? { icon: visual.icon } : { ...visual };
 }
 
 // why: equal to the engine `boxOf` (`layout/drawn.ts:43-58`), so the drawing equals the layout
@@ -81,7 +76,6 @@ function boxOf(type: string | null, vocab: Vocab): Box {
 // why: hand-off item 3 — every canvas colour goes through `guardColor`; a designed colour is
 // already guarded by `resolveVocab` against the same canvas
 function colourOf(visual: Visual, canvas: Hex): Hex {
-  if (visual === null) return guarded(NO_MARK_GREY, canvas);
   if ("icon" in visual) return guarded(spriteColours.get(visual.icon), canvas);
   return (visual satisfies Designed).color;
 }

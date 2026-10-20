@@ -234,9 +234,7 @@ describe("S3 every colour source goes through guardColor", () => {
   });
 
   it("keeps the designed colour of a designed halo", () => {
-    const designed = runs[3].scene.nodes.filter(
-      (n) => n.visual !== null && !("icon" in n.visual),
-    );
+    const designed = runs[3].scene.nodes.filter((n) => !("icon" in n.visual));
     expect(designed.length).toBeGreaterThan(0);
     for (const n of designed)
       expect(n.colour).toBe((n.visual as Designed).color);

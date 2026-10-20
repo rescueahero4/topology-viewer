@@ -210,6 +210,17 @@ describe("S5 node drawing", () => {
     const label = d2.getElementById(el.getAttribute("aria-labelledby") ?? "");
     expect(label?.textContent).toBe("Constructor");
   });
+
+  it("throws for an icon key that is not in the sprite (ISSUE-009)", () => {
+    const { div: div2 } = mount();
+    const scene: Scene = {
+      ...BARE,
+      nodes: [node("e:x", { visual: { icon: "custom_category" } })],
+    };
+    expect(() => createRenderer(div2, { text: TEXT }).draw(scene)).toThrow(
+      "drawSymbols: an icon key is not in the sprite",
+    );
+  });
 });
 
 describe("S6 badgeText", () => {

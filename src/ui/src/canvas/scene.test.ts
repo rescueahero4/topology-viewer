@@ -7,7 +7,6 @@ import {
   canvasColor,
   firstView,
   frontier,
-  guardColor,
   layout,
   normalize,
   place,
@@ -61,11 +60,11 @@ const BARE: Omit<Scene, "nodes"> = {
 };
 const TABLE_GROUP = 'g:["tag_pii","taggedWith","<","table"]';
 
-function pipeline(input: unknown) {
+function pipeline(input: unknown, base = profile) {
   const result = normalize(input, { now: NOW });
   if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
   const { graph, payload, hash } = result;
-  const { vocab } = resolveVocab(graph, payload, profile, CANVAS);
+  const { vocab } = resolveVocab(graph, payload, base, CANVAS);
   const first = firstView(graph, vocab, payload, hash);
   const state = setLayout(
     first,
@@ -124,21 +123,59 @@ describe("S18 sceneOf branches", () => {
     expect(() => sceneOf(input, TEXT)).toThrow(Error);
   });
 
-  it("(b) custom_category has no visual and draws the qt-nomark circle", () => {
+  it("(b) custom_category has the designed CC visual and draws a designed symbol", () => {
     const input = loadFixture("q-full-vocabulary").input as { view?: object };
     input.view = { ...input.view, budget: "all" };
     const run = pipeline(input);
     expect(run.view.nodes).toHaveLength(39);
     const node = nodeIn(run, "e:cat-finance");
-    expect(node.visual).toBeNull();
+    expect(node.visual).toMatchObject({ letters: "CC", color: "#8a7b5f" });
+    expect("icon" in node.visual).toBe(false);
     expect([node.w, node.h, node.tier]).toEqual([20, 20, "leaf"]);
-    expect(node.colour).toBe(guardColor([0x71, 0x71, 0x7a], CANVAS));
+    expect(node.colour).toBe("#8a7b5f");
     const div = document.createElement("div");
     document.body.appendChild(div);
     createRenderer(div, { text: TEXT }).draw({ ...BARE, nodes: [node] });
-    const circle = div.querySelector("g.qt-node > circle.qt-nomark");
-    expect(circle?.getAttribute("r")).toBe("8.5");
-    expect(div.querySelector("g.qt-node use")).toBeNull();
+    const uses = div.querySelectorAll("g.qt-node use");
+    expect(uses).toHaveLength(1);
+    const id = uses[0]?.getAttribute("href")?.slice(1) ?? "";
+    const symbol = div.querySelector(`symbol[id="${id}"]`);
+    expect(symbol?.querySelector("text")?.textContent).toBe("CC");
+    expect(div.querySelector("g.qt-node > circle")).toBeNull();
+  });
+
+  it("(b2) keeps the 39 q-full-vocabulary positions of the old custom_category icon key", () => {
+    const all = () => {
+      const input = loadFixture("q-full-vocabulary").input as { view?: object };
+      input.view = { ...input.view, budget: "all" };
+      return input;
+    };
+    const entry = {
+      ...profile.nodeTypes.custom_category,
+      icon: "custom_category",
+    };
+    delete entry.rank;
+    delete entry.color;
+    delete entry.abbr;
+    delete entry.design;
+    const nodeTypes = { ...profile.nodeTypes, custom_category: entry };
+    const old = { ...profile, nodeTypes };
+    const now = pipeline(all()).state.positions;
+    expect(now).toHaveLength(39);
+    expect(now).toEqual(pipeline(all(), old).state.positions);
+  });
+
+  it("(b3) throws for a drawn node with no type when vocab.untyped is null", () => {
+    const run = fixture("s-dirty");
+    const input = {
+      state: run.state,
+      frontier: run.view,
+      vocab: { ...run.vocab, untyped: null },
+      canvas: CANVAS,
+    };
+    expect(() => sceneOf(input, TEXT)).toThrow(
+      "sceneOf: a drawn type has no visual",
+    );
   });
 
   it("(c) a node with no type takes vocab.untyped and the unknown label", () => {
@@ -227,9 +264,7 @@ describe("S18 sceneOf branches", () => {
       expect(typeof node.sub).toBe("string");
       expect(node.label).toBe(node.id.slice(2));
       expect(Number.isFinite(node.w) && Number.isFinite(node.h)).toBe(true);
-      expect(node.visual === null || typeof node.visual === "object").toBe(
-        true,
-      );
+      expect(typeof node.visual).toBe("object");
       expect(Object.getPrototypeOf(node.visual)).toBe(Object.prototype);
     }
   });

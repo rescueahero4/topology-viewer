@@ -7,7 +7,7 @@ import type {
   Tier,
 } from "@qdic-topology/engine";
 
-export type SceneVisual = { icon: string } | Designed | null;
+export type SceneVisual = { icon: string } | Designed;
 
 export type SceneNode = {
   id: DrawnId;

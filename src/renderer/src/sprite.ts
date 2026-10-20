@@ -56,21 +56,21 @@ function iconSymbol(doc: Document, id: string, icon: SpriteIcon): Element {
 
 // why: a scene holds copies of the visuals, so a distinct visual is found by its values, never
 // by object identity
-function keyOf(visual: SceneVisual): string | null {
-  if (visual === null) return null;
-  if ("icon" in visual)
-    return spriteIcon(visual.icon) === undefined ? null : `i ${visual.icon}`;
+function keyOf(visual: SceneVisual): string {
+  if ("icon" in visual) return `i ${visual.icon}`;
   const { shape, size, color, ink, letters, glyph } = visual;
   return JSON.stringify(["d", shape, size, color, ink, letters, glyph]);
 }
 
 function symbolOf(doc: Document, id: string, visual: Designed | Icon): Element {
-  if ("icon" in visual)
-    return iconSymbol(doc, id, spriteIcon(visual.icon) as SpriteIcon);
-  return designedSymbol(doc, id, visual);
+  if (!("icon" in visual)) return designedSymbol(doc, id, visual);
+  const icon = spriteIcon(visual.icon);
+  if (icon === undefined)
+    throw new Error("drawSymbols: an icon key is not in the sprite");
+  return iconSymbol(doc, id, icon);
 }
 
-export type Hrefs = (node: SceneNode) => string | null;
+export type Hrefs = (node: SceneNode) => string;
 
 // why: mockup `ensureSymbol` (lib/topology.js lines 459-469) — one `<symbol>` per distinct
 // visual; ids are numbers in first-use order, so no type name reaches an id
@@ -84,14 +84,11 @@ export function drawSymbols(
   const symbols: Element[] = [];
   for (const { visual } of nodes) {
     const key = keyOf(visual);
-    if (visual === null || key === null || ids.has(key)) continue;
+    if (ids.has(key)) continue;
     const id = `${prefix}-s-${ids.size}`;
     ids.set(key, id);
     symbols.push(symbolOf(doc, id, visual));
   }
   defs.replaceChildren(...symbols);
-  return (node) => {
-    const key = keyOf(node.visual);
-    return key === null ? null : `#${ids.get(key)}`;
-  };
+  return (node) => `#${ids.get(keyOf(node.visual))}`;
 }

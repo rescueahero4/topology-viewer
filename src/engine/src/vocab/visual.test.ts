@@ -282,11 +282,12 @@ describe("S41 one letters rule", () => {
 });
 
 describe("S44 q-full-vocabulary icons and icon-less types", () => {
-  it("gives 18 icons and 8 profile designs unchanged by the guard", () => {
+  it("gives 17 icons and 9 profile designs unchanged by the guard", () => {
     const { vocab } = resolved(loadFixture("q-full-vocabulary").input);
     const icons = [...vocab.types.values()].filter((t) => "icon" in t.visual);
-    expect(icons).toHaveLength(18);
+    expect(icons).toHaveLength(17);
     const expected: [string, string, string][] = [
+      ["custom_category", "#8a7b5f", "CC"],
       ["classification", "#815937", "CL"],
       ["domain", "#523781", "DM"],
       ["policy", "#813743", "PL"],
@@ -307,6 +308,25 @@ describe("S44 q-full-vocabulary icons and icon-less types", () => {
         ink: designed(vocab, type).ink,
         letters,
       });
+    expect(designed(vocab, "custom_category").ink).toBe("#0f172a");
+  });
+
+  it("ISSUE-009 lets a sent custom_category glyph win over the profile letters", () => {
+    const glyph = "M3 12h18";
+    const { vocab } = resolved({
+      nodes: nodes("custom_category"),
+      types: { custom_category: { glyph } },
+    });
+    expect(designed(vocab, "custom_category")).toStrictEqual({
+      rank: 0,
+      shape: "circle",
+      size: 20,
+      color: "#8a7b5f",
+      colorIn: "#8a7b5f",
+      adjusted: false,
+      ink: "#0f172a",
+      glyph,
+    });
   });
 });
 
