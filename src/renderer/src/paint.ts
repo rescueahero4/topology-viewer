@@ -100,13 +100,18 @@ export function paint(
   const markers = drawMarkers(layers.defs, scene.edges, prefix);
   drawEdges(layers, scene, ends, markers);
   keptHits(layers.hits, scene.edges, pathsOf(scene, ends));
-  drawNodes(layers.nodes, scene.nodes, { hrefOf, labelId, big: lod.big() });
+  drawNodes(layers.nodes, scene.nodes, {
+    hrefOf,
+    labelId,
+    big: lod.big(),
+    lostMark: text.lostMark,
+  });
   bindNodes(layers, pointer);
   showSelection(layers, scene);
   restore(parts, now);
   const node = scene.selection.node;
   drawHalo(layers.focus, node === null ? null : (ends.get(node) ?? null));
-  drawPills(layers.edgeLabels, pillEdges(scene), ends, k);
+  drawPills(layers.edgeLabels, pillEdges(scene), ends, k, text);
   drawFade(layers, scene);
 }
 

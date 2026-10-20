@@ -29,6 +29,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 // why: STORY-003-03 — a scene of nodes only: no edge, no selection
@@ -78,6 +80,7 @@ function node(id: string, over: Partial<SceneNode> = {}): SceneNode {
     more: 0,
     opened: 0,
     faded: false,
+    lost: false,
     room: 0,
     group: null,
     x: 10,

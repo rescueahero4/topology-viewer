@@ -80,6 +80,7 @@ const node = (id: string, x: number, y: number): SceneNode => ({
   more: 0,
   opened: 0,
   faded: false,
+  lost: false,
   group: null,
   x,
   y,

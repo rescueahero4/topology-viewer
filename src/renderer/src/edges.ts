@@ -56,9 +56,12 @@ export function edgePath(
   return `M${s.x},${s.y}L${t.x - (dx / len) * pad},${t.y - (dy / len) * pad}`;
 }
 
+// why: TL-15 — `qt-retired` stays in every state; the `tokens.css` order lets muted win over
+// retired and retired win over the Other dash (mockup `edgeStyle`, lib/topology.js lines 1049-1052)
 function classOf(edge: SceneEdge): string {
-  if (edge.muted) return "qt-edge qt-muted";
-  return edge.dashed ? "qt-edge qt-dashed" : "qt-edge";
+  const base = edge.retired ? "qt-edge qt-retired" : "qt-edge";
+  if (edge.muted) return `${base} qt-muted`;
+  return edge.dashed ? `${base} qt-dashed` : base;
 }
 
 // why: FR-FILTER-6 — a muted edge takes its grey and dots from the `qt-muted` class and has no

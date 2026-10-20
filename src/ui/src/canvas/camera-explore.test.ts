@@ -63,6 +63,8 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 type Run = { graph: Graph; vocab: Vocab; state: CanvasState };

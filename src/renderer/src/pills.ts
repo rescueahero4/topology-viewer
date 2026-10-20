@@ -4,6 +4,7 @@ import { endOf, type At, type Ends } from "./edges";
 import { pickedEdge } from "./highlight";
 import { setColour } from "./marks";
 import type { Scene, SceneEdge, SceneNode } from "./scene";
+import type { RendererText } from "./text";
 
 // why: mockup `renderEdgeLabels` (lib/topology.js lines 1103-1115) — the pill size
 const CHAR_W = 6.4;
@@ -23,10 +24,13 @@ export function pillEdges(scene: Scene): SceneEdge[] {
   );
 }
 
-function fillPill(g: SVGGElement, edge: SceneEdge): void {
+// why: FR-QDIC-5, TL-15 — a retired edge says so in its pill; the width uses the shown text, and
+// the pill is not cut (epic question 23)
+function fillPill(g: SVGGElement, edge: SceneEdge, text: RendererText): void {
   g.replaceChildren();
   const pill = select(g);
-  const w = edge.label.length * CHAR_W + PAD_W;
+  const label = edge.retired ? text.pillRetired(edge.label) : edge.label;
+  const w = label.length * CHAR_W + PAD_W;
   const rect = pill
     .append("rect")
     .attr("x", -w / 2)
@@ -35,7 +39,7 @@ function fillPill(g: SVGGElement, edge: SceneEdge): void {
     .attr("height", PILL_H)
     .attr("rx", PILL_RX);
   setColour(rect.node() as SVGRectElement, "fill", edge.colour);
-  pill.append("text").attr("y", 0.5).text(edge.label);
+  pill.append("text").attr("y", 0.5).text(label);
 }
 
 // why: mockup `mid` and `placeOverlays` (lib/topology.js lines 1090-1101) — a pill sits halfway
@@ -77,12 +81,13 @@ export function drawPills(
   edges: readonly SceneEdge[],
   ends: Ends,
   k: number,
+  text: RendererText,
 ): void {
   select(layer)
     .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
     .data(edges, (e) => e.key)
     .join("g")
     .attr("class", "qt-elabel")
-    .each((e, i, groups) => fillPill(groups[i], e));
+    .each((e, i, groups) => fillPill(groups[i], e, text));
   scalePills(layer, ends, k);
 }

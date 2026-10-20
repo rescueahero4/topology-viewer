@@ -42,6 +42,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `action(${label}, ${muted}, ${count})`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 const SUB = "Snowflake · Table";
@@ -68,6 +70,7 @@ function node(id: string, over: Partial<SceneNode> = {}): SceneNode {
     more: 0,
     opened: 0,
     faded: false,
+    lost: false,
     room: 0,
     group: null,
     x: 0,
@@ -97,6 +100,7 @@ function edge(key: string, over: Partial<SceneEdge>): SceneEdge {
     label: "ownedBy",
     colour: "#2e9d6a" as Hex,
     muted: false,
+    retired: false,
     structure: false,
     dashed: false,
     count: 1,

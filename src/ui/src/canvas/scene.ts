@@ -23,6 +23,7 @@ import {
   type SceneNode,
 } from "@qdic-topology/renderer";
 import { edgeStyles, guarded, type EdgeStyle } from "./edgeColours";
+import { middleCut } from "./labels";
 import { roomsOf, typesOf } from "./sceneBubbles";
 
 export type SceneInput = {
@@ -35,24 +36,11 @@ export type SceneInput = {
 type Box = { w: number; h: number; tier: Tier | "node" };
 type Visual = SceneNode["visual"];
 
-// why: mockup `opts.labelChars` (lib/topology.js line 424), the engine `LABEL_CHARS` of
-// `layout/drawn.ts:37`; STORY-003-08 replaces the end cut with the middle truncation
-const LABEL_CHARS = 22;
 // why: mockup `iconFor` fallback (lib/topology.js line 306), the engine `boxOf` rank-0 box
 const RANK_ZERO: Box = { w: 20, h: 20, tier: "leaf" };
 // why: epic question 12, TL-9 — the subtitle reads only this slot entry
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
-
-// why: mockup `truncate` (lib/topology.js line 322) in UTF-16 units; a cut never leaves a lone
-// high surrogate. "…" is a symbol, not UI text
-function cut(label: string): string {
-  if (label.length <= LABEL_CHARS) return label;
-  const high = label.charCodeAt(LABEL_CHARS - 2);
-  const end =
-    high >= 0xd800 && high <= 0xdbff ? LABEL_CHARS - 2 : LABEL_CHARS - 1;
-  return `${label.slice(0, end)}…`;
-}
 
 // why: the scene holds copies, so it keeps no reference into `vocab`
 function visualOf(type: string | null, vocab: Vocab): Visual {
@@ -121,7 +109,8 @@ function nodeOf(
     id: node.id,
     kind: group ? "group" : "entity",
     type: node.type,
-    label: cut(fullLabel),
+    // why: TL-13 — every node name takes the cut, a group label too (mockup line 999)
+    label: middleCut(fullLabel),
     fullLabel,
     typeLabel,
     sub: group ? text.collapsed : subOf(vocab, node.entity, typeLabel),
@@ -135,6 +124,8 @@ function nodeOf(
     more: node.more,
     opened: node.opened,
     group: group ? null : node.group,
+    // why: FR-QDIC-4, TL-14 — an entity with `is_lost: true`; a group node has no lost mark
+    lost: !group && vocab.entities.get(node.entity)?.lost === true,
     faded: input.faded.has(node.id),
     room: input.rooms.get(node.id) ?? 0,
     x: at.x,
@@ -158,6 +149,7 @@ function edgeOf(
     label: predicate.label,
     ...style,
     muted: edge.muted,
+    retired: edge.retired,
     // why: FR-QDIC-5, story question 1 — a group edge counts the links behind it
     count: edge.count,
   };

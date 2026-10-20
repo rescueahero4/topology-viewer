@@ -90,6 +90,7 @@ export {
   type OnCanvas,
 } from "./view/hidden";
 export { bubbleRooms, type Bubble } from "./layout/bubbles";
+export { LABEL_CHARS } from "./layout/drawn";
 export type { IconMetrics, Tier } from "./layout/drawn";
 export { forceConfig, type ForceConfig } from "./layout/force";
 export {

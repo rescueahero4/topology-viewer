@@ -90,6 +90,8 @@ const TEXT = {
   tipEdge: (subject: string, object: string) => `${subject} → ${object}`,
   tipEdgeAction: (label: string) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 const T = 3000;

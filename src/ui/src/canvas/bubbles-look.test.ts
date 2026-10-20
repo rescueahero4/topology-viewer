@@ -51,6 +51,8 @@ const TEXT = {
   tipEdge: (subject: string, object: string) => `${subject} → ${object}`,
   tipEdgeAction: (label: string) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 function modelOf(input: unknown): CanvasModel {
@@ -198,6 +200,7 @@ describe("S25 the audit of colours that are not #rrggbb", () => {
       more: 0,
       opened: 0,
       faded: false,
+      lost: false,
       group: null,
       room: 30,
       x,

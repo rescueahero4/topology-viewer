@@ -82,6 +82,7 @@ describe("S33 the exact frontier in canonical order", () => {
           object: "e:b",
           count: 1,
           muted: false,
+          retired: false,
         },
         {
           key: '["e:b","p","e:c"]',
@@ -90,6 +91,7 @@ describe("S33 the exact frontier in canonical order", () => {
           object: "e:c",
           count: 1,
           muted: false,
+          retired: false,
         },
         {
           key: JSON.stringify(["e:a", "q", G]),
@@ -98,6 +100,7 @@ describe("S33 the exact frontier in canonical order", () => {
           object: G,
           count: 2,
           muted: false,
+          retired: false,
         },
         {
           key: '["e:b","q","e:l9"]',
@@ -106,6 +109,7 @@ describe("S33 the exact frontier in canonical order", () => {
           object: "e:l9",
           count: 1,
           muted: false,
+          retired: false,
         },
       ],
     });

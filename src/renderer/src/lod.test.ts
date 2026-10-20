@@ -55,6 +55,8 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 const node = (i: number): SceneNode => ({
@@ -75,6 +77,7 @@ const node = (i: number): SceneNode => ({
   more: 0,
   opened: 0,
   faded: false,
+  lost: false,
   group: null,
   x: (i % 40) * 50,
   y: Math.floor(i / 40) * 50,
@@ -88,6 +91,7 @@ const edge = (s: number, o: number): SceneEdge => ({
   label: "next",
   colour: "#2e9e6a" as Hex,
   muted: false,
+  retired: false,
   structure: false,
   dashed: false,
   count: 1,

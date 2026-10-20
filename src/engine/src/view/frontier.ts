@@ -1,14 +1,13 @@
 import type { Graph } from "../data/normalize";
 import {
-  edgeKey,
   entityDrawnId,
   groupDrawnId,
   type CanvasState,
   type DrawnId,
-  type EdgeKey,
   type Grouping,
 } from "../state/canvasState";
 import type { Vocab } from "../vocab/resolve";
+import { edgesOf, mutedOf, type DrawnEdge } from "./edges";
 import {
   drawnGrouper,
   grouper,
@@ -43,14 +42,7 @@ export type GroupNode = {
 
 export type DrawnNode = EntityNode | GroupNode;
 
-export type DrawnEdge = {
-  key: EdgeKey;
-  subject: DrawnId;
-  predicate: string;
-  object: DrawnId;
-  count: number;
-  muted: boolean;
-};
+export type { DrawnEdge };
 
 export type Frontier = { nodes: DrawnNode[]; edges: DrawnEdge[] };
 
@@ -89,46 +81,6 @@ function moreOf(
     return state.revealed !== null && mask[next] === 0 && off[next] === 0;
   };
   return (entity: number) => top.neighbours[entity].filter(counted).length;
-}
-
-// why: mockup `isMuted` (lib/topology.js line 1047) — a family or predicate filter only styles an
-// edge (FR-FILTER-6)
-function mutedOf(top: Topology, state: CanvasState) {
-  const families = new Set(state.filters.familiesOff);
-  const predicates = new Set(state.filters.predicatesOff);
-  return (predicate: string) => {
-    const family = top.familyOf.get(predicate);
-    return (
-      predicates.has(predicate) ||
-      (family !== undefined && families.has(family))
-    );
-  };
-}
-
-function edgesOf(
-  top: Topology,
-  drawnOf: (DrawnId | null)[],
-  muted: (predicate: string) => boolean,
-) {
-  const edges = new Map<EdgeKey, DrawnEdge>();
-  for (const link of top.links) {
-    const subject = drawnOf[link.subject];
-    const object = drawnOf[link.object];
-    if (subject === null || object === null) continue;
-    const key = edgeKey(subject, link.predicate, object);
-    const edge = edges.get(key);
-    if (edge) edge.count += link.count;
-    else
-      edges.set(key, {
-        key,
-        subject,
-        predicate: link.predicate,
-        object,
-        count: link.count,
-        muted: muted(link.predicate),
-      });
-  }
-  return [...edges.values()];
 }
 
 // why: STORY-003-01 Rule A, mockup `bucket` (lib/topology.js lines 567-570, 2115-2121) — the

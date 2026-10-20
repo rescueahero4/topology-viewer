@@ -29,6 +29,8 @@ export type SceneNode = {
   group: DrawnId | null;
   // why: FR-CANVAS-14, epic hand-off item 16 — the controller sets it from the engine `fadeSet` only
   faded: boolean;
+  // why: FR-QDIC-4, TL-14 — the controller sets it for an entity with `is_lost: true` only
+  lost: boolean;
   // why: STORY-003-01 `bubbleRooms`, epic question 7 — the room of the node in its bubble; 0 when
   // the layout is not `bubbles`
   room: number;
@@ -43,6 +45,8 @@ export type SceneEdge = {
   label: string;
   colour: Hex;
   muted: boolean;
+  // why: owner decision H5, FR-QDIC-5 — the engine `DrawnEdge.retired`
+  retired: boolean;
   structure: boolean;
   dashed: boolean;
   count: number;
