@@ -219,10 +219,9 @@
   display: block;
 }
 
-/* The selected node keeps its labels at each level of detail (FR-CANVAS-13). */
-.qt-root .qt-node.qt-selected .qt-name,
-.qt-root .qt-node.qt-selected .qt-sub {
-  display: block;
+/* why: B7 needs a rule for each class of CLASS_NAMES; the mockup has no CSS for this class,
+   so the rule has no declarations (ISSUE-011). */
+.qt-root .qt-node.qt-selected {
 }
 
 .qt-edge {
