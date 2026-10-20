@@ -195,15 +195,20 @@ describe("S9 the retired style on q-full-vocabulary", () => {
   });
 
   it("tokens.css: the retired dash after the Other dash and before muted", () => {
-    const css = readFileSync(
+    // why: QA re-work R1 — each rule is found as a whole rule at a line start, so a longer
+    // selector does not match; the "\n" in front covers a rule on the first line
+    const css = `\n${readFileSync(
       path.resolve(import.meta.dirname, "../tokens.css"),
       "utf8",
-    );
-    const rule = ".qt-edge.qt-retired {\n  stroke-dasharray: 3 3;\n}";
-    const at = css.indexOf(rule);
-    expect(at).toBeGreaterThan(css.indexOf(".qt-edge.qt-dashed {"));
-    expect(at).toBeLessThan(css.indexOf(".qt-edge.qt-muted {"));
-    expect(css.indexOf(".qt-edge.qt-dashed {")).toBeGreaterThan(-1);
+    )}`;
+    const at = [
+      "\n.qt-edge.qt-dashed {\n  stroke-dasharray: 4 3;\n}",
+      "\n.qt-edge.qt-retired {\n  stroke-dasharray: 3 3;\n}",
+      "\n.qt-edge.qt-muted {\n",
+    ].map((rule) => css.indexOf(rule));
+    expect(at.every((i) => i > -1)).toBe(true);
+    expect(at[0]).toBeLessThan(at[1]);
+    expect(at[1]).toBeLessThan(at[2]);
   });
 });
 
