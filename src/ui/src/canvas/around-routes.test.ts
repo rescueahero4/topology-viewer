@@ -306,3 +306,68 @@ describe("S11 budget and Reset end the grouping in place", () => {
     expect(spy.fits).toBe(1);
   });
 });
+
+// why: QA verification item 3 (plants Q02, Q03) — the longest chain is 3 steps (S10); a call during
+// its first motion puts the last step, the select, in the DOM and leaves no waiting step
+describe("S15 (b) on the 3-step chain of S10", () => {
+  it("a call that draws nothing jumps to the select step; one settle, no timer", async () => {
+    const o = await open("s-access");
+    group(o, ROOT);
+    spy.draws = [];
+    const settles = o.log.settle.length;
+    o.canvas.focus("ds_snow");
+    vi.advanceTimersByTime(48);
+    expect(spy.draws.map((d) => d.motion.kind)).toEqual(["local"]);
+    o.canvas.setFilters({ kind: "none" } as never);
+    vi.advanceTimersByTime(T);
+    expect(spy.draws.map((d) => d.motion.kind)).toEqual(["local", "none"]);
+    expect(spy.draws[1].scene.selection.node).toBe("e:ds_snow");
+    expect(spy.draws[1].scene.nodes.some((n) => n.faded)).toBe(false);
+    expect(o.log.settle.length - settles).toBe(1);
+    expect(o.state().around).toBeNull();
+    expect(o.state().selection).toEqual({ node: "e:ds_snow" });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+// why: QA verification item 3 (plants Q08, Q09), Context "Routing while grouped" — the effect step
+// takes the rule (3) motion kind and the `starts` and `retractTo` of `r.placed`, with no anchor
+describe("the motion of the effect step of an exit", () => {
+  it("exit 10 collapse: the glide home, then motion collapse with the retractTo of r.placed", async () => {
+    const o = await open("s-access");
+    o.canvas.expand("e:ug_fin_admin");
+    vi.advanceTimersByTime(T);
+    group(o, "e:t_FCT_PIPELINE");
+    const r = exitOf(o, {
+      kind: "action",
+      action: { kind: "collapse", id: "ug_fin_admin" },
+    });
+    expect(r.steps).toHaveLength(2);
+    expect(r.placed?.retractTo.length ?? 0).toBeGreaterThan(0);
+    spy.draws = [];
+    o.canvas.collapse("e:ug_fin_admin");
+    vi.advanceTimersByTime(T);
+    expect(spy.draws.map((d) => d.motion.kind)).toEqual(["local", "collapse"]);
+    expect(spy.draws[0].motion.retractTo).toEqual([]);
+    expect(spy.draws[1].motion.retractTo).toEqual(r.placed?.retractTo);
+    expect(spy.draws[1].motion.starts).toEqual(r.placed?.starts);
+  });
+
+  it("exit 10 explore (S42): the glide home, then motion local with the starts of r.placed", async () => {
+    const o = await open("s-access");
+    group(o, "e:ug_exec");
+    const r = exitOf(o, {
+      kind: "action",
+      action: { kind: "explore", id: "u_12" },
+    });
+    expect(r.steps).toHaveLength(2);
+    expect(r.placed?.starts.length ?? 0).toBeGreaterThan(0);
+    spy.draws = [];
+    o.canvas.expand("e:u_12");
+    vi.advanceTimersByTime(T);
+    expect(spy.draws.map((d) => d.motion.kind)).toEqual(["local", "local"]);
+    expect(spy.draws[0].motion.starts).toEqual([]);
+    expect(spy.draws[1].motion.starts).toEqual(r.placed?.starts);
+    expect(spy.draws[1].motion.anchor).toBeNull();
+  });
+});

@@ -227,6 +227,23 @@ describe("S1 groupAroundRoot(true) on the s-access first view", () => {
   });
 });
 
+// why: QA verification item 3 (plant Q41) — the draw of the arrange keeps the hit paths of the
+// earlier viewport; the kept hit path of a faded edge gets qt-off at once, not at the motion end
+describe("S1 a kept hit path during the arrange motion", () => {
+  it("32 ms after groupAroundRoot(true) the hit path of the faded edge has qt-off", async () => {
+    const o = await open("s-access");
+    const hit = () =>
+      [...o.div.querySelectorAll("path.qt-ehit")].find(
+        (p) => datum(p).key === FADED_EDGE,
+      );
+    expect(hit()?.classList.contains("qt-off")).toBe(false);
+    o.canvas.groupAroundRoot(true);
+    vi.advanceTimersByTime(32);
+    expect(o.log.settle).toHaveLength(1);
+    expect(hit()?.classList.contains("qt-off")).toBe(true);
+  });
+});
+
 describe("S2 groupAroundRoot(false) after S1", () => {
   it("one glide home to the exact positions, equal sets, no qt-off, then fit() of all nodes", async () => {
     const o = await open("s-access");
