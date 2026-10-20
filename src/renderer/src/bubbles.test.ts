@@ -195,8 +195,23 @@ describe("S11 members that are not finite or out of the bound", () => {
         node({ id: "e:h1", type: "huge", x: 1e120, room: 1e119 }),
         node({ id: "e:h2", type: "huge", x: 0, y: 1e120, room: 2e119 }),
         node({ id: "e:h3", type: "huge", x: -1e120, y: -5e119, room: 3e119 }),
+        // why: QA R3 — one term out of the bound: only `y`, only `room`, and a room below 0
+        good("e:y1", "yout", 900),
+        node({ id: "e:y2", type: "yout", x: 900, y: 1e120, room: 20 }),
+        good("e:r1", "rout", 1200),
+        node({ id: "e:r2", type: "rout", x: 1300, room: 1e120 }),
+        good("e:g1", "neg", 1500),
+        node({ id: "e:g2", type: "neg", x: 1800, room: -5 }),
       ],
-      [type("nan", "N"), type("inf", "I"), type("big", "B"), type("huge", "H")],
+      [
+        type("nan", "N"),
+        type("inf", "I"),
+        type("big", "B"),
+        type("huge", "H"),
+        type("yout", "Y"),
+        type("rout", "R"),
+        type("neg", "G"),
+      ],
     );
     const m = mount(scene);
     const cs = circles(m.div).map((c) => [
@@ -208,8 +223,13 @@ describe("S11 members that are not finite or out of the bound", () => {
       [0, 0, 20],
       [300, 0, 20],
       [600, 0, 20],
+      [900, 0, 20],
+      [1200, 0, 20],
+      [1500, 0, 20],
     ]);
-    expect(pills(m.div).map((p) => texts(p)[0])).toEqual(["N", "I", "B"]);
+    expect(pills(m.div).map((p) => texts(p).join(""))).toEqual(
+      ["N", "I", "B", "Y", "R", "G"].map((t) => `${t} · 1`),
+    );
     expect(m.reports).toEqual([]);
   }, 5000);
 });

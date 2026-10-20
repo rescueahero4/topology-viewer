@@ -35,7 +35,8 @@ vi.stubGlobal("ResizeObserver", Observer);
 HTMLElement.prototype.getBoundingClientRect = () =>
   ({ left: 0, top: 0, width: 800, height: 600 }) as DOMRect;
 
-// why: the setup of `bubbles-stuck.test.ts` with the two plants of S26 and S29 (`bad`, `steps`)
+// why: the setup of `bubbles-stuck.test.ts` with the plant of S26 (`bad`); S29 is in
+// `bubbles-second.test.ts`
 const TEXT = {
   canvasName: "Topology canvas",
   bubbleCount: (n: number) => ` · ${n}`,
@@ -76,7 +77,7 @@ const SCENE: Scene = {
 };
 
 type Positions = [DrawnId, Point][];
-type Plant = { bad?: Point; steps?: Positions[] };
+type Plant = { bad?: Point };
 function mount(plant: Plant = {}) {
   const calls = {
     start: [] as (string | null)[],
@@ -102,7 +103,7 @@ function mount(plant: Plant = {}) {
   const drag: DragHandlers = {
     start: () => (calls.dstart++, true),
     frame: (p) => (calls.dframe++, [["e:n", p]]),
-    end: () => (calls.dend++, plant.steps ?? []),
+    end: () => (calls.dend++, []),
   };
   const div = document.createElement("div");
   document.body.appendChild(div);
@@ -129,13 +130,6 @@ const mouse = (type: string, x: number, buttons = 1) => {
   Object.defineProperty(event, "view", { value: window });
   return event;
 };
-const touch = (type: string, id: number, x: number) => {
-  const event = new Event(type, { bubbles: true, cancelable: true });
-  // why: jsdom has no `Touch` constructor; `d3-drag` reads only these fields
-  const changedTouches = [{ identifier: id, clientX: x, clientY: 300 }];
-  Object.defineProperty(event, "changedTouches", { value: changedTouches });
-  return event;
-};
 const datum = <T>(el: Element) => (el as unknown as { __data__: T }).__data__;
 const pill = (m: Mounted, type = "t") =>
   [...m.div.querySelectorAll("g.qt-blabel")].find(
@@ -149,8 +143,6 @@ const frames = (n = 1) => vi.advanceTimersByTime(16 * n);
 const move = (x: number, buttons = 1) =>
   window.dispatchEvent(mouse("mousemove", x, buttons));
 const up = (x: number) => window.dispatchEvent(mouse("mouseup", x, 0));
-const viewport = (m: Mounted) =>
-  m.div.querySelector("g.qt-viewport")?.getAttribute("transform");
 
 // why: a pill drag of `n` frames of (10, 0) (camera identity, so 10 client px each)
 function pillDrag(m: Mounted, n: number, x0 = 400) {
@@ -239,111 +231,5 @@ describe("S26 points and transforms that are not finite", () => {
     frames();
     expect(m.calls.dframe).toBe(1);
     up(430);
-  });
-});
-
-describe("S29 a second press during a running drag", () => {
-  const second: [
-    string,
-    (m: Mounted) => void,
-    (m: Mounted) => void,
-    "pill" | "node",
-  ][] = [
-    [
-      "(a) a node press during a pill drag",
-      (m) => pillDrag(m, 2),
-      (m) => nodeEl(m, "e:n").dispatchEvent(mouse("mousedown", 500)),
-      "pill",
-    ],
-    [
-      "(b) a pill press during a node drag",
-      (m) => {
-        nodeEl(m, "e:n").dispatchEvent(mouse("mousedown", 400));
-        for (const x of [410, 420]) {
-          move(x);
-          frames();
-        }
-      },
-      (m) => pill(m).dispatchEvent(mouse("mousedown", 500)),
-      "node",
-    ],
-    [
-      "(c) a second press on the same pill",
-      (m) => pillDrag(m, 2),
-      (m) => pill(m).dispatchEvent(mouse("mousedown", 500)),
-      "pill",
-    ],
-  ];
-  it.each(second)(
-    "%s is ignored; the first drag goes on; the camera does not move",
-    (_n, first, press, kind) => {
-      const m = mount();
-      first(m);
-      // why: one running `d3-timer` is 2 fake timers (its frame and its poke interval)
-      const one = vi.getTimerCount();
-      expect(one).toBeGreaterThan(0);
-      const t = viewport(m);
-      const calls = () =>
-        kind === "pill" ? m.calls.move.length : m.calls.dframe;
-      const before = calls();
-      press(m);
-      expect(viewport(m)).toBe(t);
-      move(440);
-      frames();
-      expect(vi.getTimerCount()).toBe(one);
-      move(450);
-      frames();
-      expect(calls()).toBe(before + 2);
-      up(450);
-      expect(viewport(m)).toBe(t);
-      move(500, 0);
-      expect(viewport(m)).toBe(t);
-      expect([m.calls.start.length, m.calls.dstart]).toEqual(
-        kind === "pill" ? [1, 0] : [0, 1],
-      );
-      expect([m.calls.end, m.calls.dend]).toEqual(
-        kind === "pill" ? [1, 0] : [0, 1],
-      );
-    },
-  );
-
-  it("(d) a pill press during a release playback jumps it to its end, then the pill drag runs", () => {
-    const steps: Positions[] = [1, 2, 3].map((i) => [
-      ["e:n", { x: 300 + i, y: i }],
-    ]);
-    const m = mount({ steps });
-    nodeEl(m, "e:n").dispatchEvent(mouse("mousedown", 400));
-    move(410);
-    frames();
-    up(410);
-    frames();
-    pill(m).dispatchEvent(mouse("mousedown", 500));
-    move(510);
-    expect(nodeEl(m, "e:n").getAttribute("transform")).toBe("translate(303,3)");
-    expect(m.calls.move).toHaveLength(0);
-    frames();
-    move(520);
-    frames();
-    expect(m.calls.start).toEqual(["t"]);
-    expect(m.calls.move).toHaveLength(2);
-    up(520);
-  });
-
-  it("(e) two touches before a move: one drag.start, no bubble.start, 1 timer, one drag.end", () => {
-    vi.stubGlobal("navigator", { ...navigator, maxTouchPoints: 1 });
-    const m = mount();
-    nodeEl(m, "e:n").dispatchEvent(touch("touchstart", 1, 400));
-    pill(m).dispatchEvent(touch("touchstart", 2, 600));
-    nodeEl(m, "e:n").dispatchEvent(touch("touchmove", 1, 410));
-    frames();
-    const one = vi.getTimerCount();
-    pill(m).dispatchEvent(touch("touchmove", 2, 610));
-    frames();
-    expect(vi.getTimerCount()).toBe(one);
-    nodeEl(m, "e:n").dispatchEvent(touch("touchend", 1, 410));
-    pill(m).dispatchEvent(touch("touchend", 2, 610));
-    expect([m.calls.dstart, m.calls.start.length, m.calls.dend]).toEqual([
-      1, 0, 1,
-    ]);
   });
 });
