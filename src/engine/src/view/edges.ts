@@ -13,6 +13,8 @@ export type DrawnEdge = {
   object: DrawnId;
   count: number;
   muted: boolean;
+  // why: owner decision H5, FR-QDIC-5 — at least one triple behind the drawn edge is retired
+  retired: boolean;
 };
 
 // why: mockup `isMuted` (lib/topology.js line 1047) — a family or predicate filter only styles an
@@ -41,8 +43,10 @@ export function edgesOf(
     if (subject === null || object === null) continue;
     const key = edgeKey(subject, link.predicate, object);
     const edge = edges.get(key);
-    if (edge) edge.count += link.count;
-    else
+    if (edge) {
+      edge.count += link.count;
+      edge.retired ||= link.retired;
+    } else
       edges.set(key, {
         key,
         subject,
@@ -50,6 +54,7 @@ export function edgesOf(
         object,
         count: link.count,
         muted: muted(link.predicate),
+        retired: link.retired,
       });
   }
   return [...edges.values()];

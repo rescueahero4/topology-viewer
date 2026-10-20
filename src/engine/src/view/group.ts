@@ -15,6 +15,8 @@ export type Link = {
   predicate: string;
   object: number;
   count: number;
+  // why: owner decision H5 — a link is retired when at least one of its triples is retired
+  retired: boolean;
 };
 
 export type Topology = {
@@ -38,13 +40,16 @@ function linksOf(graph: Graph, entityOf: Map<string, number>): Link[] {
       triple.object,
     ]);
     const link = byKey.get(key);
-    if (link) link.count++;
-    else
+    if (link) {
+      link.count++;
+      link.retired ||= triple.retired;
+    } else
       byKey.set(key, {
         subject: entityOf.get(triple.subject) as number,
         predicate: triple.predicate,
         object: entityOf.get(triple.object) as number,
         count: 1,
+        retired: triple.retired,
       });
   }
   return [...byKey.values()];
