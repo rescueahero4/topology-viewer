@@ -62,6 +62,7 @@ const node = (p: Part): SceneNode => ({
   more: 0,
   opened: 0,
   faded: false,
+  lost: false,
   group: null,
   room: 30,
   x: 0,

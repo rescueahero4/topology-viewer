@@ -50,6 +50,9 @@ export const CLASS_NAMES: readonly string[] = [
   "qt-bn",
   "qt-bdrag",
   "qt-bdragging",
+  // why: STORY-003-08 — the lost badge and the retired edge (TL-14, TL-15)
+  "qt-lost",
+  "qt-retired",
 ];
 
 // why: the attributes of the sprite allow-list of `scripts/build-icons.mjs`

@@ -69,6 +69,8 @@ const TEXT = {
   tipEdge: (subject: string, object: string) => `${subject} → ${object}`,
   tipEdgeAction: (label: string) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 function model(): CanvasModel {
   const r = engine.normalize(loadFixture("s-access").input, {

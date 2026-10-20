@@ -58,7 +58,12 @@ export function createTooltip(
     },
     showEdge(edge, subject, object, event) {
       const main = text.tipEdge(subject.fullLabel, object.fullLabel);
-      const sub = text.tipEdgeAction(edge.label, edge.muted, edge.count);
+      const sub = text.tipEdgeAction(
+        edge.label,
+        edge.muted,
+        edge.count,
+        edge.retired,
+      );
       show(main, sub, event, EDGE_LIFT);
     },
     hide() {

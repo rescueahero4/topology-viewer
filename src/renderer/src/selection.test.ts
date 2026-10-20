@@ -43,6 +43,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 function node(id: string, x: number, y: number): SceneNode {
@@ -64,6 +66,7 @@ function node(id: string, x: number, y: number): SceneNode {
     more: 0,
     opened: 0,
     faded: false,
+    lost: false,
     group: null,
     x,
     y,
@@ -79,6 +82,7 @@ function edge(key: string, subject: string, object: string): SceneEdge {
     label: key,
     colour: "#2e9e6a" as Hex,
     muted: false,
+    retired: false,
     structure: false,
     dashed: false,
     count: 1,

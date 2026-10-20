@@ -46,6 +46,8 @@ const TEXT: RendererText = {
   tipEdge: (subject, object) => `${subject} → ${object}`,
   tipEdgeAction: (label) => label,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 // Payload HOSTILE of STORY-003-02 (`attributes.test.ts`).

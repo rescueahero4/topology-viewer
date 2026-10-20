@@ -10,7 +10,16 @@ export interface RendererText {
   tipMore(sub: string, more: number): string;
   tipMember(sub: string): string;
   tipEdge(subjectLabel: string, objectLabel: string): string;
-  tipEdgeAction(label: string, muted: boolean, count: number): string;
+  tipEdgeAction(
+    label: string,
+    muted: boolean,
+    count: number,
+    retired: boolean,
+  ): string;
   // why: FR-CANVAS-15 — the count part of the bubble pill `<Type> · N`, with its separator
   bubbleCount(count: number): string;
+  // why: FR-QDIC-4, TL-14 — the text of the badge of a lost entity
+  lostMark: string;
+  // why: FR-QDIC-5, TL-15 — the predicate pill text of a retired edge
+  pillRetired(label: string): string;
 }

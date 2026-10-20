@@ -43,9 +43,11 @@ const TEXT: RendererText = {
     `${sub} · ${more} more connection${more === 1 ? "" : "s"} · double-click to show`,
   tipMember: (sub) => `${sub} · double-click to collapse`,
   tipEdge: (subject, object) => `${subject} → ${object}`,
-  tipEdgeAction: (label, muted, count) =>
-    `${label}${muted ? " (filtered out)" : ""}${count > 1 ? ` · ${count} links` : ""} · click to select`,
+  tipEdgeAction: (label, muted, count, retired) =>
+    `${label}${muted ? " (filtered out)" : ""}${retired ? " (retired)" : ""}${count > 1 ? ` · ${count} links` : ""} · click to select`,
   bubbleCount: (count) => ` · ${count}`,
+  lostMark: "lost",
+  pillRetired: (label) => `${label} (retired)`,
 };
 const NOW = "2026-10-19";
 const COLOURS: Record<string, Hex> = {
@@ -222,6 +224,7 @@ function builtNode(i: number): SceneNode {
     opened: 0,
     group: null,
     faded: false,
+    lost: false,
     room: 0,
     x: radius * Math.cos(angle),
     y: radius * Math.sin(angle),
@@ -284,7 +287,24 @@ const ACTIONS: Record<string, (o: Open) => void> = {
   showall: (o) => o.canvas.setFilters({ kind: "showAllTypes" }),
   fit: (o) => o.canvas.fit(),
   audit,
+  predicate: (o) => {
+    const predicate = ids()[0] ?? "";
+    const off = o.last?.state.filters.predicatesOff.includes(predicate);
+    o.canvas.setFilters({
+      kind: "togglePredicate",
+      predicate,
+      on: off === true,
+    });
+  },
 };
+
+// why: STORY-003-08 S11 — a predicate filter switch (the predicate key in the id field) for the
+// browser check of the retired style
+const switchButton = document.createElement("button");
+switchButton.id = "predicate";
+switchButton.type = "button";
+switchButton.textContent = "predicate off/on";
+byId<HTMLDivElement>("bar2").appendChild(switchButton);
 
 for (const [id, act] of Object.entries(ACTIONS))
   byId<HTMLButtonElement>(id).addEventListener(

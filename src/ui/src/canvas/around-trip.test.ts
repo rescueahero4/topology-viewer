@@ -31,6 +31,7 @@ const TEXT = {
   unknownType: "Unknown",
   canvasName: "Topology canvas",
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
 } as RendererText;
 
 function mulberry32(seed: number): () => number {

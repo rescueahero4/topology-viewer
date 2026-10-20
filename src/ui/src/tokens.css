@@ -17,6 +17,8 @@
   --tip-bg: #18181b;
   --tip-text: #ffffff;
   --tip-sub: #a1a1aa;
+  --lost-fill: #fee2e2;
+  --lost-ink: #b91c1c;
 }
 
 .qt-root {
@@ -148,6 +150,22 @@
   dominant-baseline: central;
 }
 
+/* "Lost" (FR-QDIC-4): the count-badge form with the colours of the mockup inspector chip
+   (styles.css line 247). */
+.qt-lost rect {
+  fill: var(--lost-fill);
+  stroke: var(--node-outline);
+  stroke-width: 1;
+}
+
+.qt-lost text {
+  fill: var(--lost-ink);
+  font-size: 10px;
+  font-weight: 500;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
 /* "+N": neighbours that are not on the canvas. */
 .qt-more rect {
   fill: var(--label-halo);
@@ -223,6 +241,12 @@
 /* A family outside the five hue families: dashed. */
 .qt-edge.qt-dashed {
   stroke-dasharray: 4 3;
+}
+
+/* Retired (FR-QDIC-5): the dash of the dimmed edge (mockup lib/topology.js line 113); the colour,
+   the opacity and the arrow stay. After the dash rule, so it wins over the Other dash. */
+.qt-edge.qt-retired {
+  stroke-dasharray: 3 3;
 }
 
 /* Relationship filter off (FR-FILTER-6): the line stays, light grey and dotted; after the dash

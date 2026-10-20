@@ -46,6 +46,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 const LAYOUTS: LayoutName[] = [
   "force",
@@ -137,7 +139,7 @@ describe("S13 hostile payload", () => {
   it("draws the cut label and the letters of the hostile type", () => {
     const hostile = node("e:javascript:alert(1)");
     expect(hostile.querySelector("text.qt-name")?.textContent).toBe(
-      `${"A".repeat(21)}…`,
+      `${"A".repeat(14)}…${"A".repeat(7)}`,
     );
     expect(symbolText("e:javascript:alert(1)")).toBe("HS");
   });

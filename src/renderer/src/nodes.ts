@@ -1,6 +1,6 @@
 import { select, type Selection } from "d3-selection";
 import type { DrawnId, Point } from "@qdic-topology/engine";
-import { drawBadge, drawChip } from "./badges";
+import { drawBadge, drawChip, drawLost } from "./badges";
 import { setColour } from "./marks";
 import type { SceneNode } from "./scene";
 import type { Hrefs } from "./sprite";
@@ -11,6 +11,7 @@ export type NodeContext = {
   hrefOf: Hrefs;
   labelId: (id: DrawnId) => string;
   big: boolean;
+  lostMark: string;
 };
 
 export const translate = (p: Point) => `translate(${p.x},${p.y})`;
@@ -76,6 +77,7 @@ function fillNode(el: SVGGElement, d: SceneNode, ctx: NodeContext): void {
   drawMark(node, d, ctx.hrefOf(d));
   drawLabels(node, d, ctx);
   if (d.kind === "group") drawBadge(node, d);
+  drawLost(node, d, ctx.lostMark);
   drawChip(node, d);
 }
 

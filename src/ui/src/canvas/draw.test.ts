@@ -52,6 +52,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 const GLYPH = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-eE]+$/;
 

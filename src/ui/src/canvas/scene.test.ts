@@ -51,6 +51,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 // why: STORY-003-03 — a scene of nodes only: no edge, no selection
@@ -207,7 +209,7 @@ describe("S18 sceneOf branches", () => {
     expect(nodeIn(run, "e:t1").visual).toEqual({ icon: "table" });
   });
 
-  it("(e) cuts a label at 22 UTF-16 units and never splits a surrogate pair", () => {
+  it("(e) cuts a label of more than 22 clusters in the middle (STORY-003-08)", () => {
     const l22 = "a".repeat(22);
     const l23 = "b".repeat(23);
     const emoji = `${"c".repeat(20)}\u{1F600}de`;
@@ -215,10 +217,12 @@ describe("S18 sceneOf branches", () => {
       tables([{ label: l22 }, { label: l23 }, { label: "" }, { label: emoji }]),
     );
     expect(nodeIn(run, "e:n0").label).toBe(l22);
-    expect(nodeIn(run, "e:n1").label).toBe(`${"b".repeat(21)}…`);
+    expect(nodeIn(run, "e:n1").label).toBe(
+      `${"b".repeat(14)}…${"b".repeat(7)}`,
+    );
     expect(nodeIn(run, "e:n1").fullLabel).toBe(l23);
     expect(nodeIn(run, "e:n2").label).toBe("");
-    expect(nodeIn(run, "e:n3").label).toBe(`${"c".repeat(20)}…`);
+    expect(nodeIn(run, "e:n3").label).toBe(`${"c".repeat(14)}…cccc\u{1F600}de`);
   });
 
   it("(f) takes the subtitle from the first service_name entry", () => {

@@ -28,6 +28,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 
 // why: STORY-003-03 — a scene of nodes only: no edge, no selection
@@ -60,6 +62,7 @@ function symbolOf(visual: Designed): Element {
     more: 0,
     opened: 0,
     faded: false,
+    lost: false,
     group: null,
     x: 0,
     y: 0,

@@ -48,6 +48,8 @@ const TEXT: RendererText = {
   tipEdgeAction: (label, muted, count) =>
     `${label}${muted ? " (filtered out)" : ""} · ${count}`,
   bubbleCount: (n: number) => ` · ${n}`,
+  lostMark: "lost",
+  pillRetired: (label: string) => `${label} (retired)`,
 };
 const ROOT = "e:t_FCT_REVENUE";
 const FIN_ADMIN = '["e:ug_fin_admin","permissionedTo","e:t_FCT_REVENUE"]';

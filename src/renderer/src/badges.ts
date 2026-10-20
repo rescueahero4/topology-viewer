@@ -24,13 +24,27 @@ function pill(g: NodeSelection, width: number, text: string): void {
 }
 
 // why: mockup `badgeSvg` and the group badge (lib/topology.js lines 316-319, 1003-1009)
-export function drawBadge(node: NodeSelection, d: SceneNode): void {
-  const text = badgeText(d.count);
+function topRight(
+  node: NodeSelection,
+  d: SceneNode,
+  name: string,
+  text: string,
+) {
   const g = node
     .append("g")
-    .attr("class", "qt-badge")
+    .attr("class", name)
     .attr("transform", `translate(${d.w / 2 - 6},${-d.h / 2 - 6})`);
   pill(g, Math.max(15, text.length * 6.2 + 9), text);
+}
+
+export function drawBadge(node: NodeSelection, d: SceneNode): void {
+  topRight(node, d, "qt-badge", badgeText(d.count));
+}
+
+// why: FR-QDIC-4, TL-14 — the count-badge form at the top right, where only a group node has a
+// badge; the colours come from the `qt-lost` rules (the inspector chip, mockup styles.css:247)
+export function drawLost(node: NodeSelection, d: SceneNode, text: string) {
+  if (d.kind === "entity" && d.lost) topRight(node, d, "qt-lost", text);
 }
 
 // why: mockup +N chip (lib/topology.js lines 1029-1037); "+" and "−" (U+2212) are symbols, not UI
