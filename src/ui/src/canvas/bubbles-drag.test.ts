@@ -12,6 +12,7 @@ const spy = vi.hoisted(() => ({
   layouts: 0,
   bubble: null as BubbleHandlers | null,
   moves: [] as Point[],
+  ends: 0,
   firstMove: null as Map<string, string | null> | null,
   kinds: [] as string[],
   div: null as Element | null,
@@ -45,7 +46,10 @@ vi.mock("@qdic-topology/renderer", async (importOriginal) => {
           spy.moves.push(v);
           return real.move(type, v);
         },
-        end: () => real.end(),
+        end: () => {
+          spy.ends++;
+          real.end();
+        },
       };
       const r = mod.createRenderer(args[0], { ...args[1], bubble });
       return {
@@ -135,6 +139,7 @@ async function open() {
   const front = () => engine.frontier(last().state, model.graph, model.vocab);
   spy.layouts = 0;
   spy.moves = [];
+  spy.ends = 0;
   spy.firstMove = null;
   spy.kinds = [];
   return { div, canvas, model, log, last, k, front };
@@ -262,6 +267,7 @@ describe("S14 (a) the renderer root leaves the page during a pill drag", () => {
     }).not.toThrow();
     vi.advanceTimersByTime(1000);
     expect(spy.moves).toHaveLength(moves);
+    expect(spy.ends).toBe(0);
     expect(o.log["drag-end"]).toHaveLength(0);
     expect(vi.getTimerCount()).toBe(0);
   });
