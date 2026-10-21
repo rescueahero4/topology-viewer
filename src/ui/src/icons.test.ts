@@ -17,6 +17,33 @@ describe("S26 the lucide notice in icons.ts (owner decision H7)", () => {
     for (const line of block.split("\n")) expect(line).toMatch(/^\/\//);
   });
 
+  // why: Security Done gate 2026-10-21 — the icons of this file that the lucide-static 1.60.0
+  // LICENSE lists as derived from Feather (MIT)
+  it("names each Feather icon of the file", () => {
+    const feather = [
+      "alert-triangle",
+      "arrow-right",
+      "chevron-down",
+      "chevron-up",
+      "chevrons-down",
+      "chevrons-up",
+      "info",
+      "layout",
+      "maximize",
+      "minimize",
+      "search",
+      "upload",
+      "x",
+    ];
+    const list = notice.slice(
+      notice.indexOf("The icons ") + "The icons ".length,
+      notice.indexOf(" come from Feather"),
+    );
+    expect(list.split(/, | and /)).toEqual(feather);
+    for (const name of feather)
+      expect(source).toMatch(new RegExp(`^  "?${name}"?: \\[`, "m"));
+  });
+
   it("holds the lucide ISC notice", () => {
     expect(notice).toContain("lucide");
     expect(notice).toContain("ISC License");
