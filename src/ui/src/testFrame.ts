@@ -14,7 +14,24 @@ type Call = { name: keyof ShellHost; arg: string };
 type Options = Partial<Omit<AppProps, "input" | "host">> & {
   size?: Size;
   reducedMotion?: boolean;
+  storage?: Storage;
 };
+
+// why: STORY-004-07 test plan — every `<App>` test has its own `localStorage`, empty unless the
+// test gives one, so a stored split ratio never goes from one test to the next
+export function memoryStorage(start: Record<string, string> = {}): Storage {
+  const items = new Map(Object.entries(start));
+  return {
+    get length() {
+      return items.size;
+    },
+    key: (index) => [...items.keys()][index] ?? null,
+    getItem: (key) => items.get(key) ?? null,
+    setItem: (key, value) => void items.set(key, String(value)),
+    removeItem: (key) => void items.delete(key),
+    clear: () => items.clear(),
+  };
+}
 
 let frame: Size = { width: 800, height: 600 };
 let sized = new WeakMap<Element, Size>();
@@ -108,6 +125,7 @@ export async function mountApp(input: AppInput, options: Options = {}) {
   const scrolls: Element[] = [];
   const calls: Call[] = [];
   install(options.reducedMotion === true, scrolls);
+  vi.stubGlobal("localStorage", options.storage ?? memoryStorage());
   const root = document.createElement("div");
   document.body.appendChild(root);
   mounted.push(root);

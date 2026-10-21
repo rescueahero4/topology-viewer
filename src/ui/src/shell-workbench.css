@@ -1,0 +1,370 @@
+/* The split and the Workbench: the mockup styles.css lines 398-486 with each colour as a tokens.css
+   name (STORY-004-02 rule 17, B3). The layout changes at once; STORY-004-09 adds the motion on
+   transform (SA §6 row 7). STORY-004-07. */
+.split {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.split > .canvas {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.workbench {
+  flex: 0 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-top: 1px solid var(--zinc-200);
+}
+.split[data-layout="canvas-only"] .workbench {
+  visibility: hidden;
+}
+.wb-handle {
+  flex: none;
+  height: 6px;
+  background: var(--zinc-200);
+  cursor: row-resize;
+  transition: background-color 0.15s;
+  touch-action: none;
+}
+.wb-handle:hover,
+.wb-handle:focus-visible {
+  background: var(--zinc-300);
+  outline: none;
+}
+.split[data-dragging] .wb-handle {
+  background: var(--wb-drag);
+}
+.split[data-layout="canvas-only"] .wb-handle,
+.split[data-layout="table-full"] .wb-handle {
+  display: none;
+}
+.split[data-layout="table-full"] > .canvas {
+  visibility: hidden;
+}
+
+.wb-bar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--zinc-50);
+  border-bottom: 1px solid var(--zinc-200);
+}
+.wb-bar .menu {
+  top: calc(100% + 6px);
+  bottom: auto;
+  left: 0;
+}
+.wb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wb-btn:hover,
+.wb-btn[aria-expanded="true"] {
+  background: var(--zinc-100);
+}
+.wb-btn.active {
+  border-color: var(--zinc-500);
+}
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--zinc-900);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 500;
+}
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--zinc-300);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.seg button {
+  border: 0;
+  padding: 0 10px;
+  height: 26px;
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--zinc-600);
+  cursor: pointer;
+}
+.seg button + button {
+  border-left: 1px solid var(--zinc-200);
+}
+.seg button:hover {
+  background: var(--zinc-100);
+}
+.seg button[aria-checked="true"] {
+  background: var(--zinc-900);
+  color: var(--surface);
+}
+.wb-count {
+  font-size: 11px;
+  color: var(--zinc-500);
+  font-variant-numeric: tabular-nums;
+}
+.wb-search {
+  width: 224px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  color: var(--zinc-900);
+}
+.wb-search:focus {
+  outline: none;
+  border-color: var(--zinc-500);
+}
+.menu .check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+/* why: the Checkbox primitive (P17) is the one control of a mockup check item, so it fills the
+   item and takes the item gap */
+.menu .check-item .check {
+  flex: 1;
+  gap: 8px;
+}
+.menu .check-item:hover {
+  background: var(--zinc-100);
+}
+.menu .check-item .glyph svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.menu .check-item .n {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--zinc-500);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.menu .clear {
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 12px;
+  color: var(--zinc-600);
+  text-align: left;
+  cursor: pointer;
+}
+.menu .clear:hover {
+  background: var(--zinc-100);
+}
+
+.wb-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+.wb-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--zinc-50);
+  border-bottom: 1px solid var(--zinc-200);
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--zinc-500);
+  white-space: nowrap;
+}
+.wb-table thead th button[data-sort] {
+  all: unset;
+  cursor: pointer;
+}
+.wb-table thead th button[data-sort]:hover {
+  color: var(--zinc-700);
+}
+.wb-table thead th button[data-sort]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.wb-table tbody tr.row {
+  height: 36px;
+  border-bottom: 1px solid var(--zinc-100);
+  cursor: pointer;
+}
+.wb-table tbody tr.row:hover {
+  background: var(--zinc-50);
+}
+.wb-table tbody tr.row.is-focus {
+  background: var(--picked);
+  box-shadow: inset 3px 0 0 var(--focus);
+}
+.wb-table td {
+  padding: 6px 12px;
+  vertical-align: middle;
+  white-space: nowrap;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--zinc-700);
+}
+/* why: rule 6 — the mockup spacer cell has `padding:0` inline (app.js line 1082); here it is a rule */
+.wb-table .wb-pad td {
+  padding: 0;
+}
+.wb-table td code {
+  font-size: 12px;
+  color: var(--zinc-500);
+  background: none;
+  padding: 0;
+}
+.wb-table .t-node,
+.wb-table .t-edge,
+.wb-table .fam {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.wb-table .t-node {
+  background: var(--wb-node-tint);
+  color: var(--wb-node-ink);
+}
+.wb-table .t-edge {
+  background: var(--wb-edge-tint);
+  color: var(--wb-edge-ink);
+}
+.wb-table .fam {
+  background: var(--tint);
+  color: var(--ink-700);
+  box-shadow: inset 0 -2px 0 var(--main);
+}
+.wb-table .kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wb-table .kind svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.wb-table .pred {
+  font-style: italic;
+  color: var(--zinc-900);
+}
+.wb-empty {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--zinc-500);
+  font-size: 12px;
+}
+
+.wb-table th.sel,
+.wb-table td.sel {
+  width: 16px;
+  padding-right: 0;
+}
+.wb-table td.sel {
+  cursor: default;
+}
+.wb-table tbody tr.row.is-sel {
+  background: var(--zinc-100);
+}
+.wb-table thead th.wb-bulk {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-700);
+}
+.wb-bulk-in {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 22px;
+}
+.wb-bulk-in .bulk-sel {
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+  color: var(--zinc-900);
+}
+.wb-bulk-in .btn svg {
+  width: 13px;
+  height: 13px;
+}
+/* why: rule 8 — a disabled bulk button keeps its focus and its Tooltip reason, so it is
+   `aria-disabled`; the look of the mockup `.btn:disabled` (styles.css line 482) */
+.wb-bulk-in .btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--surface);
+}
+.wb-bulk-in .bulk-n {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--zinc-900);
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.wb-table thead th .link-btn {
+  all: unset;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--zinc-500);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.wb-table thead th .link-btn:hover {
+  color: var(--zinc-900);
+}
+.wb-table thead th .link-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}

@@ -27,12 +27,14 @@ type Props = {
   checked: boolean;
   partial?: boolean;
   label: ComponentChildren;
-  onChange: (checked: boolean) => void;
+  onChange: (checked: boolean, shift: boolean) => void;
 };
 
-// why: P17 — the one multi-select control; a partly checked box turns all on
+// why: P17 — the one multi-select control; a partly checked box turns all on. STORY-004-07 rule 7
+// — the Shift key goes with the change, so a Workbench tick can take a range
 export function Checkbox({ checked, partial = false, label, onChange }: Props) {
-  const toggle = () => onChange(partial || !checked);
+  const toggle = (event: MouseEvent | KeyboardEvent) =>
+    onChange(partial || !checked, event.shiftKey);
   return (
     <span
       role="checkbox"
@@ -43,7 +45,7 @@ export function Checkbox({ checked, partial = false, label, onChange }: Props) {
       onKeyDown={(event) => {
         if (event.key !== " ") return;
         event.preventDefault();
-        toggle();
+        toggle(event);
       }}
     >
       <CheckMark checked={checked} partial={partial} />
