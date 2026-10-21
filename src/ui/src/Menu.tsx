@@ -1,6 +1,7 @@
 import { signal } from "@preact/signals";
 import type { ComponentChildren, JSX, RefObject } from "preact";
-import { useId, useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
+import { useElementId } from "./ids";
 import { CheckMark } from "./Checkbox";
 import { RadioMark } from "./Radio";
 
@@ -57,7 +58,7 @@ function useOpenMenu(
 export function Menu(props: MenuProps) {
   const { label, name, buttonClass, menuClass, closeOnPick, children } = props;
   const me = useMemo(() => ({}), []);
-  const id = useId();
+  const id = useElementId();
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const open = openMenu.value === me;

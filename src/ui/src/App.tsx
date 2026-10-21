@@ -4,13 +4,8 @@ import type {
   Normalized,
   warningEntries,
 } from "@qdic-topology/engine";
-import {
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "preact/hooks";
+import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useElementId } from "./ids";
 import type { ComponentChildren, RefObject } from "preact";
 import { actionsOf, type Actions } from "./actions";
 import type { CanvasModel } from "./canvas/index";
@@ -247,7 +242,7 @@ export function App(props: AppProps) {
   const { host: graph, canvas, shown } = shell;
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLElement>(null);
-  const workbench = useId();
+  const workbench = useElementId();
   const [open, setOpen] = useState(true);
   const [hiddenOpen, setHiddenOpen] = useState(false);
   useNarrow(root, () => setOpen(false));

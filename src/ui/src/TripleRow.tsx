@@ -1,5 +1,6 @@
 import type { DrawnId, Provenance, Selection } from "@qdic-topology/engine";
-import { useId, useLayoutEffect, useRef } from "preact/hooks";
+import { useLayoutEffect, useRef } from "preact/hooks";
+import { useElementId } from "./ids";
 import type { Actions } from "./actions";
 import type { CanvasModel } from "./canvas/index";
 import { predicateColour } from "./familyLook";
@@ -34,7 +35,7 @@ function End({ ctx, id }: { ctx: RelCtx; id: DrawnId }) {
 // why: rule 6 (mockup app.js line 815) — the arrow goes to the other end: `focus` an entity, or
 // `expand` a group node. The name is a text node, never an attribute (SA §11)
 function GoTo({ ctx, row }: { ctx: RelCtx; row: Relation }) {
-  const id = useId();
+  const id = useElementId();
   const ui = lang.value;
   const other = ctx.nodes.get(row.other);
   const press = (event: MouseEvent) => {

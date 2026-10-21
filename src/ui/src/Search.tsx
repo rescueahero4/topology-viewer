@@ -1,6 +1,7 @@
 import { canvasLookup, matchEntities } from "@qdic-topology/engine";
 import type { RefObject } from "preact";
-import { useEffect, useId, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useElementId } from "./ids";
 import type { Actions } from "./actions";
 import { pickHit, SearchResults, SHOWN } from "./SearchResults";
 import { canvasState, lang, model } from "./state";
@@ -77,7 +78,7 @@ function useLookup(open: boolean) {
 export function Search({ actions }: { actions: Actions }) {
   const ui = lang.value;
   const now = model.value;
-  const id = useId();
+  const id = useElementId();
   const input = useRef<HTMLInputElement>(null);
   const q = useQuery(input);
   const hits = useMemo(
