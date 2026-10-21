@@ -1,6 +1,6 @@
 import { batch, signal } from "@preact/signals";
 import type { RefObject } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useLayoutEffect } from "preact/hooks";
 import type { ShellHost } from "./host";
 import { isField } from "./Search";
 import {
@@ -21,23 +21,46 @@ export const ratio = signal(DEFAULT_RATIO);
 // why: rule 10 (mockup app.js lines 1291-1295) — one step of the handle keys and of `[` `]`
 const STEP = 0.05;
 
+// why: STORY-004-09 rule 1 (SA §6 row 7) — the Workbench slides on `transform` only, so the
+// canvas height changes in one step: at once when the Workbench opens, and one `--panel-dur`
+// after it starts to close; `canvasLayout` is the layout that the canvas height shows
+const PANEL_MS = 300;
+const canvasLayout = signal<Layout>("canvas-only");
+let step: ReturnType<typeof setTimeout> | undefined;
+
+const reducedMotion = () =>
+  typeof matchMedia === "function" &&
+  matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function setLayout(next: Layout): void {
+  clearTimeout(step);
+  const later = next === "canvas-only" && !reducedMotion();
+  batch(() => {
+    layout.value = next;
+    if (!later) canvasLayout.value = next;
+  });
+  if (later)
+    step = setTimeout(() => (canvasLayout.value = "canvas-only"), PANEL_MS);
+}
+
 // why: rule 11 — the stored share is read once, when the App mounts; the App starts canvas-only
 export function startSplit(): void {
+  clearTimeout(step);
   batch(() => {
     layout.value = "canvas-only";
+    canvasLayout.value = "canvas-only";
     ratio.value = readRatio();
   });
 }
 
 // why: rule 9 — `openWorkbench()` opens the split layout for the STORY-004-08 notice action
-export function openWorkbench(): void {
-  layout.value = "split";
-}
+export const openWorkbench = () => setLayout("split");
+
+export const closeWorkbench = () => setLayout("canvas-only");
 
 // why: rule 9 (mockup `toggleWorkbench`, app.js line 1261) — the Dataset button and Ctrl/Cmd+.
-export function toggleWorkbench(): void {
-  layout.value = layout.value === "canvas-only" ? "split" : "canvas-only";
-}
+export const toggleWorkbench = () =>
+  setLayout(layout.value === "canvas-only" ? "split" : "canvas-only");
 
 export const isOpen = () => layout.value !== "canvas-only";
 
@@ -49,23 +72,49 @@ export const layoutFor = (table: boolean): Layout =>
 // fullscreen once; the layout does not wait for the answer, and a refusal changes nothing
 export function expandTable(host: ShellHost): void {
   if (layout.value === "table-full") {
-    layout.value = "split";
+    setLayout("split");
     return;
   }
-  layout.value = "table-full";
+  setLayout("table-full");
   void host.requestDisplayMode("fullscreen").catch(() => undefined);
 }
 
-// why: rule 9 (mockup `setWbLayout`, app.js lines 1246-1257) — the flex-grow share of the canvas and
-// of the Workbench; the layout changes at once (STORY-004-09 adds the motion)
-export function grows(now: Layout, share: number) {
-  if (now === "canvas-only") return { canvas: 1, table: 0 };
-  if (now === "table-full") return { canvas: 0, table: 1 };
-  return { canvas: share, table: 1 - share };
+// why: rule 9 (mockup `setWbLayout`, app.js lines 1246-1257) — the canvas share of the split
+// height; the Workbench takes the rest
+function canvasShare(now: Layout, share: number): number {
+  if (now === "canvas-only") return 1;
+  if (now === "table-full") return 0;
+  return share;
 }
 
-export const canvasGrow = (table: boolean) =>
-  String(grows(layoutFor(table), ratio.value).canvas);
+// why: STORY-004-09 rule 1 — the measured split height; null until the first measure, so the
+// canvas fills the split by its CSS rule before it
+const splitHeight = signal<number | null>(null);
+
+export function canvasStyle(table: boolean) {
+  const height = splitHeight.value;
+  if (height === null) return undefined;
+  const shown = table ? canvasLayout.value : "canvas-only";
+  const px = Math.round(height * canvasShare(shown, ratio.value));
+  return { flex: "none", height: `${px}px` };
+}
+
+export function useSplitHeight(anchor: RefObject<HTMLElement>): void {
+  useLayoutEffect(() => {
+    const split = anchor.current;
+    if (split === null) return;
+    splitHeight.value = split.getBoundingClientRect().height;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries.find((one) => one.target === split);
+      if (entry !== undefined) splitHeight.value = entry.contentRect.height;
+    });
+    observer.observe(split);
+    return () => {
+      observer.disconnect();
+      splitHeight.value = null;
+    };
+  }, [anchor]);
+}
 
 export const tableShare = (share: number) => Math.round((1 - share) * 100);
 

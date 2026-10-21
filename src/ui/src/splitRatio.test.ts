@@ -41,8 +41,9 @@ const press = (root: Element, name: string) => {
 const handle = (root: Element) =>
   root.querySelector(".wb-handle") as HTMLElement;
 const share = (root: Element) => handle(root).getAttribute("aria-valuenow");
-const canvasGrow = (root: Element) =>
-  (root.querySelector("main.canvas") as HTMLElement).style.flexGrow;
+// why: STORY-004-09 rule 1 — split.ts sets the canvas height (split 600 px × the canvas share)
+const canvasHeight = (root: Element) =>
+  (root.querySelector("main.canvas") as HTMLElement).style.height;
 
 async function opened(storage: Storage) {
   const frame = await mountApp(fixtureModel("s-access"), { storage });
@@ -61,10 +62,10 @@ describe("S18 the handle keys and the stored canvas share", () => {
       handle(root).getAttribute("aria-valuemax"),
     ]).toEqual(["20", "80"]);
     expect(share(root)).toBe("40");
-    expect(canvasGrow(root)).toBe("0.6");
+    expect(canvasHeight(root)).toBe("360px");
     for (let i = 0; i < 3; i++) key(handle(root), "ArrowUp");
     expect(share(root)).toBe("55");
-    expect(canvasGrow(root)).toBe("0.45");
+    expect(canvasHeight(root)).toBe("270px");
     expect(storage.getItem(KEY)).toBe("0.45");
     key(handle(root), "ArrowDown");
     expect(share(root)).toBe("50");

@@ -1,0 +1,42 @@
+/* The narrow placement: the mockup styles.css lines 384-396 (max-width: 760px). STORY-004-09 rule 4
+   (FR-CANVAS-17, FR-HOST-2): the App root width sets data-narrow (narrow.ts), not the window, so a
+   narrow chat column gets it. The top and width change at once (rule 1, SA §6 row 7). */
+.shell[data-narrow] .catbar {
+  right: 6px;
+}
+.shell[data-narrow] .tools {
+  top: auto;
+  bottom: 48px;
+  right: 6px;
+}
+.shell[data-narrow] .canvas[data-inspector="expanded"] .tools {
+  transform: none;
+}
+.shell[data-narrow] .canvas[data-inspector="expanded"] .catbar {
+  right: 6px;
+}
+.shell[data-narrow] .search input {
+  width: 120px;
+}
+.shell[data-narrow] .inspector {
+  top: 30%;
+}
+.shell[data-narrow] .inspector[data-state="expanded"] {
+  width: auto;
+  left: 6px;
+}
+.shell[data-narrow] .hidden-panel {
+  top: 30%;
+}
+.shell[data-narrow] .hidden-panel[data-state="expanded"] {
+  width: auto;
+  left: 6px;
+  right: 6px;
+  z-index: 13;
+}
+.shell[data-narrow] .canvas[data-hidden="expanded"] .tools {
+  transform: none;
+}
+.shell[data-narrow] .canvas[data-hidden="expanded"] .catbar {
+  right: 6px;
+}

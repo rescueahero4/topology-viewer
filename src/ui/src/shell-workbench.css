@@ -1,6 +1,7 @@
 /* The split and the Workbench: the mockup styles.css lines 398-486 with each colour as a tokens.css
-   name (STORY-004-02 rule 17, B3). The layout changes at once; STORY-004-09 adds the motion on
-   transform (SA §6 row 7). STORY-004-07. */
+   name (STORY-004-02 rule 17, B3). STORY-004-07. STORY-004-09 rule 1 (SA §6 row 7, H6): the
+   Workbench slides on transform only, not on flex-grow; split.ts sets the canvas height in one
+   step and the Workbench takes the rest of the split. */
 .split {
   flex: 1;
   min-height: 0;
@@ -14,15 +15,16 @@
   overflow: hidden;
 }
 .workbench {
-  flex: 0 1 0;
+  flex: 1 1 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--surface);
   border-top: 1px solid var(--zinc-200);
+  transition: transform var(--panel-dur) var(--panel-ease);
 }
 .split[data-layout="canvas-only"] .workbench {
-  visibility: hidden;
+  transform: translateY(100%);
 }
 .wb-handle {
   flex: none;
@@ -367,4 +369,11 @@
 .wb-table thead th .link-btn:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* why: rule 2, SA §5 Accessibility — no Workbench slide under reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .workbench {
+    transition: none;
+  }
 }

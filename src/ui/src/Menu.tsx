@@ -7,6 +7,13 @@ import { RadioMark } from "./Radio";
 // why: mockup `closeMenus` (app.js lines 444-466) — one menu is open at a time
 const openMenu = signal<object | null>(null);
 
+// why: STORY-004-09 rule 5 (NF-5, f-0019) — the Escape key of the App closes an open menu first
+export function closeMenu(): boolean {
+  if (openMenu.value === null) return false;
+  openMenu.value = null;
+  return true;
+}
+
 type MenuProps = {
   label: ComponentChildren;
   name?: string;
@@ -75,6 +82,7 @@ export function Menu(props: MenuProps) {
         }}
         onKeyDown={(event) => {
           if (event.key !== "Escape") return;
+          event.preventDefault();
           close();
           button.current?.focus();
         }}

@@ -228,9 +228,10 @@
   color: var(--danger);
 }
 
-/* why: ddr-0027 — the toast has the pill entry, so it is off under reduced motion as the focus
-   pill (mockup styles.css line 332) */
+/* why: ddr-0027 — the toast and the DataNotice chip have the pill entry, so it is off under
+   reduced motion as the focus pill (mockup styles.css line 332; STORY-004-09 rule 2) */
 @media (prefers-reduced-motion: reduce) {
+  .data-notice,
   .undo-toast {
     animation: none;
   }

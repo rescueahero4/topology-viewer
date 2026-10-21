@@ -1,5 +1,5 @@
 import type { ComponentChildren, JSX } from "preact";
-import { useId, useState } from "preact/hooks";
+import { useId, useLayoutEffect, useState } from "preact/hooks";
 
 type At = { x: number; y: number };
 // why: STORY-004-05 rules 5, 10 (Security gap 1) — a tip of many lines is a function, so its lines
@@ -27,6 +27,16 @@ function placeOf(event: Event): At {
 
 const made = (tip: TipText) => (typeof tip === "string" ? tip : tip());
 
+// why: STORY-004-09 rule 5 (NF-5) — the Escape key of the App hides a shown tip, also one that
+// shows on hover while the focus is elsewhere, and then does nothing else
+const shownTips = new Set<() => void>();
+
+export function closeTips(): boolean {
+  if (shownTips.size === 0) return false;
+  for (const hide of [...shownTips]) hide();
+  return true;
+}
+
 function body(tip: Shown["tip"]) {
   if (typeof tip === "string") return tip;
   return tip.map((line, i) => (
@@ -42,6 +52,12 @@ function body(tip: Shown["tip"]) {
 export function useTip() {
   const id = useId();
   const [shown, setShown] = useState<Shown | null>(null);
+  useLayoutEffect(() => {
+    if (shown === null) return;
+    const hide = () => setShown(null);
+    shownTips.add(hide);
+    return () => void shownTips.delete(hide);
+  }, [shown]);
   const anchor = (key: string, tip: TipText) => {
     const show = (event: Event) =>
       setShown({ key, tip: made(tip), at: placeOf(event) });
