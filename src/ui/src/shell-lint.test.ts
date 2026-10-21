@@ -1,7 +1,7 @@
-import { readdirSync, rmSync, writeFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import path from "node:path";
 import { ESLint } from "eslint";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 const REPO = path.resolve(import.meta.dirname, "../../..");
 const UI = "packages/ui/src";
@@ -225,6 +225,7 @@ const imports = [
   plant("export * from fixtures", 'export * from "@qdic-topology/fixtures";'),
   plant("./testFrame", side("./testFrame")),
   plant("../testFrame", side("../testFrame"), `${UI}/strings/x.ts`),
+  plant("./testFrame.js", side("./testFrame.js")),
   plant(
     "./shellAudit value",
     'import { shellAudit } from "./shellAudit";\nexport { shellAudit };',
@@ -309,64 +310,77 @@ const PLANTS: Plant[] = [
   ...imports,
   ...packages,
 ];
-const files = PLANTS.map((p, i) => {
-  const dir = path.dirname(p.at);
-  const name = path.basename(p.at).replace(/^x/, `zz-plant-shell-${i}`);
-  return {
-    ...p,
-    file: path.join(REPO, dir, name),
-    text: `${p.text}\nexport {};\n`,
-  };
+// why: QA memo of 2026-10-21 — no plant file is written; each plant is linted as text at the path
+// of a file of its lint scope. Only `src/canvas/` has no `.tsx` file, so that one path is virtual
+// and takes the default project of the type checker
+const HOSTS: Record<string, string> = {
+  [`${UI}/x.tsx`]: `${UI}/App.tsx`,
+  [`${UI}/x.ts`]: `${UI}/state.ts`,
+  [`${UI}/x.test.ts`]: `${UI}/strings.test.ts`,
+  [`${UI}/strings/x.ts`]: `${UI}/strings/index.ts`,
+  [`${UI}/canvas/x.ts`]: `${UI}/canvas/index.ts`,
+  [`${UI}/canvas/x.tsx`]: `${UI}/canvas/zz-plant.tsx`,
+  "packages/renderer/src/x.ts": "packages/renderer/src/typeMark.ts",
+  "packages/fixtures/src/x.ts": "packages/fixtures/src/index.ts",
+  "packages/contract/src/x.ts": "packages/contract/src/index.ts",
+};
+const files = PLANTS.map((p) => ({
+  ...p,
+  file: path.join(REPO, HOSTS[p.at]),
+  text: `${p.text}\nexport {};\n`,
+}));
+
+const eslint = new ESLint({
+  cwd: REPO,
+  overrideConfigFile: path.join(REPO, "scripts", "eslint.config.mjs"),
+  overrideConfig: {
+    languageOptions: {
+      parserOptions: {
+        projectService: { allowDefaultProject: [`${UI}/canvas/*.tsx`] },
+      },
+    },
+  },
 });
+const results: string[][] = [];
+let clean: string[] = [];
 
-let eslint: ESLint;
-let results: ESLint.LintResult[] = [];
-
-beforeAll(async () => {
-  for (const p of files) writeFileSync(p.file, p.text);
-  eslint = new ESLint({
-    cwd: REPO,
-    overrideConfigFile: path.join(REPO, "scripts", "eslint.config.mjs"),
-  });
-  results = await eslint.lintFiles(files.map((p) => p.file));
-}, TIME_OUT);
-
-afterAll(() => {
-  for (const p of files) rmSync(p.file, { force: true });
-});
-
-const errorsOf = (file: string) =>
-  (results.find((r) => path.resolve(r.filePath) === file)?.messages ?? [])
+const errorsOf = (result: ESLint.LintResult | undefined) =>
+  (result?.messages ?? [])
     .filter((m) => m.severity === 2)
     .map((m) => `${m.ruleId}: ${m.message}`);
 
+// why: the clean shell files are linted before the plant texts, because the type checker keeps
+// the last text that it got for a path
+beforeAll(async () => {
+  const shell = readdirSync(path.join(REPO, UI))
+    .filter((name) => /\.tsx?$/.test(name))
+    .map((name) => path.join(REPO, UI, name));
+  const strings = readdirSync(path.join(REPO, UI, "strings")).map((name) =>
+    path.join(REPO, UI, "strings", name),
+  );
+  const tree = await eslint.lintFiles([
+    ...shell,
+    ...strings,
+    path.join(REPO, "scripts", "eslint-shell.mjs"),
+  ]);
+  clean = tree.flatMap((r) =>
+    r.messages.map((m) => `${r.filePath}: ${m.ruleId}: ${m.message}`),
+  );
+  for (const p of files)
+    results.push(
+      errorsOf((await eslint.lintText(p.text, { filePath: p.file }))[0]),
+    );
+}, TIME_OUT);
+
 describe("S16 the shell lint bans", () => {
-  it.each(files.map((p) => [p.name, p.errors, p.file] as const))(
+  it.each(files.map((p, i) => [p.name, p.errors, i] as const))(
     "%s gives %i error",
-    (_name, count, file) => {
-      const errors = errorsOf(file);
-      expect(errors.length, errors.join(" | ")).toBe(count);
+    (_name, count, i) => {
+      expect(results[i].length, results[i].join(" | ")).toBe(count);
     },
   );
 
-  it(
-    "gives no error on the shell files",
-    async () => {
-      const shell = readdirSync(path.join(REPO, UI))
-        .filter((name) => /\.tsx?$/.test(name) && !name.startsWith("zz-plant-"))
-        .map((name) => path.join(REPO, UI, name));
-      const clean = await eslint.lintFiles([
-        ...shell,
-        ...readdirSync(path.join(REPO, UI, "strings"))
-          .filter((name) => !name.startsWith("zz-plant-"))
-          .map((name) => path.join(REPO, UI, "strings", name)),
-        path.join(REPO, "scripts", "eslint-shell.mjs"),
-      ]);
-      const errors = clean.flatMap((r) =>
-        r.messages.map((m) => `${r.filePath}: ${m.ruleId}: ${m.message}`),
-      );
-      expect(errors).toEqual([]);
-    },
-    TIME_OUT,
-  );
+  it("gives no error on the shell files", () => {
+    expect(clean).toEqual([]);
+  });
 });

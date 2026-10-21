@@ -1,7 +1,8 @@
 // why: owner decision H7 (rule 9) — the lucide path data of the mockup (app.js lines 28-69) keeps
 // the notice of its licence. The text below is the LICENSE file of the npm package lucide-static
-// 1.60.0. The icons alert-triangle, chevron-down, chevron-up, chevrons-down, chevrons-up, info,
-// layout, maximize, minimize, search, upload and x come from Feather (the MIT part below);
+// 1.60.0. The icons alert-triangle, arrow-right, chevron-down, chevron-up, chevrons-down,
+// chevrons-up, info, layout, maximize, minimize, search, upload and x come from Feather (the MIT
+// part below);
 // group-root and bubbles are drawn for the mockup (app.js lines 55, 57) and are not lucide icons.
 //
 // ISC License
