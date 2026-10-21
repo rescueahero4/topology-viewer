@@ -1,0 +1,237 @@
+/* The canvas notices, the DataNotice chip and the Undo toast: the mockup styles.css lines 306-318
+   and 343-370, with each colour as a tokens.css name (STORY-004-02 rule 17, B3). STORY-004-08. */
+
+.data-notice {
+  width: max-content;
+  max-width: 100%;
+  font-size: 12px;
+  animation: pill-in var(--panel-dur) var(--panel-ease);
+}
+.data-notice .dn-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 2px 2px 4px;
+}
+.dn-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  color: var(--zinc-900);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dn-toggle:hover {
+  background: var(--zinc-100);
+}
+.dn-toggle > .ic:first-child {
+  color: var(--warn);
+}
+.dn-toggle .chev {
+  width: 12px;
+  height: 12px;
+  color: var(--zinc-500);
+}
+.data-notice[data-state="expanded"] {
+  width: 420px;
+  box-shadow: var(--shadow-pop);
+}
+.dn-body {
+  padding: 4px 12px 12px;
+  border-top: 1px solid var(--zinc-200);
+  color: var(--zinc-600);
+}
+.dn-body p {
+  margin: 8px 0 4px;
+}
+.dn-body ul {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+.dn-body li + li {
+  margin-top: 2px;
+}
+.dn-body .btn {
+  margin-top: 8px;
+}
+
+/* why: rule 6 (H1) — the toast takes the focus-pill form (mockup styles.css lines 321-332); only
+   its action is a button, so the pill itself has no pointer cursor */
+.undo-toast {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(440px, calc(100% - 24px));
+  padding: 4px 6px 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--zinc-700);
+  white-space: nowrap;
+  animation: pill-in var(--panel-dur) var(--panel-ease);
+}
+.undo-toast .fp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--zinc-900);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 500;
+  flex: none;
+  cursor: pointer;
+}
+.undo-toast .fp-act:hover {
+  background: var(--zinc-700);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--zinc-600);
+  background: var(--overlay-bg);
+  padding: 24px;
+}
+.overlay p {
+  margin: 0;
+  max-width: 380px;
+}
+.notice {
+  width: min(440px, 100%);
+  max-height: calc(100% - 96px);
+  overflow-y: auto;
+  padding: 20px 22px;
+  border: 1px solid var(--zinc-200);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  text-align: left;
+  color: var(--zinc-600);
+}
+.notice .notice-ic {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: var(--zinc-100);
+  color: var(--zinc-600);
+}
+.notice .notice-ic svg {
+  width: 16px;
+  height: 16px;
+}
+.overlay[data-state="error"] .notice-ic {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+.notice .overlay-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.notice p {
+  max-width: none;
+}
+.notice code,
+.dn-body code {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--zinc-100);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--zinc-900);
+}
+.notice-sect {
+  margin-top: 12px;
+}
+.notice-h {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 4px !important;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--zinc-500);
+}
+.notice-h .ic {
+  width: 12px;
+  height: 12px;
+}
+.notice-sect ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.notice-sect li + li {
+  margin-top: 3px;
+}
+.notice-ai {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--ai-bg);
+  color: var(--ai-text);
+}
+.notice-ai .notice-h {
+  color: var(--ai-ink);
+}
+.notice-details {
+  margin-top: 12px;
+  font-size: 11px;
+}
+.notice-details summary {
+  cursor: pointer;
+  color: var(--zinc-500);
+}
+.notice-details code {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.notice-actions .btn {
+  margin-top: 0;
+}
+.overlay .btn {
+  margin-top: 10px;
+}
+.overlay-title {
+  color: var(--zinc-900);
+  font-weight: 600;
+  font-size: 13px;
+}
+.overlay[data-state="error"] .overlay-title {
+  color: var(--danger);
+}
+
+/* why: ddr-0027 — the toast has the pill entry, so it is off under reduced motion as the focus
+   pill (mockup styles.css line 332) */
+@media (prefers-reduced-motion: reduce) {
+  .undo-toast {
+    animation: none;
+  }
+}

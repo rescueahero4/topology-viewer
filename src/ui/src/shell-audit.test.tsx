@@ -43,6 +43,7 @@ const state = await import("./state");
 const { en } = await import("./strings/en");
 const { ja } = await import("./strings/ja");
 const { isKey } = await import("./strings/index");
+const { notices } = await import("@qdic-topology/contract");
 
 // why: EPIC-003 success metric 1 — the 32 fixtures less the four with no first view to draw
 const NOT_DRAWN = ["s-invalid", "s-not-graph", "s-noid-all", "s-stress"];
@@ -117,6 +118,15 @@ function modelTexts(input: AppInput): Set<string> {
   );
 }
 
+// why: STORY-004-08 rule 2 (epic metric 1) — a notice shows the code spans of the ja contract text
+// and its code in "Technical details": contract text, not shell text
+const NOTICE_TOKENS = [
+  ...notices.codes,
+  ...Object.values(notices.ja)
+    .flatMap((n) => [n.title, n.body, ...n.user, n.ai])
+    .flatMap((text) => [...text.matchAll(/`([^`]+)`/g)].map((m) => m[1])),
+].map((token) => token.toLowerCase());
+
 function shellPart(part: string, model: Set<string>): boolean {
   const text = part.trim().toLowerCase();
   if (text === "" || model.has(text)) return false;
@@ -133,7 +143,7 @@ describe("S14 the ja text audit", () => {
 
   it.each(DRAWING)("%s shows no en table text in ja", async (key) => {
     const input = fixtureModel(key);
-    const model = modelTexts(input);
+    const model = new Set([...modelTexts(input), ...NOTICE_TOKENS]);
     const frame = await mountApp(input, { lang: "ja" });
     const found = new Set<string>();
     everyPanel(frame.root, () => {

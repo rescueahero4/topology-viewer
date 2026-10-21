@@ -52,6 +52,19 @@ describe("S6 the two string tables", () => {
   });
 });
 
+// why: STORY-004-08 rule 3 — the action labels live in `contract`, which `ui` does not import
+describe("S21 (STORY-004-08) the notice action labels", () => {
+  const names = ["show-types", "reset-view", "retry", "table", "copy"] as const;
+
+  it.each(LANGS)("equal the contract labels in %s", (lang) => {
+    expect(Object.keys(notices.actions[lang]).sort()).toEqual(
+      [...names].sort(),
+    );
+    for (const name of names)
+      expect(t(lang, `action.${name}`)).toBe(notices.actions[lang][name].label);
+  });
+});
+
 describe("S7 langOf", () => {
   it.each([
     ["ja", "ja"],

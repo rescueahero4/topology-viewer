@@ -1,15 +1,19 @@
 import type {
   Budget,
+  CanvasState,
   DrawnId,
   Grouping,
   LayoutName,
 } from "@qdic-topology/engine";
-import type { Canvas } from "./canvas/index";
+import type { AppInput } from "./App";
+import type { Camera, Canvas } from "./canvas/index";
+import { settled, shownInput } from "./state";
 
 export type Actions = {
   setBudget(n: Budget): void;
   resetView(): void;
   setLayout(name: LayoutName): void;
+  showAllTypes(): void;
   toggleType(type: string | null, on: boolean): void;
   toggleFamily(family: string, on: boolean): void;
   togglePredicate(predicate: string, on: boolean): void;
@@ -25,13 +29,36 @@ export type Actions = {
   clearAndFit(): void;
 };
 
+export type Snapshot = {
+  input: Extract<AppInput, { ok: true }>;
+  state: CanvasState;
+  camera: Camera;
+};
+
+// why: STORY-004-08 rule 6 (FR-CANVAS-18, EPIC-003 H8) — the input on the canvas with the state
+// and the camera of its last `settle`; in memory only (Security notes)
+export function snapshotOf(): Snapshot | null {
+  const input = shownInput.value;
+  const last = settled.value;
+  if (input === null || !input.ok || last === null) return null;
+  return { input, state: last.state, camera: last.camera };
+}
+
 // why: rule 1, SA §4.5 — each control of the shell calls one canvas method through this module;
-// there is no `setGrouping` method, so the Grouping change is a filter action
-export function actionsOf(canvas: Canvas): Actions {
+// there is no `setGrouping` method, so the Grouping change is a filter action. STORY-004-08 rule 6
+// — a budget change and a reset first keep the snapshot for the Undo toast
+export function actionsOf(canvas: Canvas, keep: () => void): Actions {
   return {
-    setBudget: (n) => canvas.setBudget(n),
-    resetView: () => canvas.resetView(),
+    setBudget: (n) => {
+      keep();
+      canvas.setBudget(n);
+    },
+    resetView: () => {
+      keep();
+      canvas.resetView();
+    },
     setLayout: (name) => canvas.setLayout(name),
+    showAllTypes: () => canvas.setFilters({ kind: "showAllTypes" }),
     toggleType: (type, on) =>
       canvas.setFilters({ kind: "toggleType", type, on }),
     toggleFamily: (family, on) =>

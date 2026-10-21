@@ -303,3 +303,7 @@ type Part = readonly [string, Readonly<Record<string, string>>];
 export function iconParts(name: IconName): readonly Part[] {
   return ICONS[name];
 }
+
+// why: STORY-004-08 rule 2 — the catalog names the icon of a notice as text
+export const isIcon = (name: string): name is IconName =>
+  Object.hasOwn(ICONS, name);
