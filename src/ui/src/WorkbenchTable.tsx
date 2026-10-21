@@ -50,11 +50,13 @@ function useWindow(scroll: RefObject<HTMLDivElement>, count: number) {
 }
 
 // why: rule 7 (mockup app.js lines 1235-1244) — a canvas selection of an entity that did not come
-// from a table press scrolls its first row into view, a third of the height below the top
+// from a table press scrolls its first row into view, a third of the height below the top. The
+// press keeps the selection that it made, so a press that makes none holds back no later selection
+// (QA Done gate item 1)
 function useFocusScroll(
   scroll: RefObject<HTMLDivElement>,
   rows: readonly Row[],
-  fromTable: { current: boolean },
+  fromTable: { current: Selection | undefined },
   measure: (force: boolean) => void,
 ) {
   const seen = useRef<Selection>(selection.value);
@@ -62,8 +64,8 @@ function useFocusScroll(
   useLayoutEffect(() => {
     if (now === seen.current) return;
     seen.current = now;
-    const pressed = fromTable.current;
-    fromTable.current = false;
+    const pressed = fromTable.current === now;
+    fromTable.current = undefined;
     const entity = focusOf(now);
     const el = scroll.current;
     if (pressed || entity === null || el === null) return;
@@ -250,7 +252,7 @@ export function WorkbenchTable(props: Props) {
   const ui = lang.value;
   const tip = useTip();
   const scroll = useRef<HTMLDivElement>(null);
-  const fromTable = useRef(false);
+  const fromTable = useRef<Selection | undefined>(undefined);
   const { first, last, measure } = useWindow(scroll, rows.length);
   useFocusScroll(scroll, rows, fromTable, measure);
   const focus = focusOf(selection.value);
@@ -269,8 +271,10 @@ export function WorkbenchTable(props: Props) {
               cells={{ ui, vocab, tip, state: states[row.index] }}
               onTick={(shift) => props.onTick(row.index, shift)}
               onPress={() => {
-                fromTable.current = true;
+                const before = selection.peek();
                 props.onPress(row);
+                const after = selection.peek();
+                fromTable.current = after === before ? undefined : after;
               }}
             />
           ))}

@@ -158,6 +158,20 @@ describe("S10 Select all and Clear", () => {
   });
 });
 
+// why: QA Done gate item 4 — the mockup header box (app.js lines 1114, 1140) is named "Clear
+// selection" while rows are ticked, and a press then clears them
+describe("S10 the header box with some rows ticked", () => {
+  it("is named Clear selection and clears", async () => {
+    const { root } = await rangeOf2To6();
+    expect(headBox(root).getAttribute("aria-checked")).toBe("mixed");
+    expect(text(headBox(root))).toBe("Clear selection");
+    click(headBox(root));
+    expect(ticked(root)).toHaveLength(0);
+    expect(root.querySelector(".wb-bulk")).toBeNull();
+    expect(text(headBox(root))).toBe("Select all rows");
+  });
+});
+
 describe("S11 Hide from canvas keeps one node drawn", () => {
   it("counts the drawn nodes less one and sends the 7 drawn ids once", async () => {
     const { root } = await opened();

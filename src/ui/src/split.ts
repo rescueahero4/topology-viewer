@@ -41,6 +41,10 @@ export function toggleWorkbench(): void {
 
 export const isOpen = () => layout.value !== "canvas-only";
 
+// why: QA Done gate item 5 — a fatal input has no Workbench, so the split shows canvas-only
+export const layoutFor = (table: boolean): Layout =>
+  table ? layout.value : "canvas-only";
+
 // why: rule 9, SA §4.3 reading d3 (FR-HOST-2) — each press that opens `table-full` asks the host for
 // fullscreen once; the layout does not wait for the answer, and a refusal changes nothing
 export function expandTable(host: ShellHost): void {
@@ -59,6 +63,9 @@ export function grows(now: Layout, share: number) {
   if (now === "table-full") return { canvas: 0, table: 1 };
   return { canvas: share, table: 1 - share };
 }
+
+export const canvasGrow = (table: boolean) =>
+  String(grows(layoutFor(table), ratio.value).canvas);
 
 export const tableShare = (share: number) => Math.round((1 - share) * 100);
 
@@ -95,10 +102,14 @@ function onSplitKey(event: KeyboardEvent): void {
   stepRatio(event.key === "]");
 }
 
-export function useSplitKeys(anchor: RefObject<HTMLElement>): void {
+export function useSplitKeys(
+  anchor: RefObject<HTMLElement>,
+  table: boolean,
+): void {
   useEffect(() => {
     const doc = anchor.current?.ownerDocument;
+    if (!table) return;
     doc?.addEventListener("keydown", onSplitKey);
     return () => doc?.removeEventListener("keydown", onSplitKey);
-  }, [anchor]);
+  }, [anchor, table]);
 }
