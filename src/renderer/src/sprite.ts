@@ -62,7 +62,11 @@ function keyOf(visual: SceneVisual): string {
   return JSON.stringify(["d", shape, size, color, ink, letters, glyph]);
 }
 
-function symbolOf(doc: Document, id: string, visual: Designed | Icon): Element {
+export function symbolOf(
+  doc: Document,
+  id: string,
+  visual: Designed | Icon,
+): Element {
   if (!("icon" in visual)) return designedSymbol(doc, id, visual);
   const icon = spriteIcon(visual.icon);
   if (icon === undefined)
