@@ -1,5 +1,5 @@
 import type { Lang, LayoutName } from "@qdic-topology/engine";
-import { useId } from "preact/hooks";
+import { useElementId } from "./ids";
 import type { Actions } from "./actions";
 import type { IconName } from "./icons";
 import { Menu, MenuItem } from "./Menu";
@@ -73,7 +73,7 @@ function LayoutItem({
   tip,
   item,
 }: Props & { item: Layout }) {
-  const id = useId();
+  const id = useElementId();
   const text = t(lang, item.tip);
   return (
     <>

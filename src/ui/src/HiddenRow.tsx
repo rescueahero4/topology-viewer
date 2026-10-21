@@ -1,5 +1,5 @@
 import type { DrawnId, Vocab } from "@qdic-topology/engine";
-import { useId } from "preact/hooks";
+import { useElementId } from "./ids";
 import { CheckMark } from "./Checkbox";
 import { lang } from "./state";
 import { t, tAround } from "./strings/index";
@@ -36,7 +36,7 @@ export function HiddenRow({
   onPress,
   onShow,
 }: Props) {
-  const id = useId();
+  const id = useElementId();
   const [before, after] = tAround(lang.value, "hidden.showOne", "name");
   const visual =
     row.type === null ? null : (vocab.types.get(row.type)?.visual ?? null);

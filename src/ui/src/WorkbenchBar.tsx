@@ -1,6 +1,7 @@
 import type { Lang, Vocab } from "@qdic-topology/engine";
 import type { ComponentChildren } from "preact";
-import { useId, useMemo } from "preact/hooks";
+import { useMemo } from "preact/hooks";
+import { useElementId } from "./ids";
 import { Checkbox } from "./Checkbox";
 import { ColumnMenu } from "./ColumnMenu";
 import { Menu } from "./Menu";
@@ -238,7 +239,7 @@ function FilterControls(props: BarProps) {
 // count, the search box, "Expand table" or "Restore split view", and "Close table"
 export function WorkbenchBar(props: BarProps) {
   const { lang: ui, layout } = props;
-  const id = useId();
+  const id = useElementId();
   const full = layout === "table-full";
   return (
     <div class="wb-bar">

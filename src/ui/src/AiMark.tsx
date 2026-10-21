@@ -1,4 +1,4 @@
-import { useId } from "preact/hooks";
+import { useElementId } from "./ids";
 import { lang } from "./state";
 import { t, type Key } from "./strings/index";
 import type { Tip } from "./Tooltip";
@@ -16,7 +16,7 @@ const NAMES: Readonly<Record<Mark["kind"], Key>> = {
 // on hover, on keyboard focus and on a touch press; a second touch press, Escape or blur hides it.
 // No attribute holds the reason
 export function AiMark({ tip, mark }: { tip: Tip; mark: Mark }) {
-  const id = useId();
+  const id = useElementId();
   const ui = lang.value;
   const name = t(ui, NAMES[mark.kind]);
   const reason =
