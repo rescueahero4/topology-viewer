@@ -55,7 +55,7 @@ const LAYOUTS: LayoutName[] = [
   "tree-h",
   "tree-v",
 ];
-// why: EPIC-003 success metric 1 — the 32 fixtures less the four with no first view to draw
+// why: EPIC-003 success metric 1 — the 38 fixtures less the four with no first view to draw
 const NOT_DRAWN = ["s-invalid", "s-not-graph", "s-noid-all", "s-stress"];
 const DRAWING = Object.keys(fixtures)
   .filter((key) => !NOT_DRAWN.includes(key))
@@ -65,9 +65,9 @@ const CASES = DRAWING.flatMap((key) =>
 );
 
 describe("S9 one element per frontier node", () => {
-  it("has the 28 drawing fixtures", () => {
-    expect(Object.keys(fixtures)).toHaveLength(32);
-    expect(DRAWING).toHaveLength(28);
+  it("has the 34 drawing fixtures", () => {
+    expect(Object.keys(fixtures)).toHaveLength(38);
+    expect(DRAWING).toHaveLength(34);
   });
 
   it.each(CASES)("%s in %s", (key, name) => {

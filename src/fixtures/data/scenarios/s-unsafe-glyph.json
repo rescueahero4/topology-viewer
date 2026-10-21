@@ -1,0 +1,56 @@
+{
+  "key": "s-unsafe-glyph",
+  "group": "Node design",
+  "label": "Unsafe glyphs · 4 rejected",
+  "tests": "SA §4.1 glyph rule (T14, Q16): a script tag, a path with a quote and an event attribute, a CSS url and a valid path above 512 characters fall back to letters with glyph-rejected; a valid path is kept.",
+  "graph": {
+    "nodes": [
+      { "id": "n_badge", "type": "badge", "label": "Badge" },
+      { "id": "n_token", "type": "token", "label": "Token" },
+      { "id": "n_link", "type": "link", "label": "Link" },
+      { "id": "n_long", "type": "long", "label": "Long" },
+      { "id": "n_safe", "type": "safe", "label": "Safe" }
+    ],
+    "edges": [
+      { "subject": "n_safe", "predicate": "relatedTo", "object": "n_badge" },
+      { "subject": "n_safe", "predicate": "relatedTo", "object": "n_token" },
+      { "subject": "n_safe", "predicate": "relatedTo", "object": "n_link" },
+      { "subject": "n_safe", "predicate": "relatedTo", "object": "n_long" }
+    ],
+    "types": {
+      "badge": {
+        "label": "Badge",
+        "rank": 2,
+        "glyph": "<script>alert(1)</script>"
+      },
+      "token": {
+        "label": "Token",
+        "rank": 1,
+        "glyph": "M0 0 L10 10\" onload=\"alert(1)"
+      },
+      "link": {
+        "label": "Link",
+        "rank": 1,
+        "glyph": "url(javascript:alert(1))"
+      },
+      "long": {
+        "label": "Long",
+        "rank": 1,
+        "glyph": "M0 0 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1 L1 1"
+      },
+      "safe": { "label": "Safe", "rank": 3, "glyph": "M3 12h18" }
+    },
+    "view": {
+      "approach": "active",
+      "root": "n_safe",
+      "reveal": ["n_badge", "n_token", "n_link", "n_long"]
+    }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "n_safe" },
+    "notice": null,
+    "warnings": { "glyph-rejected": 4 }
+  }
+}
