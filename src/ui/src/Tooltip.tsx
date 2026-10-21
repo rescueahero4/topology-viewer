@@ -68,8 +68,13 @@ export function useTip() {
       onMouseLeave: hide,
       onFocus: show,
       onBlur: hide,
+      // why: STORY-004-09 rule 5 (QA Done gate item 1) — the anchor takes the Escape of its shown
+      // tip, as `Menu` does, so the Escape of the App does not clear the selection after the
+      // render of the hide (a user key press runs the microtasks between the two listeners)
       onKeyDown: (event: KeyboardEvent) => {
-        if (event.key === "Escape") hide();
+        if (event.key !== "Escape" || shown?.key !== key) return;
+        event.preventDefault();
+        hide();
       },
     };
   };

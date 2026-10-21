@@ -123,6 +123,35 @@ describe("S5 Escape closes the open layer first (NF-5, f-0019)", () => {
     expect(root.querySelector(".tip")).toBeNull();
     expect(select).not.toHaveBeenCalled();
   });
+
+  // why: QA Done gate item 1 — a user key press runs the microtasks (the Preact render) between the
+  // anchor listener and the document listener; the test sends the same event to each, with the
+  // render between them
+  it.each([
+    ["the relationships info icon", ".inspector .insp-tabs .info"],
+    ["the Dataset button", ".controls [aria-controls]"],
+  ])(
+    "hides the tip of %s with the focus on it and clears nothing",
+    async (_, at) => {
+      const { root } = await mountApp(fixtureModel("s-access"));
+      const select = vi.spyOn(canvas(), "select");
+      const anchor = root.querySelector(at) as HTMLElement;
+      void act(() => anchor.focus());
+      expect(root.querySelector(".tip")).not.toBeNull();
+      const event = new KeyboardEvent("keydown", {
+        key: "Escape",
+        cancelable: true,
+      });
+      void act(() => void anchor.dispatchEvent(event));
+      expect(root.querySelector(".tip")).toBeNull();
+      void act(() => void document.dispatchEvent(event));
+      expect(select).not.toHaveBeenCalled();
+      expect(selected()).toEqual({ node: "e:t_FCT_REVENUE" });
+      expect(document.activeElement).toBe(anchor);
+      escape();
+      expect(select.mock.calls).toEqual([[null]]);
+    },
+  );
 });
 
 describe("S6 Escape in the search box", () => {
