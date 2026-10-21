@@ -70,59 +70,71 @@ function hoverCells(root: Element): number {
   return cells.length;
 }
 
+// why: ISSUE-012 — this one test walks every panel and takes about 4.4 s alone, near the 5 s
+// default; under the load of the full suite it went above it
+const TIME_OUT = 30_000;
+
 describe("S19 the Workbench on the hostile payload", () => {
-  it("puts no marker into an attribute with each Workbench panel open", async () => {
-    const frame = await mountApp(appInput(hostilePayload()));
-    const { root } = frame;
-    run(() => button(root, "Dataset").click());
-    expect(root.querySelector(".workbench")?.hasAttribute("inert")).toBe(false);
-    visit(root);
-    const shown = textNodes(root).map((node) => node.data);
-    expect(shown.some((data) => data.startsWith(MARKERS[3]))).toBe(true);
-    expect(hoverCells(root)).toBeGreaterThan(20);
-    const search = root.querySelector(".wb-search") as HTMLInputElement;
-    void act(() => {
-      search.value = QUERY;
-      search.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    void act(() => {
-      vi.advanceTimersByTime(200);
-    });
-    expect(
-      root.querySelectorAll(".wb-table tbody tr.row").length,
-    ).toBeGreaterThan(0);
-    visit(root);
-    const sortName = [
-      ...root.querySelectorAll<HTMLElement>(".wb-table thead th button"),
-    ].find((b) => text(b) === "Name");
-    run(() => sortName?.click());
-    expect(
-      root.querySelector(".wb-table thead th[aria-sort=ascending]"),
-    ).not.toBeNull();
-    visit(root);
-    for (const name of ["Kind", "Family", "Columns"]) {
-      run(() => button(root, name).click());
+  it(
+    "puts no marker into an attribute with each Workbench panel open",
+    async () => {
+      const frame = await mountApp(appInput(hostilePayload()));
+      const { root } = frame;
+      run(() => button(root, "Dataset").click());
+      expect(root.querySelector(".workbench")?.hasAttribute("inert")).toBe(
+        false,
+      );
       visit(root);
-    }
-    const keys = [
-      ...(button(root, "Columns").nextElementSibling?.querySelectorAll(
-        "[role=menuitemcheckbox] .nm",
-      ) ?? []),
-    ];
-    const hostile = keys.filter((el) => text(el).startsWith(MARKERS[3]));
-    expect(hostile).toHaveLength(1);
-    expect([...hostile[0].childNodes].map((node) => node.nodeType)).toEqual([
-      Node.TEXT_NODE,
-    ]);
-    run(() => button(root, "Columns").click());
-    run(() =>
-      root.querySelector<HTMLElement>(".wb-table thead th.sel .check")?.click(),
-    );
-    expect(root.querySelector(".wb-bulk")).not.toBeNull();
-    for (const el of root.querySelectorAll(".wb-bulk .btn")) {
-      void act(() => void el.dispatchEvent(new MouseEvent("mouseenter")));
+      const shown = textNodes(root).map((node) => node.data);
+      expect(shown.some((data) => data.startsWith(MARKERS[3]))).toBe(true);
+      expect(hoverCells(root)).toBeGreaterThan(20);
+      const search = root.querySelector(".wb-search") as HTMLInputElement;
+      void act(() => {
+        search.value = QUERY;
+        search.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      void act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(
+        root.querySelectorAll(".wb-table tbody tr.row").length,
+      ).toBeGreaterThan(0);
       visit(root);
-    }
-    expect(frame.calls).toEqual([]);
-  });
+      const sortName = [
+        ...root.querySelectorAll<HTMLElement>(".wb-table thead th button"),
+      ].find((b) => text(b) === "Name");
+      run(() => sortName?.click());
+      expect(
+        root.querySelector(".wb-table thead th[aria-sort=ascending]"),
+      ).not.toBeNull();
+      visit(root);
+      for (const name of ["Kind", "Family", "Columns"]) {
+        run(() => button(root, name).click());
+        visit(root);
+      }
+      const keys = [
+        ...(button(root, "Columns").nextElementSibling?.querySelectorAll(
+          "[role=menuitemcheckbox] .nm",
+        ) ?? []),
+      ];
+      const hostile = keys.filter((el) => text(el).startsWith(MARKERS[3]));
+      expect(hostile).toHaveLength(1);
+      expect([...hostile[0].childNodes].map((node) => node.nodeType)).toEqual([
+        Node.TEXT_NODE,
+      ]);
+      run(() => button(root, "Columns").click());
+      run(() =>
+        root
+          .querySelector<HTMLElement>(".wb-table thead th.sel .check")
+          ?.click(),
+      );
+      expect(root.querySelector(".wb-bulk")).not.toBeNull();
+      for (const el of root.querySelectorAll(".wb-bulk .btn")) {
+        void act(() => void el.dispatchEvent(new MouseEvent("mouseenter")));
+        visit(root);
+      }
+      expect(frame.calls).toEqual([]);
+    },
+    TIME_OUT,
+  );
 });

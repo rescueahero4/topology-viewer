@@ -22,7 +22,12 @@ export {
   type NoticeEntry,
 } from "./data/notices";
 export { canvasColor, type Hex, type Rgb } from "./vocab/colors";
-export type { Family, Provenance, ResolvedPredicate } from "./vocab/predicates";
+export {
+  fold,
+  type Family,
+  type Provenance,
+  type ResolvedPredicate,
+} from "./vocab/predicates";
 export {
   containerPath,
   entitySlots,
@@ -43,6 +48,7 @@ export { guardColor, type Designed, type Visual } from "./vocab/visual";
 export {
   edgeKey,
   entityDrawnId,
+  entityOfDrawnId,
   groupDrawnId,
   groupKey,
   groupParts,
@@ -100,7 +106,7 @@ export {
   type HideResult,
   type OnCanvas,
 } from "./view/hidden";
-export { canvasLookup, type CanvasLookup } from "./view/lookup";
+export { canvasLookup, entityOfRecord, type CanvasLookup } from "./view/lookup";
 export { matchEntities } from "./view/search";
 export { bubbleRooms, type Bubble } from "./layout/bubbles";
 export { LABEL_CHARS } from "./layout/drawn";

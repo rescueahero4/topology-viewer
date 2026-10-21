@@ -175,7 +175,7 @@ describe("S3 the catalog metadata of s-access", () => {
       "Updated",
       "Link",
     ]);
-    expect(text(cell(list, "Type"))).toBe("Table");
+    expect(text(cell(list, "Type"))).toBe("Table[system]");
     expect(values(cell(list, "Physical name"))).toEqual(["FCT_REVENUE"]);
     expect(values(cell(list, "Logical name"))).toEqual(["Revenue fact"]);
     expect(text(cell(list, "Owners"))).toBe(

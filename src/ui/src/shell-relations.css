@@ -179,6 +179,26 @@
   color: var(--zinc-500);
   flex: none;
 }
+/* why: ISSUE-012 C3 (mockup styles.css line 266) — the member count of a group end; the colours
+   come from tokens (B3) */
+.triple .cnt {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pill-text);
+  background: var(--badge);
+  border-radius: 999px;
+  padding: 0 5px;
+  line-height: 14px;
+}
+/* why: FR-VOC-3, ISSUE-012 C7 — the triple tag (mockup styles.css line 265) on the inspector Type
+   row and in the table, with no auto margin in a text line (LEARNINGS 38) */
+.facts .prov,
+.wb-table .prov {
+  padding-left: 6px;
+  font-size: 10px;
+  color: var(--zinc-500);
+}
 .triple .goto {
   width: 20px;
   height: 20px;

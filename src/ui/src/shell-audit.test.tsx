@@ -121,6 +121,29 @@ describe("S14 the ja text audit", () => {
     expect([...found]).toEqual([]);
   });
 
+  // why: ISSUE-012 C5 (STORY-004-03 QA memo item 4) — no fixture has more than ten families, so
+  // this payload with eleven makes the Families picker for the audit
+  it("shows no en table text in ja with the Families picker", async () => {
+    const edges = Array.from({ length: 11 }, (_, i) => ({
+      subject: "a",
+      predicate: `p${i}`,
+      object: "b",
+    }));
+    const predicates = Object.fromEntries(
+      edges.map((edge, i) => [edge.predicate, { category: `c${i}` }]),
+    );
+    const nodes = [{ id: "a" }, { id: "b" }];
+    const input = appInput({ nodes, edges, predicates });
+    const frame = await mountApp(input, { lang: "ja" });
+    expect(frame.root.querySelector(".fam-tabs .pick-btn")).not.toBeNull();
+    const found = new Set<string>();
+    everyPanel(frame.root, () => {
+      for (const item of enTexts(frame.root, modelTexts(input)))
+        found.add(item);
+    });
+    expect([...found]).toEqual([]);
+  });
+
   // why: QA plants x17 and x18 — an `en` word of the tables in the Types button or the Layout
   // heading, or in a `code` element outside a notice, is found
   it("finds an en table word outside the code of a notice", async () => {

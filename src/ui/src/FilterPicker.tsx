@@ -1,9 +1,10 @@
-import type {
-  FamilyRow,
-  Lang,
-  PredicateRow,
-  Stats,
-  Vocab,
+import {
+  fold,
+  type FamilyRow,
+  type Lang,
+  type PredicateRow,
+  type Stats,
+  type Vocab,
 } from "@qdic-topology/engine";
 import { useState } from "preact/hooks";
 import type { Actions } from "./actions";
@@ -29,9 +30,6 @@ type Props = {
   vocab: Vocab;
   rows: Stats;
 };
-
-// why: the mockup search (app.js line 343) with the engine `fold` rule (NFC, lower case)
-export const fold = (text: string) => text.normalize("NFC").toLowerCase();
 
 const TEXTS = {
   families: {

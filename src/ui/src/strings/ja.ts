@@ -6,7 +6,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   typesMenu: "タイプメニュー",
   datasetTable: "データセット表",
   unknownType: "不明",
-
   "type.database": "データベース",
   "type.schema": "スキーマ",
   "type.table": "テーブル",
@@ -33,7 +32,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "type.model": "モデル",
   "type.keyword": "キーワード",
   "type.bk": "ソースファイル",
-
   "family.Structure": "構造",
   "family.Lineage": "リネージ",
   "family.Reference": "参照",
@@ -41,7 +39,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "family.Ownership & Access": "所有とアクセス",
   "family.Other": "その他",
   "family.Custom": "カスタム",
-
   "slot.physical_name": "物理名",
   "slot.logical_name": "論理名",
   "slot.description": "説明",
@@ -55,24 +52,20 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "slot.asset_groups": "アセットグループ",
   "slot.updated": "更新日時",
   "slot.link": "リンク",
-
   "group.Catalog structure": "カタログ構造",
   "group.People & access": "ユーザーとアクセス",
   "group.Tagging": "タグ付け",
   "group.Annotation concepts": "注釈の概念",
   "group.Custom": "カスタム",
-
   "provenance.system": "システム",
   "provenance.custom": "カスタム",
   "provenance.inferred": "推定",
-
   "eye.drawn": "キャンバスに描画されています",
   "eye.notDrawn":
     "描画されていません。行をクリックするとキャンバスに追加します",
   "eye.hidden": "キャンバスで非表示です。行をクリックすると再表示します",
   "eye.faded": "ルートの周りにグループ化で薄く表示されています",
   "eye.fadedTip": "薄く表示",
-
   "canvas.name": "トポロジーグラフ",
   "canvas.group": "{type}",
   "canvas.collapsed": "折りたたみ",
@@ -88,9 +81,7 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "canvas.bubbleCount": " · {count}",
   "canvas.lost": "消失",
   "canvas.pillRetired": "{label}（廃止）",
-
   default: "既定",
-
   "scope.label": "{shown} / {total}",
   "scope.labelAll": "{total} 件のノード",
   "scope.name": "{total} 件中 {shown} 件のノードを描画",
@@ -109,10 +100,9 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "scope.reset": "最初の表示に戻す",
   "scope.noteFirst": "最初の表示",
   "scope.noteAll": "すべてのノード",
-
+  "scope.tip": "キャンバスに描画するデータセットの範囲",
   "types.button": "タイプ",
   "types.heading": "ノードタイプ",
-
   "layout.heading": "レイアウト",
   "layout.tree": "ツリー",
   "layout.force": "フォース",
@@ -128,14 +118,14 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
     "似たノードを、ラベル付きでドラッグできるバブルにまとめます",
   "layout.treeHTip": "データソース → カラム、キュレーションは右",
   "layout.treeVTip": "データソース → カラム、キュレーションは下",
-
   "grouping.heading": "似たノードをまとめる",
   "grouping.atLeast": "{count} 件以上",
   "grouping.off": "オフ",
   "grouping.offNote": "すべてのノードを表示",
   "grouping.button": "グループ {count}+",
   "grouping.buttonOff": "グループ オフ",
-
+  "grouping.tip":
+    "似た兄弟ノードを 1 つにまとめます。ダブルクリックで展開します",
   "catbar.name": "関係のフィルター",
   "catbar.families": "関係のファミリー",
   "catbar.predicates": "述語",
@@ -143,7 +133,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "catbar.predicateTip": "{predicate}: {count} 件のトリプル{custom}",
   "catbar.customPredicate": "（カスタム述語）",
   "catbar.dot": "◆",
-
   "pick.families": "ファミリー",
   "pick.predicates": "述語",
   "pick.count": "{on}/{total}",
@@ -151,9 +140,10 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "pick.searchPredicates": "述語を検索",
   "pick.noFamilies": "「{query}」に一致するファミリーはありません。",
   "pick.noPredicates": "「{query}」に一致する述語はありません。",
-
   "inspector.empty": "ノードをクリックすると詳細を表示します",
   "inspector.root": "ルート",
+  "inspector.rootTip":
+    "選択したノードです。キャンバスはその周辺に注目しています",
   "inspector.collapse": "インスペクターを折りたたむ",
   "inspector.expand": "インスペクターを展開",
   "inspector.type": "種類",
@@ -173,14 +163,12 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "inspector.openLink": "ソースで開く ↗",
   "inspector.yes": "はい",
   "inspector.no": "いいえ",
-
   "ai.badge": "AI",
   "ai.inferred": "AI クライアントが推定",
   "ai.mapped": "AI クライアントがフィールドを対応付け",
   "ai.mappedDefault": "AI クライアントがこのフィールドに対応付け",
   "ai.label": "AI クライアントによるラベル",
   "ai.tip": "{name}: {reason}",
-
   "fact.service_name": "システム",
   "fact.asset_type": "アセットの種類",
   "fact.data_type": "データ型",
@@ -195,7 +183,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "fact.colour": "色",
   "fact.object_type": "オブジェクトの種類",
   "fact.owner": "オーナー",
-
   "relations.counts": "{rows}e {ends}n",
   "relations.countRows": "関係 {count} 件",
   "relations.countEnds": "隣接ノード {count} 件",
@@ -208,6 +195,8 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "relations.noneHere": "この方向の関係はありません。",
   "relations.familyCount": "({count})",
   "relations.prov": "[{prov}]",
+  "relations.provSystem": "Graph Vocabulary のシステム述語",
+  "relations.provCustom": "カスタム述語",
   "relations.goTo": "{name} へ移動",
   "relations.inverse": "{name} · 逆: {inverse}",
   "relations.attr": "{name}: {value}",
@@ -225,7 +214,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
     "すべてのエッジは、許可されたペアリングに一致する必要があります",
   "relations.ruleEnds":
     "カスタムエッジの両端を、どちらもシステム所有にはできません",
-
   "notes.member":
     "類似ノードのグループから展開されました。メンバーをダブルクリックすると折りたたみます。",
   "notes.opened":
@@ -239,7 +227,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "notes.collapse": "折りたたむ",
   "notes.show": "表示",
   "notes.expand": "展開",
-
   "actions.center": "アトミックレイアウトの中心をこのノードにする",
   "actions.centerTip": "リングの中心をこのノードにする",
   "actions.around": "隣接ノードを種類ごとにこのノードの周りにまとめる",
@@ -251,10 +238,11 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "actions.hideTip":
     "キャンバスから非表示 (データセットには残ります。「非表示」から戻せます)",
   "actions.clear": "選択を解除して全体を表示",
-
   "hidden.name": "キャンバスで非表示",
   "hidden.chip": "非表示",
   "hidden.collapse": "非表示の項目を折りたたむ",
+  "hidden.show": "非表示の項目を表示",
+  rangeTip: "Shift キーを押しながらクリックで範囲を選択",
   "hidden.list": "非表示の項目",
   "hidden.together": "{count} 件をまとめて非表示",
   "hidden.stranded": "+隣接ノード {count} 件",
@@ -263,13 +251,12 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "hidden.showSelected": "{count} 件をキャンバスに表示",
   "hidden.showAll": "すべてキャンバスに表示",
   "hidden.showOne": "{name} をキャンバスに表示",
-
   "pill.focused": "{name} に注目",
   "pill.faded": " · 薄く表示 {count} 件",
   "pill.showAll": "すべて表示",
+  nameSep: "、",
   "pill.tip":
     "{name} と隣接ノードだけを表示しています。クリックすると、薄く表示の {count} 件のノードを戻します。",
-
   "search.label": "ノードを検索",
   "search.key": "/",
   "search.more": "ほか {count} 件…",
@@ -278,7 +265,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "search.notDrawn": " · 未描画",
   "search.hidden": " · 非表示",
   "search.faded": " · 薄く表示",
-
   "wb.dataset": "データセット",
   "wb.toggleTip": "データセットを表示 (Ctrl+.)",
   "wb.toggleTipMac": "データセットを表示 (⌘.)",
@@ -287,6 +273,7 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "wb.scopeAll": "すべての行",
   "wb.scopeCanvas": "キャンバス上",
   "wb.scopeHidden": "非表示",
+  "wb.scopeHiddenTip": "キャンバスで非表示にした行",
   "wb.rowType": "行の種類",
   "wb.both": "両方",
   "wb.nodes": "ノード",
@@ -342,7 +329,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "wb.hideTip": "キャンバスから非表示にします。非表示リストに移ります",
   "wb.hideNone": "選択したノードはキャンバス上にありません",
   "wb.selectAll": "{count} 件をすべて選択",
-
   "action.show-types": "すべてのタイプを表示",
   "action.reset-view": "最初の表示に戻す",
   "action.retry": "再試行",

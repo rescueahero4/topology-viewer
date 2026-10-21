@@ -2,9 +2,10 @@ import type { Grouping, Lang } from "@qdic-topology/engine";
 import type { Actions } from "./actions";
 import { Menu, MenuItem } from "./Menu";
 import { t, type Key } from "./strings/index";
+import type { Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 
-type Props = { actions: Actions; lang: Lang; grouping: Grouping };
+type Props = { actions: Actions; lang: Lang; grouping: Grouping; tip: Tip };
 
 // why: mockup grouping menu (index.html lines 124-130) — 2 or more is the default
 const OPTIONS: readonly { grouping: Grouping; note?: Key }[] = [
@@ -21,7 +22,7 @@ function optionText(lang: Lang, grouping: Grouping): string {
 }
 
 // why: FR-CANVAS-2 and the mockup button label (app.js line 485) — "Group 2+" … "Group off"
-export function GroupingMenu({ actions, lang, grouping }: Props) {
+export function GroupingMenu({ actions, lang, grouping, tip }: Props) {
   const label = (
     <>
       <span class="ic">
@@ -36,7 +37,12 @@ export function GroupingMenu({ actions, lang, grouping }: Props) {
     </>
   );
   return (
-    <Menu label={label} buttonClass="ctl-btn" closeOnPick>
+    <Menu
+      label={label}
+      buttonClass="ctl-btn"
+      closeOnPick
+      anchor={tip.anchor("grouping", t(lang, "grouping.tip"))}
+    >
       <p class="menu-label">{t(lang, "grouping.heading")}</p>
       {OPTIONS.map((option) => (
         <MenuItem

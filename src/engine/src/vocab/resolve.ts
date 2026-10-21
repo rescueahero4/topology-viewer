@@ -38,6 +38,7 @@ type TreeRole = NodeType["treeRole"];
 export type ResolvedType = {
   name: string;
   label: string;
+  labelSupplied?: true;
   provenance: Provenance;
   reason?: string;
   declared: boolean;
@@ -174,6 +175,9 @@ function typeEntry(
   return {
     name,
     label: labelOf(name, ctx),
+    // why: SA §4.4 cascade (supplied → system), ISSUE-012 C11 — the shell names a profile type
+    // from its string table only when the payload gave no label
+    ...(sent?.label === undefined ? {} : { labelSupplied: true as const }),
     provenance: provenanceOf(shaped.has(name), row, base?.isSystem),
     ...(reason === undefined ? {} : { reason }),
     declared: isDeclared(name, ctx),

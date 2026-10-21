@@ -53,7 +53,8 @@ import "./shell-narrow.css";
 type NormalizedOk = Extract<Normalized, { ok: true }>;
 
 // why: rule 2, epic question 18 (ISSUE-005) — the caller gives the full warning list, never the
-// `issues`; the shell never shows, copies or stores `fatal.path`
+// `issues`; the shell never shows, copies or stores `fatal.path`. SA §10 guardrail 6 (ISSUE-012
+// C12) — a fatal input can say that it was pasted, so its Undo gives the previous chart back
 export type AppInput =
   | {
       ok: true;
@@ -63,7 +64,7 @@ export type AppInput =
       shaped?: NormalizedOk["shaped"];
       source: "model" | "paste";
     }
-  | { ok: false; fatal: Fatal };
+  | { ok: false; fatal: Fatal; source?: "model" | "paste" };
 
 export type AppProps = {
   input: AppInput;
@@ -209,6 +210,21 @@ function Floating(props: FloatingProps) {
   );
 }
 
+// why: SA §10 guardrail 6 (ISSUE-012 C12) — a pasted fatal input has no canvas and no controls,
+// so the Undo toast of its snapshot stands alone in the status stack
+function LoneToast(props: {
+  undo: ReturnType<typeof useUndo>;
+  remake: Shell["remake"];
+}) {
+  const { snapshot, close } = props.undo;
+  if (snapshot === null) return null;
+  return (
+    <div class="status-stack">
+      <UndoToast snapshot={snapshot} close={close} remake={props.remake} />
+    </div>
+  );
+}
+
 // why: P22, rule 11 — the canvas takes the whole frame; the controls float on it. STORY-004-04
 // rule 1 — the user's collapse choice of the inspector stays across selections (mockup
 // `inspectorOpen`, app.js line 14), and the category bar makes room for the open card (line 138).
@@ -239,9 +255,11 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
     if (!anyHidden) setHiddenOpen(false);
   }, [anyHidden]);
   useEscapeKey(root, actions);
-  useDock(frame);
   const card =
     inspected.value === null ? "empty" : open ? "expanded" : "collapsed";
+  // why: ISSUE-012 C6 — the Inspector mounts a new card element when the floating controls come or
+  // go and when it changes between its empty and its filled card
+  useDock(frame, [actions === null, card === "empty"]);
   return (
     <div ref={root} class="shell" data-theme={theme}>
       <Split {...{ input: shown, host, actions, workbench }}>
@@ -263,6 +281,7 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
               hidden={{ open: hiddenOpen, setOpen: setHiddenOpen }}
             />
           )}
+          {actions === null && <LoneToast undo={undo} remake={shell.remake} />}
         </CanvasFrame>
       </Split>
     </div>

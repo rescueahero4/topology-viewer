@@ -4,7 +4,7 @@ import { AiMark } from "./AiMark";
 import type { FactRow } from "./factRows";
 import { dateText, shownOf, valueText, type Shown } from "./formatValue";
 import type { ShellHost } from "./host";
-import { typeName } from "./names";
+import { provTag, typeName } from "./names";
 import { pathText } from "./namesake";
 import { lang, locale } from "./state";
 import { MISSING, t } from "./strings/index";
@@ -131,7 +131,8 @@ export function SlotFact(props: {
 }
 
 // why: FR-INSPECT-2, FR-QDIC-7 — the display name, "retired" as text, "built-in" in the tip of the
-// name, and the vocabulary description of the type under the row
+// name, and the vocabulary description of the type under the row. FR-VOC-3 (ISSUE-012 C7) — the
+// provenance tag of the triple rows follows the name
 export function TypeFact({
   ctx,
   vocab,
@@ -156,6 +157,9 @@ export function TypeFact({
           </span>
         ) : (
           name
+        )}
+        {type !== undefined && (
+          <span class="prov mono">{provTag(ui, type.provenance)}</span>
         )}
         {type?.retired === true && (
           <span class="status">{t(ui, "inspector.retired")}</span>

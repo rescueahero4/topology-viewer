@@ -10,7 +10,7 @@ import {
   type Triple,
   type Vocab,
 } from "@qdic-topology/engine";
-import { valueText } from "./formatValue";
+import { cutText, TEXT_LIMIT, valueText } from "./formatValue";
 import { typeName } from "./names";
 import { rendererText } from "./rendererText";
 import { MISSING, t } from "./strings/index";
@@ -25,16 +25,11 @@ export type FamilyBlock = { family: string; rows: Relation[] };
 export type Nodes = ReadonlyMap<DrawnId, DrawnNode>;
 
 // why: rule 5 (Security gap 1, LEARNINGS 22) — at most 20 triples give lines, then "N more"; a value,
-// a key and a line stop at 1,000 characters, as the STORY-004-04 value rule
+// a key and a line stop at 1,000 characters, as the STORY-004-04 value rule (`cutText`)
 const LINE_CAP = 20;
-const TEXT_LIMIT = 1000;
-const CUT = "…";
 const PART = " · ";
 // why: STORY-004-01 Rule H — the profile word for "every type" stays `any`; the shell names it
 const ANY = "any";
-
-const cut = (text: string) =>
-  text.length > TEXT_LIMIT ? `${text.slice(0, TEXT_LIMIT - 1)}${CUT}` : text;
 
 export const isGroup = (node: DrawnNode): node is GroupNode =>
   "members" in node;
@@ -121,8 +116,8 @@ function tripleLine(lang: Lang, triple: Triple): string {
   let length = 0;
   const add = (name: string, value: unknown) => {
     const part = t(lang, "relations.attr", {
-      name: cut(name),
-      value: cut(valueText(lang, value)),
+      name: cutText(name),
+      value: cutText(valueText(lang, value)),
     });
     parts.push(part);
     length += part.length + PART.length;
@@ -137,7 +132,7 @@ function tripleLine(lang: Lang, triple: Triple): string {
     add(t(lang, "relations.validFrom"), triple.validFrom);
   if (triple.validTo !== undefined)
     add(t(lang, "relations.validTo"), triple.validTo);
-  return cut(parts.join(PART));
+  return cutText(parts.join(PART));
 }
 
 // why: rule 5 (Implementer item 3) — the triples behind a row have the row predicate and go from

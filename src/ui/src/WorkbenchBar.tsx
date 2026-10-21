@@ -7,6 +7,7 @@ import { Menu } from "./Menu";
 import { familyName, typeName } from "./names";
 import type { Layout } from "./split";
 import { formatted, t, type Key } from "./strings/index";
+import { useTip, type Tip } from "./Tooltip";
 import { TypeGlyph } from "./TypeGlyph";
 import { UiIcon } from "./UiIcon";
 import type { Choice, Column } from "./workbenchColumns";
@@ -112,15 +113,23 @@ function useMenuItems(rows: readonly Row[], vocab: Vocab, ui: Lang) {
   }, [rows, vocab, ui]);
 }
 
+type Option<V extends string> = {
+  value: V;
+  label: ComponentChildren;
+  tip?: string;
+};
 type SegProps<V extends string> = {
   name: string;
   value: V;
-  options: readonly { value: V; label: ComponentChildren }[];
+  options: readonly Option<V>[];
+  tip: Tip;
   onPick: (value: V) => void;
 };
 
-// why: the mockup `.seg` radio groups (index.html lines 184-193)
-function Seg<V extends string>({ name, value, options, onPick }: SegProps<V>) {
+// why: the mockup `.seg` radio groups (index.html lines 184-193) and the tip of the Hidden
+// option (line 187)
+function Seg<V extends string>(props: SegProps<V>) {
+  const { name, value, options, tip, onPick } = props;
   return (
     <div class="seg" role="radiogroup" aria-label={name}>
       {options.map((option) => (
@@ -130,6 +139,9 @@ function Seg<V extends string>({ name, value, options, onPick }: SegProps<V>) {
           role="radio"
           aria-checked={option.value === value}
           onClick={() => onPick(option.value)}
+          {...(option.tip === undefined
+            ? {}
+            : tip.anchor(option.value, option.tip))}
         >
           {option.label}
         </button>
@@ -156,23 +168,26 @@ type BarProps = {
   onClose: () => void;
 };
 
+const scopeOptions = (ui: Lang, hidden: number): Option<Scope>[] => [
+  { value: "all", label: t(ui, "wb.scopeAll") },
+  { value: "canvas", label: t(ui, "wb.scopeCanvas") },
+  {
+    value: "hidden",
+    label: (
+      <>
+        {t(ui, "wb.scopeHidden")}
+        {hidden > 0 && <span class="seg-n">{formatted(ui, hidden)}</span>}
+      </>
+    ),
+    tip: t(ui, "wb.scopeHiddenTip"),
+  },
+];
+
 function FilterControls(props: BarProps) {
-  const { lang: ui, filters, onFilters, hidden } = props;
+  const { lang: ui, filters, onFilters } = props;
   const { kindItems, familyItems } = useMenuItems(props.rows, props.vocab, ui);
-  const scopes: { value: Scope; label: ComponentChildren }[] = [
-    { value: "all", label: t(ui, "wb.scopeAll") },
-    { value: "canvas", label: t(ui, "wb.scopeCanvas") },
-    {
-      value: "hidden",
-      label: (
-        <>
-          {t(ui, "wb.scopeHidden")}
-          {hidden > 0 && <span class="seg-n">{formatted(ui, hidden)}</span>}
-        </>
-      ),
-    },
-  ];
-  const types: { value: RowType; label: string }[] = [
+  const tip = useTip();
+  const types: Option<RowType>[] = [
     { value: "both", label: t(ui, "wb.both") },
     { value: "nodes", label: t(ui, "wb.nodes") },
     { value: "edges", label: t(ui, "wb.edges") },
@@ -182,13 +197,15 @@ function FilterControls(props: BarProps) {
       <Seg
         name={t(ui, "wb.scope")}
         value={filters.scope}
-        options={scopes}
+        options={scopeOptions(ui, props.hidden)}
+        tip={tip}
         onPick={(scope) => onFilters({ scope })}
       />
       <Seg
         name={t(ui, "wb.rowType")}
         value={filters.rowType}
         options={types}
+        tip={tip}
         onPick={(rowType) => onFilters({ rowType })}
       />
       <CheckMenu
@@ -211,6 +228,7 @@ function FilterControls(props: BarProps) {
         choice={props.choice}
         onToggle={props.onColumn}
       />
+      {tip.node}
     </>
   );
 }

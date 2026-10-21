@@ -59,6 +59,7 @@ export function ControlBar({
           model={now}
           state={state}
           drawn={drawn}
+          tip={tip}
         />
         <span class="sep" aria-hidden="true" />
         <TypesMenu
@@ -75,7 +76,12 @@ export function ControlBar({
           tip={tip}
         />
         <span class="sep" aria-hidden="true" />
-        <GroupingMenu actions={actions} lang={ui} grouping={state.grouping} />
+        <GroupingMenu
+          actions={actions}
+          lang={ui}
+          grouping={state.grouping}
+          tip={tip}
+        />
         <span class="sep" aria-hidden="true" />
         <DatasetButton tip={tip} controls={workbench} />
       </div>

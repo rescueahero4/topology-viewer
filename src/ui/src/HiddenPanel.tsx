@@ -1,5 +1,6 @@
 import { computed } from "@preact/signals";
 import {
+  entityOfDrawnId,
   groupParts,
   hiddenList,
   type DrawnId,
@@ -12,12 +13,12 @@ import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import type { Actions } from "./actions";
 import { Checkbox } from "./Checkbox";
 import { HiddenRow, type Row } from "./HiddenRow";
-import { entityIdOf } from "./Inspector";
 import { typeName } from "./names";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { groupText } from "./relations";
 import { canvasState, lang, model } from "./state";
 import { formatted, MISSING, t } from "./strings/index";
+import { useTip, type Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 
 // why: mockup `renderHidden` sub line (app.js line 875) — the parts join with a middle dot
@@ -33,7 +34,7 @@ export const hiddenItems = computed<HiddenItem[]>(() => {
 // why: rule 1 (Implementer item 2) — an `e:` key names its entity; a `g:` key takes its type from
 // `groupParts` and its name from the canvas group text of that type and the member count
 function rowOf(ui: Lang, vocab: Vocab, item: HiddenItem): Row {
-  const id = entityIdOf(item.key);
+  const id = entityOfDrawnId(item.key);
   const entity = id === null ? undefined : vocab.entities.get(id);
   const type =
     id === null ? (groupParts(item.key)?.type ?? null) : (entity?.type ?? null);
@@ -50,27 +51,32 @@ function rowOf(ui: Lang, vocab: Vocab, item: HiddenItem): Row {
 }
 
 // why: mockup `dockHidden` (app.js lines 839-841) — the card docks left of the inspector, whatever
-// width the inspector has; the canvas element carries the distance for the card and the search
-export function useDock(canvas: RefObject<HTMLElement>): void {
+// width the inspector has; the canvas element carries the distance for the card and the search.
+// ISSUE-012 C6 — one observer until a value of `inspector` changes, so the caller gives the values
+// that mount a new inspector element
+export function useDock(
+  canvas: RefObject<HTMLElement>,
+  inspector: readonly unknown[],
+): void {
   useLayoutEffect(() => {
     const frame = canvas.current;
-    const inspector = frame?.querySelector<HTMLElement>(".inspector");
-    if (frame == null || inspector == null) return;
+    const card = frame?.querySelector<HTMLElement>(".inspector");
+    if (frame == null || card == null) return;
     const dock = () =>
       frame.style.setProperty(
         "--hid-right",
-        `${inspector.offsetWidth + DOCK_GAP}px`,
+        `${card.offsetWidth + DOCK_GAP}px`,
       );
     dock();
     const watch = new ResizeObserver(dock);
-    watch.observe(inspector);
+    watch.observe(card);
     return () => watch.disconnect();
-  });
+  }, [canvas, ...inspector]);
 }
 
 // why: mockup `.hid-count.bump` (styles.css line 285) — a new element for each count, so the bump
 // runs once each time the count grows
-function Chip({ count, open, onToggle }: Toggle & { count: number }) {
+function Chip({ count, open, onToggle, tip }: Toggle & ChipProps) {
   const ui = lang.value;
   const before = useRef(0);
   const bump = useRef(false);
@@ -84,11 +90,13 @@ function Chip({ count, open, onToggle }: Toggle & { count: number }) {
       class="hid-toggle"
       aria-expanded={open}
       onClick={onToggle}
+      {...tip.anchor("chip", t(ui, open ? "hidden.collapse" : "hidden.show"))}
     >
       <span class="ic">
         <UiIcon name="eye-off" />
       </span>
       {t(ui, "hidden.chip")}
+      <span class="sr-only">{t(ui, "nameSep")}</span>
       <span key={count} class={bump.current ? "hid-count bump" : "hid-count"}>
         {formatted(ui, count)}
       </span>
@@ -102,50 +110,56 @@ function Chip({ count, open, onToggle }: Toggle & { count: number }) {
 }
 
 type Toggle = { open: boolean; onToggle: () => void };
+type ChipProps = { count: number; tip: Tip };
 type Props = Toggle & { actions: Actions };
 
 // why: FR-CANVAS-12, rule 1 (mockup app.js lines 828-949, index.html lines 145-150) — a chip while
 // anything is hidden, a card when the user opens it; `App` shows it only while the list has items
 export function HiddenPanel({ actions, open, onToggle }: Props) {
+  const tip = useTip();
   const ui = lang.value;
   const now = model.value;
   if (now === null) return null;
   const items = hiddenItems.value;
   return (
-    <aside
-      class="hidden-panel float-card"
-      data-state={open ? "expanded" : "collapsed"}
-      aria-label={t(ui, "hidden.name")}
-    >
-      <div class="insp-head hid-head">
-        <Chip count={items.length} open={open} onToggle={onToggle} />
-        {open && <span class="spacer" />}
+    <>
+      <aside
+        class="hidden-panel float-card"
+        data-state={open ? "expanded" : "collapsed"}
+        aria-label={t(ui, "hidden.name")}
+      >
+        <div class="insp-head hid-head">
+          <Chip count={items.length} tip={tip} {...{ open, onToggle }} />
+          {open && <span class="spacer" />}
+          {open && (
+            <button
+              type="button"
+              class="icon-btn"
+              aria-label={t(ui, "hidden.collapse")}
+              aria-expanded="true"
+              onClick={onToggle}
+            >
+              <span class="ic">
+                <UiIcon name="chevrons-down" />
+              </span>
+            </button>
+          )}
+        </div>
         {open && (
-          <button
-            type="button"
-            class="icon-btn"
-            aria-label={t(ui, "hidden.collapse")}
-            aria-expanded="true"
-            onClick={onToggle}
-          >
-            <span class="ic">
-              <UiIcon name="chevrons-down" />
-            </span>
-          </button>
+          <HiddenBody
+            actions={actions}
+            vocab={now.vocab}
+            tip={tip}
+            rows={items.map((item) => rowOf(ui, now.vocab, item))}
+          />
         )}
-      </div>
-      {open && (
-        <HiddenBody
-          actions={actions}
-          vocab={now.vocab}
-          rows={items.map((item) => rowOf(ui, now.vocab, item))}
-        />
-      )}
-    </aside>
+      </aside>
+      {tip.node}
+    </>
   );
 }
 
-type BodyProps = { actions: Actions; vocab: Vocab; rows: Row[] };
+type BodyProps = { actions: Actions; vocab: Vocab; tip: Tip; rows: Row[] };
 
 // why: rule 1 (mockup app.js lines 909-937) — a key that left the list loses its tick; a restore
 // takes its keys out of the ticks and is one `restore(keys)` call
@@ -205,7 +219,7 @@ function onListKey(
 }
 
 // why: rule 1 (mockup app.js lines 870-949) — the select-all box, the restore button and the rows
-function HiddenBody({ actions, vocab, rows }: BodyProps) {
+function HiddenBody({ actions, vocab, tip, rows }: BodyProps) {
   const ui = lang.value;
   const list = useRef<HTMLUListElement>(null);
   const keys = rows.map((row) => row.key);
@@ -238,7 +252,13 @@ function HiddenBody({ actions, vocab, rows }: BodyProps) {
         {rows.map((row, i) => (
           <HiddenRow
             key={row.key}
-            {...{ row, vocab, active: i === at, ticked: ticked.has(row.key) }}
+            {...{
+              row,
+              vocab,
+              tip,
+              active: i === at,
+              ticked: ticked.has(row.key),
+            }}
             onPress={(shift) => tick(row.key, shift)}
             onShow={() => restore([row.key])}
           />

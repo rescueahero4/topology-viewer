@@ -1,4 +1,5 @@
 import type { Lang, LayoutName } from "@qdic-topology/engine";
+import { useId } from "preact/hooks";
 import type { Actions } from "./actions";
 import type { IconName } from "./icons";
 import { Menu, MenuItem } from "./Menu";
@@ -63,7 +64,8 @@ type Props = {
 };
 
 // why: P18, P21 — one line per layout; the description is in the tooltip of the info icon, and a
-// press on the icon picks nothing (app.js line 470)
+// press on the icon picks nothing (app.js line 470). The icon is not a tab stop; the item points
+// to the description text (mockup index.html lines 115-121, ISSUE-012 C2)
 function LayoutItem({
   actions,
   lang,
@@ -71,25 +73,29 @@ function LayoutItem({
   tip,
   item,
 }: Props & { item: Layout }) {
+  const id = useId();
   const text = t(lang, item.tip);
   return (
-    <MenuItem
-      kind="radio"
-      checked={layout === item.name}
-      onSelect={() => actions.setLayout(item.name)}
-    >
-      {t(lang, item.item)}
-      <span
-        class="info ic"
-        role="img"
-        tabIndex={0}
-        aria-label={text}
-        onClick={(event) => event.stopPropagation()}
-        {...tip.anchor(item.name, text)}
+    <>
+      <MenuItem
+        kind="radio"
+        checked={layout === item.name}
+        aria-describedby={id}
+        onSelect={() => actions.setLayout(item.name)}
       >
-        <UiIcon name="info" />
+        {t(lang, item.item)}
+        <span
+          class="info ic"
+          onClick={(event) => event.stopPropagation()}
+          {...tip.anchor(item.name, text)}
+        >
+          <UiIcon name="info" />
+        </span>
+      </MenuItem>
+      <span id={id} hidden>
+        {text}
       </span>
-    </MenuItem>
+    </>
   );
 }
 

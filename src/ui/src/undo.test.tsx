@@ -172,6 +172,32 @@ describe("S14 the Undo of a pasted input", () => {
   });
 });
 
+// why: ISSUE-012 C12 (SA §10 guardrail 6, FR-CANVAS-18) — a pasted input that is fatal also keeps
+// the way back; a fatal input from the model closes the toast
+describe("C12 the Undo of a pasted fatal input", () => {
+  it("brings back the earlier chart within 10 s", async () => {
+    const first = fixtureModel("s-access");
+    const frame = await mountApp(first);
+    const before = view();
+    const bad = fixtureModel("s-not-graph");
+    if (bad.ok) throw new Error("not fatal");
+    await frame.update({ input: { ...bad, source: "paste" } });
+    expect(state.model.value).toBeNull();
+    expect(frame.root.querySelector(".graph")).toBeNull();
+    wait(9000);
+    expect(text(toast(frame.root)?.querySelector(".ut-txt"))).toBe(
+      "View reset",
+    );
+    await pressUndo(frame.root);
+    wait(1000);
+    expect(state.model.value).toBe(first.ok && first.model);
+    expect(view()).toEqual(before);
+    expect(toast(frame.root)).toBeNull();
+    await frame.update({ input: bad });
+    expect(toast(frame.root)).toBeNull();
+  });
+});
+
 describe("S23 a new trigger replaces the snapshot", () => {
   it("gives the state after the explore, not before budget 50", async () => {
     const frame = await mountApp(fixtureModel("s-access"));

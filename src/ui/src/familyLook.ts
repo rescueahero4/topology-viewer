@@ -43,14 +43,14 @@ const styles = computed<ReadonlyMap<string, EdgeStyle>>(() => {
 });
 const HEX = /^#[0-9A-Fa-f]{6}$/;
 
-// why: rule 7, reading (d1) — one fixed property `--c`, only from `edgeStyles`, and only when the
-// value is a six-digit hex colour; else the element has no colour property
-export function predicateColour(predicate: string) {
-  const colour = styles.value.get(predicate)?.colour;
-  return colour !== undefined && HEX.test(colour)
-    ? { "--c": colour }
-    : undefined;
-}
+// why: reading (d1) — one fixed property `--c`, and only when the value is a six-digit hex colour;
+// else the element has no colour property
+export const colourVar = (colour: string | null | undefined) =>
+  colour != null && HEX.test(colour) ? { "--c": colour } : undefined;
+
+// why: rule 7 — the predicate colour comes only from `edgeStyles`
+export const predicateColour = (predicate: string) =>
+  colourVar(styles.value.get(predicate)?.colour);
 
 // why: mockup `famPartial` (app.js line 300) — a family that is on with some predicates off
 export function partialOf(rows: Stats, family: FamilyRow): boolean {

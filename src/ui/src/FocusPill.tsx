@@ -55,6 +55,7 @@ export function FocusPill({ actions }: { actions: Actions }) {
           {after}
           <span class="fp-n">{t(ui, "pill.faded", { count })}</span>
         </span>
+        <span class="sr-only">{t(ui, "nameSep")}</span>
         <span class="fp-act">
           <span class="ic">
             <UiIcon name="x" />

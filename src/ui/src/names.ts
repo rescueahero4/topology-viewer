@@ -18,7 +18,11 @@ export function typeName(
   types: ReadonlyMap<string, ResolvedType>,
 ): string {
   if (type === null) return t(lang, "unknownType");
-  return tableName(lang, `type.${type}`) ?? types.get(type)?.label ?? type;
+  // why: SA §4.4 cascade (supplied → system), ISSUE-012 C11 — a label that the model gave is the
+  // name, also for a profile type; the string table names only a profile type with no such label
+  const resolved = types.get(type);
+  if (resolved?.labelSupplied === true) return resolved.label;
+  return tableName(lang, `type.${type}`) ?? resolved?.label ?? type;
 }
 
 export function familyName(lang: Lang, family: string): string {
@@ -36,6 +40,10 @@ export function groupName(lang: Lang, group: string): string {
 export function provenanceName(lang: Lang, provenance: Provenance): string {
   return tableName(lang, `provenance.${provenance}`) ?? provenance;
 }
+
+// why: FR-VOC-3 (mockup `.prov`, app.js line 772) — the one tag text of the inspector and the table
+export const provTag = (lang: Lang, provenance: Provenance) =>
+  t(lang, "relations.prov", { prov: provenanceName(lang, provenance) });
 
 // why: NF-10, epic question 7 — the canvas names a profile type in the UI language too: the scene
 // reads `ResolvedType.label` (canvas/scene.ts line 90), so the canvas gets these labels
