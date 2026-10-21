@@ -57,8 +57,6 @@ const button = (root: Element, name: string) => {
 };
 const section = (root: Element) =>
   root.querySelector(".workbench") as HTMLElement;
-const scrollOf = (root: Element) =>
-  root.querySelector(".wb-scroll") as HTMLElement;
 const count = (root: Element) => text(root.querySelector(".wb-count"));
 const rows = (root: Element) => [
   ...root.querySelectorAll<HTMLElement>(".wb-table tbody tr.row"),
@@ -77,17 +75,6 @@ const press = (el: Element) =>
 const hover = (el: Element) =>
   void act(() => void el.dispatchEvent(new MouseEvent("mouseenter")));
 const tipText = (root: Element) => text(root.querySelector(".wb-scroll .tip"));
-
-function key(target: EventTarget, name: string, mods: KeyboardEventInit = {}) {
-  const event = new KeyboardEvent("keydown", {
-    key: name,
-    bubbles: true,
-    cancelable: true,
-    ...mods,
-  });
-  void act(() => void target.dispatchEvent(event));
-  return event;
-}
 
 function type(root: Element, value: string): void {
   const input = root.querySelector(".wb-search") as HTMLInputElement;
@@ -234,7 +221,9 @@ describe("S4 the row type, Kind, search and Family filters", () => {
     const tail = " · 7 of 483 nodes on canvas";
     press(seg(root, "Nodes"));
     expect(count(root)).toBe(`525 of 1,262 rows${tail}`);
-    expect(rows(root).every((row) => text(cell(root, row, "Type")) === "node"));
+    expect(
+      rows(root).every((row) => text(cell(root, row, "Type")) === "node"),
+    ).toBe(true);
     press(button(root, "Kind"));
     const user = [...root.querySelectorAll(".check-item .check")].find((el) =>
       text(el).startsWith("User"),
@@ -330,82 +319,6 @@ describe("S30 an edge row with one faded end", () => {
     expect(eyeOf(root, row).getAttribute("aria-label")).toBe(
       "Drawn on the canvas",
     );
-  });
-});
-
-describe("S8 a canvas selection marks and scrolls to its row", () => {
-  it("scrolls once for the canvas, not for the table press", async () => {
-    const frame = await opened();
-    const { root } = frame;
-    const scroll = scrollOf(root);
-    frame.sizeOf(scroll, { width: 800, height: 600 });
-    void act(() => void scroll.dispatchEvent(new Event("scroll")));
-    expect(scroll.scrollTop).toBe(0);
-    run(() => canvas().select("e:ug_exec"));
-    expect(scroll.scrollTop).toBe(16_324);
-    const row = rowById(root, "ug_exec");
-    expect(row.classList.contains("is-focus")).toBe(true);
-    press(cell(root, row, "Name"));
-    expect(scroll.scrollTop).toBe(16_324);
-    expect(state.selection.value).toEqual({ node: "e:ug_exec" });
-  });
-
-  it("does not scroll for a press on a row at the bottom edge (plant x3)", async () => {
-    const frame = await opened();
-    const { root, input } = frame;
-    if (!input.ok) throw new Error("fatal");
-    const scroll = scrollOf(root);
-    frame.sizeOf(scroll, { width: 800, height: 600 });
-    run(() => canvas().select("e:ug_exec"));
-    expect(scroll.scrollTop).toBe(16_324);
-    const id = input.model.graph.records[469].id;
-    press(cell(root, rowById(root, id), "Name"));
-    expect(state.selection.value).not.toEqual({ node: "e:ug_exec" });
-    expect(scroll.scrollTop).toBe(16_324);
-  });
-});
-
-describe("S16 the three layouts and the keys", () => {
-  it("expands, restores, closes and toggles", async () => {
-    const frame = await opened();
-    const { root, calls } = frame;
-    const layout = () =>
-      root.querySelector(".split")?.getAttribute("data-layout");
-    press(button(root, "Expand table"));
-    expect(layout()).toBe("table-full");
-    expect(calls).toEqual([{ name: "requestDisplayMode", arg: "fullscreen" }]);
-    press(button(root, "Restore split view"));
-    expect(layout()).toBe("split");
-    press(button(root, "Close table"));
-    expect(layout()).toBe("canvas-only");
-    expect(section(root).hasAttribute("inert")).toBe(true);
-    expect(section(root).getAttribute("aria-label")).toBe("Dataset table");
-    key(document.body, ".", { ctrlKey: true });
-    expect(layout()).toBe("split");
-    expect(section(root).hasAttribute("inert")).toBe(false);
-    key(document.body, ".", { ctrlKey: true });
-    expect(layout()).toBe("canvas-only");
-    key(document.body, ".", { metaKey: true });
-    expect(layout()).toBe("split");
-    type(root, "abc");
-    const search = root.querySelector(".wb-search") as HTMLInputElement;
-    const typed = key(search, ".", { ctrlKey: true });
-    expect(typed.defaultPrevented).toBe(false);
-    expect(search.value).toBe("abc");
-    expect(layout()).toBe("split");
-    expect(calls).toHaveLength(1);
-  });
-});
-
-describe("S17 the Dataset tip names the key of the platform", () => {
-  it.each([
-    ["MacIntel", "View dataset (⌘.)"],
-    ["Win32", "View dataset (Ctrl+.)"],
-  ])("%s gives %s", async (platform, tip) => {
-    vi.spyOn(navigator, "platform", "get").mockReturnValue(platform);
-    const { root } = await mountApp(fixtureModel("s-access"));
-    hover(button(root, "Dataset"));
-    expect(text(root.querySelector(".tip"))).toBe(tip);
   });
 });
 

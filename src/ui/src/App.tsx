@@ -22,10 +22,9 @@ import type { ShellHost } from "./host";
 import { inspected, Inspector } from "./Inspector";
 import { Search } from "./Search";
 import {
+  canvasGrow,
   dragging,
-  grows,
-  layout,
-  ratio,
+  layoutFor,
   startSplit,
   useSplitKeys,
 } from "./split";
@@ -77,12 +76,12 @@ type SplitProps = {
 // between them; the keys of the split work while the App has the focus
 function Split({ input, host, actions, workbench, children }: SplitProps) {
   const split = useRef<HTMLDivElement>(null);
-  useSplitKeys(split);
+  useSplitKeys(split, input.ok);
   return (
     <div
       ref={split}
       class="split"
-      data-layout={layout.value}
+      data-layout={layoutFor(input.ok)}
       data-dragging={dragging.value ? "" : undefined}
     >
       {children}
@@ -125,7 +124,7 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
           class="canvas"
           data-inspector={input.ok ? card : undefined}
           data-hidden={anyHidden && hiddenOpen ? "expanded" : undefined}
-          style={{ flexGrow: String(grows(layout.value, ratio.value).canvas) }}
+          style={{ flexGrow: canvasGrow(input.ok) }}
         >
           {input.ok && <div class="graph" ref={graph} />}
           {actions !== null && <CategoryBar actions={actions} />}

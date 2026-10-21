@@ -149,7 +149,8 @@ type HeadProps = Omit<Props, "span"> & {
 };
 
 // why: rule 8 (mockup `renderWbHead`, app.js lines 1107-1131) — the header box has the partial
-// state; with ticked rows the column labels give way to the bulk bar
+// state; with ticked rows the column labels give way to the bulk bar. As in the mockup (line 1140)
+// the box clears while any row is ticked, so its name and its action agree (QA Done gate item 4)
 export function TableHead(props: HeadProps) {
   const ui = lang.value;
   const { ticked, total, columns } = props;
@@ -165,7 +166,7 @@ export function TableHead(props: HeadProps) {
               {t(ui, k > 0 ? "wb.clearSelection" : "wb.selectAllRows")}
             </span>
           }
-          onChange={(on) => (on ? props.onAll() : props.onClear())}
+          onChange={() => (k > 0 ? props.onClear() : props.onAll())}
         />
       </th>
       {k > 0 ? (
