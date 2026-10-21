@@ -20,11 +20,12 @@ describe("S28 the package entry", () => {
     });
   });
 
-  it("gives the values App, langOf, t, formatted, Menu and MenuItem", () => {
+  it("gives the values App, langOf, t, formatted, Menu, MenuItem and UiIcon", () => {
     expect(Object.keys(entry).sort()).toEqual([
       "App",
       "Menu",
       "MenuItem",
+      "UiIcon",
       "formatted",
       "langOf",
       "t",
