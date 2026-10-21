@@ -1,5 +1,5 @@
 import { z } from "zod";
-import qdic from "./qdic.json";
+import qdic from "./qdic.json" with { type: "json" };
 import {
   checkAssetOnlyKeys,
   checkBuiltIn,
