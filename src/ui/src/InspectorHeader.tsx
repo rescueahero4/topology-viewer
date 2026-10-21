@@ -1,5 +1,6 @@
 import type {
   GroupNode,
+  Hex,
   Lang,
   ResolvedEntity,
   Visual,
@@ -11,7 +12,7 @@ import { endName } from "./relations";
 import { lang } from "./state";
 import { t } from "./strings/index";
 import type { Tip } from "./Tooltip";
-import { TypeGlyph } from "./TypeGlyph";
+import { TypeGlyph, typeColour } from "./TypeGlyph";
 import { UiIcon } from "./UiIcon";
 
 export type Head = {
@@ -25,6 +26,7 @@ type Counts = { rows: number; ends: number };
 type Props = {
   tip: Tip;
   vocab: Vocab;
+  canvas: Hex;
   head: Head;
   counts: Counts;
   open: boolean;
@@ -37,13 +39,12 @@ const HEX = /^#[0-9A-Fa-f]{6}$/;
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
 
-// why: rule 2, reading (d1) — one fixed property `--c`, only from the guarded colour of the type
-// visual and only as a six-digit hex colour. A profile icon has no colour in the engine visual
-// (B4: the shell takes only `typeMark` from the renderer), so its pill keeps the token colour
-function pillColour(visual: Visual | null) {
-  if (visual === null || "icon" in visual || !HEX.test(visual.color))
-    return undefined;
-  return { "--c": visual.color };
+// why: rule 2, reading (d1), B4 amendment — one fixed property `--c`, only from the guarded colour
+// of the type (`typeColour`, the colour of the canvas node) and only as a six-digit hex colour;
+// with no colour the pill keeps the token colour
+function pillColour(visual: Visual | null, canvas: Hex) {
+  const colour = typeColour(visual, canvas);
+  return colour !== null && HEX.test(colour) ? { "--c": colour } : undefined;
 }
 
 // why: TL-9 — the first `service_name` entry, its first UTF-16 unit in upper case
@@ -89,14 +90,17 @@ function CountText({ tip, counts }: { tip: Tip; counts: Counts }) {
 // (two lines, the full name in the tip) and the service badge; a namesake gets one more line with
 // its container path (FR-CANVAS-19)
 export function InspectorHeader(props: Props) {
-  const { tip, vocab, head, counts, open, onToggle, children } = props;
+  const { tip, vocab, canvas, head, counts, open, onToggle, children } = props;
   const ui = lang.value;
   const type = head.type === null ? undefined : vocab.types.get(head.type);
   const visual = type?.visual ?? null;
   return (
     <div class="insp-head is-node">
       <div class="insp-bar">
-        <span class="root-pill" style={pillColour(visual ?? vocab.untyped)}>
+        <span
+          class="root-pill"
+          style={pillColour(visual ?? vocab.untyped, canvas)}
+        >
           {t(ui, "inspector.root")}
         </span>
         <CountText tip={tip} counts={counts} />

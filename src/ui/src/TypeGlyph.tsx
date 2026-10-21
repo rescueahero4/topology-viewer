@@ -1,6 +1,7 @@
-import type { Designed, Visual } from "@qdic-topology/engine";
-import { typeMark } from "@qdic-topology/renderer";
+import type { Designed, Hex, Visual } from "@qdic-topology/engine";
+import { spriteColours, typeMark } from "@qdic-topology/renderer";
 import { useLayoutEffect, useRef } from "preact/hooks";
+import { guarded } from "./canvas/index";
 
 type Props = { visual: Visual | null; size: number; untyped: Designed | null };
 
@@ -12,4 +13,14 @@ export function TypeGlyph({ visual, size, untyped }: Props) {
     ref.current?.replaceChildren(typeMark(visual, size, untyped));
   }, [visual, size, untyped]);
   return <span ref={ref} aria-hidden="true" />;
+}
+
+// why: STORY-004-04 rule 2, B4 amendment (Solutions Architect, 2026-10-21) — the colour of the
+// canvas node: a designed visual is already guarded by `resolveVocab`; a profile icon takes its
+// sprite colour through the canvas `guarded` against the canvas colour; no sprite colour gives null
+export function typeColour(visual: Visual | null, canvas: Hex): Hex | null {
+  if (visual === null) return null;
+  if (!("icon" in visual)) return visual.color;
+  const colour = spriteColours.get(visual.icon);
+  return colour === undefined ? null : guarded(colour, canvas);
 }

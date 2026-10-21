@@ -35,8 +35,9 @@ vi.useFakeTimers({
 });
 vi.resetModules();
 const { mountApp } = await import("./testFrame");
-const { appInput, fixtureModel } = await import("./fixtureModel");
-const { typeMark } = await import("@qdic-topology/renderer");
+const { appInput, fixtureModel, DARK } = await import("./fixtureModel");
+const { spriteColours, typeMark } = await import("@qdic-topology/renderer");
+const { guardColor } = await import("@qdic-topology/engine");
 const state = await import("./state");
 
 const canvas = () => spy.canvases[spy.canvases.length - 1];
@@ -98,6 +99,56 @@ describe("S1 and S2 the card at first paint", () => {
     expect(card(root).dataset.state).toBe("empty");
     expect(text(card(root))).toBe("Click a node to inspect it");
     expect(card(root).querySelector(".insp-body")).toBeNull();
+  });
+});
+
+// why: rule 2, B4 amendment (Solutions Architect, 2026-10-21) — the pill has the colour of the
+// canvas node; the dark canvas makes `guardColor` change the `table` sprite colour
+describe("rule 2 the ROOT pill colour", () => {
+  const HEX = /^#[0-9A-Fa-f]{6}$/;
+  const pill = (root: Element) =>
+    (
+      card(root).querySelector(".root-pill") as HTMLElement
+    ).style.getPropertyValue("--c");
+  const channels = (hex: string) =>
+    [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [
+      number,
+      number,
+      number,
+    ];
+
+  it("gives a profile icon type its guarded sprite colour", async () => {
+    const { root } = await mountApp(fixtureModel("s-access", DARK));
+    const sprite = spriteColours.get("table") ?? "";
+    const colour = guardColor(channels(sprite), DARK);
+    expect(colour).not.toBe(sprite.toLowerCase());
+    expect(colour).not.toBe(sprite.toUpperCase());
+    expect(pill(root)).toBe(colour);
+    expect(pill(root)).toMatch(HEX);
+    const pulse = root.querySelector(".qt-focus .qt-pulse");
+    expect(pulse?.getAttribute("stroke")).toBe(colour);
+  });
+
+  it("gives a designed type and an untyped node their visual colour", async () => {
+    const raw = {
+      nodes: [
+        { id: "d", type: "sup", label: "D" },
+        { id: "u", label: "U" },
+      ],
+      edges: [{ subject: "d", predicate: "relatedTo", object: "u" }],
+      types: { sup: { color: "#2f6f8f" } },
+      view: { approach: "active", root: "d" },
+    };
+    const input = appInput(raw);
+    if (!input.ok) throw new Error("fatal");
+    const { root } = await mountApp(input);
+    const designed = input.model.vocab.types.get("sup")?.visual;
+    if (designed === undefined || "icon" in designed) throw new Error("icon");
+    expect(pill(root)).toBe(designed.color);
+    run(() => canvas().focus("u"));
+    expect(text(card(root).querySelector(".insp-title strong"))).toBe("U");
+    expect(pill(root)).toBe(input.model.vocab.untyped?.color);
+    expect(pill(root)).toMatch(HEX);
   });
 });
 

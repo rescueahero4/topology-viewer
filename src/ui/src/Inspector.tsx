@@ -132,7 +132,7 @@ export function Inspector({ host, actions, open, onToggle }: Props) {
       >
         <InspectorHeader
           {...{ tip, vocab: now.vocab, head, counts: countsOf(rows) }}
-          {...{ open, onToggle }}
+          {...{ canvas: now.canvas, open, onToggle }}
         >
           <InspectorActions
             {...{ tip, actions, me: shown.drawn }}
