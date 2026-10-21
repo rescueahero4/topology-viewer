@@ -258,6 +258,18 @@ const imports = [
     0,
   ),
   plant("deep import", side("@qdic-topology/engine/src/view/frontier")),
+  // why: STORY-004-04 B4 amendment — `TypeGlyph.tsx` takes exactly `typeMark` and `spriteColours`;
+  // the clean lint of `TypeGlyph.tsx` below covers the two allowed names
+  ...[
+    ["spriteColours", "InspectorHeader"],
+    ["iconMetrics", "TypeGlyph"],
+  ].map(([value, file]) =>
+    plant(
+      `${value} in ${file}`,
+      `import { ${value} } from "@qdic-topology/renderer";\nexport { ${value} };`,
+      `${UI}/${file}.tsx`,
+    ),
+  ),
 ];
 const SIGNALS =
   'import { signal } from "@preact/signals-core";\nexport { signal };';
@@ -316,6 +328,8 @@ const PLANTS: Plant[] = [
 const HOSTS: Record<string, string> = {
   [`${UI}/x.tsx`]: `${UI}/App.tsx`,
   [`${UI}/x.ts`]: `${UI}/state.ts`,
+  [`${UI}/InspectorHeader.tsx`]: `${UI}/InspectorHeader.tsx`,
+  [`${UI}/TypeGlyph.tsx`]: `${UI}/TypeGlyph.tsx`,
   [`${UI}/x.test.ts`]: `${UI}/strings.test.ts`,
   [`${UI}/strings/x.ts`]: `${UI}/strings/index.ts`,
   [`${UI}/canvas/x.ts`]: `${UI}/canvas/index.ts`,

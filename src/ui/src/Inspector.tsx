@@ -69,6 +69,7 @@ export function Inspector({ host, open, onToggle }: Props) {
         <InspectorHeader
           tip={tip}
           vocab={now.vocab}
+          canvas={now.canvas}
           entity={entity}
           open={open}
           onToggle={onToggle}
