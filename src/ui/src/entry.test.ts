@@ -16,6 +16,7 @@ describe("S28 the package entry", () => {
     expect(manifest.exports).toEqual({
       ".": "./src/index.ts",
       "./canvas": "./src/canvas/index.ts",
+      "./testFrame": "./src/testFrame.ts",
     });
   });
 

@@ -119,36 +119,21 @@ const flush = () =>
     await Promise.resolve();
   });
 
-// why: rule 15 — every `<App>` test of STORY-004-02 to 09 mounts through this frame
-export async function mountApp(input: AppInput, options: Options = {}) {
+type FrameOptions = Pick<Options, "size" | "reducedMotion" | "storage">;
+
+// why: STORY-005-03 rule 11 — the frame part of `mountApp`, for a test that renders `<App>` itself
+// (the `startWidget` tests of `apps/widget`)
+export function mountFrame(options: FrameOptions = {}) {
   frame = options.size ?? { width: 800, height: 600 };
   const scrolls: Element[] = [];
-  const calls: Call[] = [];
   install(options.reducedMotion === true, scrolls);
   vi.stubGlobal("localStorage", options.storage ?? memoryStorage());
   const root = document.createElement("div");
   document.body.appendChild(root);
   mounted.push(root);
-  let props: AppProps = {
-    input,
-    lang: options.lang ?? "en",
-    locale: options.locale ?? "en-US",
-    theme: options.theme ?? "light",
-    host: stubHost(calls),
-  };
-  const draw = async (next: Partial<AppProps>) => {
-    props = { ...props, ...next };
-    void act(() => render(h(App, props), root));
-    await flush();
-  };
-  await draw({});
   return {
     root,
-    host: props.host,
-    calls,
     scrolls,
-    update: draw,
-    unmount: () => void act(() => render(null, root)),
     resize(size: Size) {
       frame = size;
       void act(() => {
@@ -174,6 +159,32 @@ export async function mountApp(input: AppInput, options: Options = {}) {
         });
       if (camera.value === before) throw new Error("testFrame: no settle");
     },
+  };
+}
+
+// why: rule 15 — every `<App>` test of STORY-004-02 to 09 mounts through this frame
+export async function mountApp(input: AppInput, options: Options = {}) {
+  const shell = mountFrame(options);
+  const calls: Call[] = [];
+  let props: AppProps = {
+    input,
+    lang: options.lang ?? "en",
+    locale: options.locale ?? "en-US",
+    theme: options.theme ?? "light",
+    host: stubHost(calls),
+  };
+  const draw = async (next: Partial<AppProps>) => {
+    props = { ...props, ...next };
+    void act(() => render(h(App, props), shell.root));
+    await flush();
+  };
+  await draw({});
+  return {
+    ...shell,
+    host: props.host,
+    calls,
+    update: draw,
+    unmount: () => void act(() => render(null, shell.root)),
   };
 }
 
