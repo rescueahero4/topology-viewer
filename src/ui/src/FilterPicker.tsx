@@ -31,7 +31,7 @@ type Props = {
 };
 
 // why: the mockup search (app.js line 343) with the engine `fold` rule (NFC, lower case)
-const fold = (text: string) => text.normalize("NFC").toLowerCase();
+export const fold = (text: string) => text.normalize("NFC").toLowerCase();
 
 const TEXTS = {
   families: {

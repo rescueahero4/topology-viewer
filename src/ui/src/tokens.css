@@ -55,6 +55,13 @@
   /* The triple rows (mockup styles.css lines 264, 499); STORY-004-05. */
   --pred-ink: #6b7280;
   --picked: #eef2ff;
+  /* The Workbench row types and the handle drag (mockup styles.css lines 409, 452, 453);
+     STORY-004-07. */
+  --wb-node-tint: #e0f2fe;
+  --wb-node-ink: #0369a1;
+  --wb-edge-tint: #ede9fe;
+  --wb-edge-ink: #6d28d9;
+  --wb-drag: #60a5fa;
   /* Family tint, border and main (mockup CATEGORIES, lib/topology.js lines 34-39), one set for
      each place 0-5 of the engine familyOrder(): Structure, Lineage, Reference, Annotation,
      Ownership & Access, Other. A custom family and Custom take set 5 (STORY-004-03 rule 7). */

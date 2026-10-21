@@ -11,7 +11,7 @@ import { UiIcon } from "./UiIcon";
 const DEBOUNCE_MS = 120;
 
 // why: mockup `isField` (app.js line 78) — a key in a text field is typing, not a command
-const isField = (target: EventTarget | null) =>
+export const isField = (target: EventTarget | null) =>
   target instanceof Element &&
   target.closest("input, textarea, select") !== null;
 

@@ -20,6 +20,7 @@ export type Actions = {
   collapse(id: DrawnId): void;
   hide(ids: DrawnId[]): void;
   restore(keys: DrawnId[]): void;
+  reveal(path: string[]): void;
   groupAroundRoot(on: boolean): void;
   clearAndFit(): void;
 };
@@ -45,6 +46,7 @@ export function actionsOf(canvas: Canvas): Actions {
     collapse: (id) => canvas.collapse(id),
     hide: (ids) => canvas.hide(ids),
     restore: (keys) => canvas.restore(keys),
+    reveal: (path) => canvas.reveal(path),
     groupAroundRoot: (on) => canvas.groupAroundRoot(on),
     // why: STORY-004-05 rule 8, question 17 (mockup app.js line 803) — the selection goes first,
     // then the view fits
