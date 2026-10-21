@@ -352,4 +352,22 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "chip.reopen": "データ通知を表示",
   "undo.text": "表示をリセットしました",
   "undo.action": "元に戻す",
+  "app.name": "Quollio Topology Visualizer",
+  "app.demo": "スタンドアロンデモ",
+  "picker.load": "JSON を読み込む…",
+  "picker.pasted": "貼り付けた JSON",
+  "import.title": "独自のグラフを描画",
+  "import.intro": "{shape} の形の JSON を貼り付けてください。",
+  "import.introMore":
+    "不明なタイプや述語も使えます。汎用のアイコンとエッジのスタイルになります。",
+  "import.shape":
+    '{ "nodes": [{ "id", "type", "label" }], "edges": [{ "source", "target", "predicate" }] }',
+  "import.label": "グラフ JSON",
+  "import.sample": "サンプルを挿入",
+  "import.cancel": "キャンセル",
+  "import.render": "描画",
+  "import.empty": "先に JSON を貼り付けてください。",
+  "import.invalid": "有効な JSON ではありません: {message}",
+  "send.title": "AI クライアント向けのメッセージ",
+  "send.close": "閉じる",
 };

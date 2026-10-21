@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
 } from "preact/hooks";
+import type { ComponentChildren } from "preact";
 import type { Actions } from "./actions";
 import { TableHead } from "./BulkBar";
 import type { CanvasModel } from "./canvas/index";
@@ -218,6 +219,7 @@ type BodyProps = {
   session: Session;
   update: Update;
   onText: (value: string) => void;
+  start: ComponentChildren;
 };
 
 // why: rule 4 (mockup app.js line 1068) — the empty text of the Hidden scope with nothing hidden
@@ -265,14 +267,14 @@ function BodyTable({
 }
 
 function WorkbenchBody(props: BodyProps) {
-  const { now, host, session, update } = props;
+  const { now, host, session, update, start } = props;
   const ui = lang.value;
   const view = useTableView(now, session, ui);
   const keys = attributeKeys(now.graph);
   return (
     <>
       <WorkbenchBar
-        {...{ lang: ui, vocab: now.vocab, rows: view.rows, keys }}
+        {...{ lang: ui, vocab: now.vocab, rows: view.rows, keys, start }}
         {...{
           filters: session.filters,
           text: session.text,
@@ -300,11 +302,16 @@ function WorkbenchBody(props: BodyProps) {
   );
 }
 
-type Props = { id: string; actions: Actions | null; host: ShellHost };
+type Props = {
+  id: string;
+  actions: Actions | null;
+  host: ShellHost;
+  start: ComponentChildren;
+};
 
 // why: FR-TABLE-4, FR-HOST-2, rules 4, 9, 12 — the Dataset table under the canvas. It stays mounted
 // for the App, so the session state stays; a closed Workbench is `inert` and draws no rows
-export function Workbench({ id, actions, host }: Props) {
+export function Workbench({ id, actions, host, start }: Props) {
   const ui = lang.value;
   const now = model.value;
   const [session, update] = useSession(now);
@@ -327,7 +334,9 @@ export function Workbench({ id, actions, host }: Props) {
       inert={!open}
     >
       {open && now !== null && actions !== null && (
-        <WorkbenchBody {...{ now, actions, host, session, update, onText }} />
+        <WorkbenchBody
+          {...{ now, actions, host, session, update, onText, start }}
+        />
       )}
     </section>
   );

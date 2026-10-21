@@ -72,6 +72,7 @@ export type AppProps = {
   locale: string;
   theme: "light" | "dark";
   host: ShellHost;
+  workbenchStart?: ComponentChildren;
 };
 
 type SplitProps = {
@@ -79,12 +80,14 @@ type SplitProps = {
   host: ShellHost;
   actions: Actions | null;
   workbench: string;
+  start: ComponentChildren;
   children: ComponentChildren;
 };
 
 // why: STORY-004-07 rules 9-11 — the canvas and the Workbench share the split, with the handle
 // between them; the keys of the split work while the App has the focus
-function Split({ input, host, actions, workbench, children }: SplitProps) {
+function Split(props: SplitProps) {
+  const { input, host, actions, workbench, start, children } = props;
   const split = useRef<HTMLDivElement>(null);
   useSplitKeys(split, input.ok);
   useSplitHeight(split);
@@ -97,7 +100,9 @@ function Split({ input, host, actions, workbench, children }: SplitProps) {
     >
       {children}
       {input.ok && <SplitHandle controls={workbench} />}
-      {input.ok && <Workbench id={workbench} actions={actions} host={host} />}
+      {input.ok && (
+        <Workbench id={workbench} actions={actions} host={host} start={start} />
+      )}
     </div>
   );
 }
@@ -233,7 +238,8 @@ function LoneToast(props: {
 // STORY-004-08 rules 1, 6 — the Undo snapshot is taken before the new input reaches the signals.
 // STORY-004-09 rule 6 (SA §5) — the DOM order is the visual order: category bar, search card,
 // canvas, control bar, status stack, inspector, Hidden card, then the handle and the Workbench
-export function App({ input, lang, locale, theme, host }: AppProps) {
+export function App(props: AppProps) {
+  const { input, lang, locale, theme, host, workbenchStart } = props;
   useLayoutEffect(() => takeLanguage(lang, locale), [lang, locale]);
   useState(startSplit);
   const undo = useUndo(input);
@@ -262,7 +268,10 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
   useDock(frame, [actions === null, card === "empty"]);
   return (
     <div ref={root} class="shell" data-theme={theme}>
-      <Split {...{ input: shown, host, actions, workbench }}>
+      <Split
+        {...{ input: shown, host, actions, workbench }}
+        start={workbenchStart}
+      >
         <CanvasFrame
           frame={frame}
           table={input.ok}
