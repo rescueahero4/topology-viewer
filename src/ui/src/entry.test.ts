@@ -20,8 +20,16 @@ describe("S28 the package entry", () => {
     });
   });
 
-  it("gives the values App and langOf", () => {
-    expect(Object.keys(entry).sort()).toEqual(["App", "langOf"]);
+  it("gives the values App, langOf, t, formatted, Menu, MenuItem and UiIcon", () => {
+    expect(Object.keys(entry).sort()).toEqual([
+      "App",
+      "Menu",
+      "MenuItem",
+      "UiIcon",
+      "formatted",
+      "langOf",
+      "t",
+    ]);
     expect(typeof entry.App).toBe("function");
     expect(entry.langOf("ja-JP")).toBe("ja");
     const types: Entry | null = null;

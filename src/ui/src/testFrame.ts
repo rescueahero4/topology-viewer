@@ -5,6 +5,8 @@ import { App, type AppInput, type AppProps } from "./App";
 import type { ShellHost } from "./host";
 import { camera } from "./state";
 
+export { enTexts } from "./shellAudit";
+
 // why: rule 15, `canvas.test.ts` lines 55-72 — the caller turns on the fake clock and calls
 // `vi.resetModules()` before it imports this module with `await import`, so `d3-timer` loads
 // under the fake clock

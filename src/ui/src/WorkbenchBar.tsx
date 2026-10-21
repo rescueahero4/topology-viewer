@@ -166,6 +166,7 @@ type BarProps = {
   layout: Layout;
   onExpand: () => void;
   onClose: () => void;
+  start: ComponentChildren;
 };
 
 const scopeOptions = (ui: Lang, hidden: number): Option<Scope>[] => [
@@ -241,6 +242,7 @@ export function WorkbenchBar(props: BarProps) {
   const full = layout === "table-full";
   return (
     <div class="wb-bar">
+      {props.start}
       <FilterControls {...props} />
       <span class="spacer" />
       <span class="wb-count" aria-live="polite">
