@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { profile } from "@qdic-topology/contract";
 import { loadFixture } from "@qdic-topology/fixtures";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   canvasColor,
   canvasLookup,
@@ -30,6 +30,29 @@ import {
   type IconMetrics,
 } from "../index";
 import { seeded } from "../layout/random";
+import type { Topology } from "./group";
+
+// why: STORY-004-01 S5 (Product Owner form P2) — `topology` is pure (SA §5), so this file keeps one
+// result for each (graph, vocabulary) pair; every line of the lookup and of the per-call functions
+// still runs
+vi.mock("./group", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./group")>();
+  const kept = new WeakMap<object, WeakMap<object, Topology>>();
+  return {
+    ...actual,
+    topology: (graph: object, vocab: object) => {
+      const byVocab = kept.get(graph) ?? new WeakMap<object, Topology>();
+      kept.set(graph, byVocab);
+      const known = byVocab.get(vocab);
+      if (known !== undefined) return known;
+      const made = actual.topology(
+        ...([graph, vocab] as Parameters<typeof actual.topology>),
+      );
+      byVocab.set(vocab, made);
+      return made;
+    },
+  };
+});
 
 const LIGHT = canvasColor("#F4F4F5") as Hex;
 const METRICS = JSON.parse(
@@ -40,7 +63,10 @@ const METRICS = JSON.parse(
 ) as IconMetrics;
 const RUNS = 40;
 const STEPS = 25;
-const SLOW = 300_000;
+const FULL = 5;
+const SAMPLE = 24;
+// why: LEARNINGS 24 — at least 2 × the longest test under full-suite load (s-star 25.9 s; build memo)
+const SLOW = 120_000;
 
 // why: D99 (1), D100 — while grouped, `exitAround` first; a change that is no exit then goes to
 // `expandAround` or `collapseAround`, as `view/focus-random.test.ts` does
@@ -197,12 +223,12 @@ function offStep(run: Run, s: CanvasState, r: () => number, log: string[]) {
   return { state, action: nodeAction(kind, id) };
 }
 
-function differences(run: Run, s: CanvasState) {
+function differences(run: Run, s: CanvasState, ids: string[]) {
   const { graph, vocab } = run;
   const look = canvasLookup(s, graph, vocab);
   const found: string[] = [];
   const answers = new Map<string, number>();
-  for (const id of run.ids) {
+  for (const id of ids) {
     const a = look.onCanvas(id);
     answers.set(a, (answers.get(a) ?? 0) + 1);
     if (a !== onCanvas(s, graph, vocab, id)) found.push(`onCanvas ${id}`);
@@ -214,11 +240,23 @@ function differences(run: Run, s: CanvasState) {
   return { found, answers };
 }
 
+// why: S5 (form P2) — every id at each fifth step (k = 4, 9, 14, 19, 24); at the other steps a
+// sample from a second generator, so the actions of the steps do not change
+function idsAt(run: Run, k: number, sample: () => number): string[] {
+  if (k % FULL === FULL - 1) return run.ids;
+  return Array.from(
+    { length: SAMPLE },
+    () => run.ids[Math.floor(sample() * run.ids.length)],
+  );
+}
+
 function walk(run: Run, seed: number, seen: Map<string, number>) {
   const r = seeded(seed);
+  const sample = seeded(seed + 100_000);
   const log = [`seed ${seed}`];
   let s = run.state;
   let offTarget = 0;
+  let full = 0;
   for (let k = 0; k < STEPS; k++) {
     let off: Action | null = null;
     if (k % 4 === 0) ({ state: s, action: off } = offStep(run, s, r, log));
@@ -229,12 +267,14 @@ function walk(run: Run, seed: number, seen: Map<string, number>) {
       log.push(JSON.stringify(action));
       s = run.act(s, action);
     }
-    const { found, answers } = differences(run, s);
+    const ids = idsAt(run, k, sample);
+    if (ids === run.ids) full++;
+    const { found, answers } = differences(run, s, ids);
     expect(found, log.join("; ")).toEqual([]);
     for (const [answer, n] of answers)
       seen.set(answer, (seen.get(answer) ?? 0) + n);
   }
-  return offTarget;
+  return { offTarget, full };
 }
 
 describe("S5 random steps: the lookup equals the per-call functions", () => {
@@ -244,9 +284,14 @@ describe("S5 random steps: the lookup equals the per-call functions", () => {
       const run = load(loadFixture(name).input);
       const seen = new Map<string, number>();
       let offTarget = 0;
-      for (let seed = 1; seed <= RUNS; seed++)
-        offTarget += walk(run, seed, seen);
+      let full = 0;
+      for (let seed = 1; seed <= RUNS; seed++) {
+        const one = walk(run, seed, seen);
+        offTarget += one.offTarget;
+        full += one.full;
+      }
       expect(offTarget).toBe(RUNS * Math.ceil(STEPS / 4));
+      expect(full).toBe((RUNS * STEPS) / FULL);
       for (const answer of ["drawn", "not-drawn", "hidden", "faded"])
         expect(seen.get(answer) ?? 0, answer).toBeGreaterThan(0);
     },
