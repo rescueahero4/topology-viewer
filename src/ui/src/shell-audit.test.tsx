@@ -4,6 +4,21 @@ import { render } from "preact";
 import { act } from "preact/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import type { AppInput } from "./App";
+import type { Canvas } from "./canvas/index";
+
+// why: STORY-004-04 S16 — the real canvas, kept so the test can select each hostile node
+const spy = vi.hoisted(() => ({ canvases: [] as Canvas[] }));
+vi.mock("./canvas/index", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("./canvas/index")>();
+  return {
+    ...mod,
+    createCanvas: (...args: Parameters<typeof mod.createCanvas>) => {
+      const made = mod.createCanvas(...args);
+      spy.canvases.push(made);
+      return made;
+    },
+  };
+});
 
 // why: STORY-003-04 fake clock, rule 15 — the clock comes before `d3-timer` loads
 vi.useFakeTimers({
@@ -294,5 +309,62 @@ describe("S16 the controls on the hostile payload (STORY-004-03)", () => {
       expect(found).toEqual(index === 0 ? [] : ["prototype"]);
       void act(() => (picker as HTMLElement).click());
     }
+  });
+});
+
+// why: STORY-004-04 S16 — every hostile entity in the card, with the tip of every AI mark (hover,
+// focus and touch) and of every value and label anchor
+function inspectAll(root: Element, visit: () => void): number {
+  const card = root.querySelector(".inspector") as Element;
+  const marks = [...card.querySelectorAll(".ai-mark")] as HTMLElement[];
+  const touch = () =>
+    new PointerEvent("pointerdown", { pointerType: "touch", bubbles: true });
+  for (const mark of marks) {
+    void act(() => void mark.dispatchEvent(new MouseEvent("mouseenter")));
+    visit();
+    void act(() => void mark.dispatchEvent(new MouseEvent("mouseleave")));
+    void act(() => mark.focus());
+    visit();
+    void act(() => mark.blur());
+    void act(() => void mark.dispatchEvent(touch()));
+    visit();
+    void act(() => void mark.dispatchEvent(touch()));
+  }
+  for (const anchor of card.querySelectorAll('[tabindex="0"]:not(.ai-mark)')) {
+    void act(() => void anchor.dispatchEvent(new MouseEvent("mouseenter")));
+    visit();
+    void act(() => void anchor.dispatchEvent(new MouseEvent("mouseleave")));
+  }
+  return marks.length;
+}
+
+describe("S16 the inspector on the hostile payload (STORY-004-04)", () => {
+  it("shows every hostile node and AI mark with no marker in an attribute", async () => {
+    const raw = hostilePayload() as {
+      nodes: { id?: string; globalId?: string }[];
+    };
+    const ids = raw.nodes.map((n) => n.id ?? n.globalId ?? "");
+    const frame = await mountApp(appInput(hostilePayload()));
+    const canvas = spy.canvases[spy.canvases.length - 1];
+    let marks = 0;
+    for (const id of ids) {
+      void act(() => canvas.focus(id));
+      for (let i = 0; i < 120; i++)
+        void act(() => {
+          vi.advanceTimersByTime(16);
+        });
+      const card = frame.root.querySelector(".inspector") as HTMLElement;
+      expect([id, card.dataset.state]).toEqual([id, "expanded"]);
+      void act(() => card.querySelector<HTMLElement>(".facts-more")?.click());
+      marks += inspectAll(frame.root, () => {
+        expect(shellAudit(frame.root)).toEqual([]);
+        const texts = textsOf(frame.root).join("\n");
+        expect(texts).not.toContain("function");
+        expect(texts).not.toContain("[object Object]");
+      });
+      expect(card.querySelectorAll(".link-btn")).toHaveLength(0);
+    }
+    expect(marks).toBeGreaterThanOrEqual(4);
+    expect(frame.calls).toEqual([]);
   });
 });
