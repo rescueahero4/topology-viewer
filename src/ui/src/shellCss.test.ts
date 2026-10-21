@@ -170,3 +170,69 @@ describe("S31 no colour literal in the shell CSS", () => {
       expect(tokens).toContain(`${name}: ${hex};`);
   });
 });
+
+describe("S17 the one-line rules of the controls (STORY-004-03 rule 9)", () => {
+  const controls = read("shell-controls.css");
+
+  it.each([".fam-tab", ".pick-btn", ".pill", ".ctl-btn"])(
+    "%s keeps one line",
+    (selector) => {
+      expect(ruleOf(controls, selector)?.body).toContain("white-space: nowrap");
+    },
+  );
+
+  it("cuts the name of a picker item with an ellipsis", () => {
+    const body = ruleOf(controls, ".pick-item .nm")?.body ?? [];
+    for (const d of [
+      "overflow: hidden",
+      "text-overflow: ellipsis",
+      "white-space: nowrap",
+    ])
+      expect(body).toContain(d);
+  });
+});
+
+// why: STORY-004-03 rule 7 — the mockup CATEGORIES values (lib/topology.js lines 34-39) by the
+// place of the family in the engine familyOrder()
+const FAMILY_SETS = [
+  ["#dcfce7", "#acd8bc", "#16a34a"],
+  ["#e0e7ff", "#b9b7dc", "#4f46e5"],
+  ["#cffafe", "#a3d5e1", "#0891b2"],
+  ["#fef3c7", "#e4c095", "#d97706"],
+  ["#f1f5f9", "#b3bdcc", "#475569"],
+  ["#f4f4f5", "#d4d4d8", "#71717a"],
+];
+
+describe("S21 the family token sets (STORY-004-03 rule 7)", () => {
+  const tokens = read("tokens.css");
+  const root = ruleOf(tokens, ":root")?.body ?? [];
+
+  it.each(FAMILY_SETS.map((set, place) => [place, ...set] as const))(
+    "set %i has the mockup tint, border and main",
+    (place, tint, border, main) => {
+      expect(root).toContain(`--fam-${place}-tint: ${tint}`);
+      expect(root).toContain(`--fam-${place}-border: ${border}`);
+      expect(root).toContain(`--fam-${place}-main: ${main}`);
+    },
+  );
+
+  // why: the class rules are in shell-controls.css, because each .qt- class of tokens.css is a
+  // canvas class (EPIC-003 B7)
+  it.each(FAMILY_SETS.map((_, place) => place))(
+    "the class qt-fam-%i reads its three tokens",
+    (place) => {
+      expect(ruleOf(tokens, `.qt-fam-${place}`)).toBeUndefined();
+      expect(
+        ruleOf(read("shell-controls.css"), `.qt-fam-${place}`)?.body,
+      ).toEqual([
+        `--tint: var(--fam-${place}-tint)`,
+        `--pill-border: var(--fam-${place}-border)`,
+        `--main: var(--fam-${place}-main)`,
+      ]);
+    },
+  );
+
+  it("has no other family set", () => {
+    expect(root.filter((d) => d.startsWith("--fam-"))).toHaveLength(18);
+  });
+});

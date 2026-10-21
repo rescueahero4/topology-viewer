@@ -42,6 +42,37 @@
   --card-bg: rgba(255, 255, 255, 0.92);
   --overlay-bg: rgba(244, 244, 245, 0.86);
   --backdrop: rgba(24, 24, 27, 0.3);
+  /* The ink of the category bar and the control bar (mockup styles.css lines 92, 95, 96, 107, 128,
+     131); STORY-004-03 rule 7. */
+  --ink-600: #525252;
+  --ink-700: #404040;
+  --pill-ink: #666666;
+  /* Family tint, border and main (mockup CATEGORIES, lib/topology.js lines 34-39), one set for
+     each place 0-5 of the engine familyOrder(): Structure, Lineage, Reference, Annotation,
+     Ownership & Access, Other. A custom family and Custom take set 5 (STORY-004-03 rule 7). */
+  --fam-0-tint: #dcfce7;
+  --fam-0-border: #acd8bc;
+  --fam-0-main: #16a34a;
+  --fam-1-tint: #e0e7ff;
+  --fam-1-border: #b9b7dc;
+  --fam-1-main: #4f46e5;
+  --fam-2-tint: #cffafe;
+  --fam-2-border: #a3d5e1;
+  --fam-2-main: #0891b2;
+  --fam-3-tint: #fef3c7;
+  --fam-3-border: #e4c095;
+  --fam-3-main: #d97706;
+  --fam-4-tint: #f1f5f9;
+  --fam-4-border: #b3bdcc;
+  --fam-4-main: #475569;
+  --fam-5-tint: #f4f4f5;
+  --fam-5-border: #d4d4d8;
+  --fam-5-main: #71717a;
+  /* The family set of an element; each qt-fam-N class of shell-controls.css sets it (STORY-004-03
+     rule 7), and an element with no such class has the Other set. */
+  --tint: var(--fam-5-tint);
+  --pill-border: var(--fam-5-border);
+  --main: var(--fam-5-main);
 }
 
 .qt-root {

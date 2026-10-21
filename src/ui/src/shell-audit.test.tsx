@@ -35,6 +35,28 @@ const DRAWING = Object.keys(fixtures)
   .filter((key) => !NOT_DRAWN.includes(key))
   .sort();
 
+// why: STORY-004-03 DoD — the audits run with each menu and picker open in turn, and with the tip
+// of each tab, pill, picker item and info icon shown
+const TIP_ANCHORS = ".fam-tab, .pill, .pick-item, .info";
+function everyPanel(root: Element, visit: () => void): void {
+  visit();
+  for (const button of root.querySelectorAll("[aria-haspopup]")) {
+    void act(() => (button as HTMLElement).click());
+    visit();
+    const menu = button.nextElementSibling;
+    const anchors = [
+      ...root.querySelectorAll(`.catbar :is(${TIP_ANCHORS})`),
+      ...(menu?.querySelectorAll(TIP_ANCHORS) ?? []),
+    ];
+    for (const anchor of anchors) {
+      void act(() => void anchor.dispatchEvent(new MouseEvent("mouseenter")));
+      visit();
+      void act(() => void anchor.dispatchEvent(new MouseEvent("mouseleave")));
+    }
+    void act(() => (button as HTMLElement).click());
+  }
+}
+
 function textsOf(root: Element): string[] {
   const walker = root.ownerDocument.createTreeWalker(
     root,
@@ -98,16 +120,18 @@ describe("S14 the ja text audit", () => {
     const input = fixtureModel(key);
     const model = modelTexts(input);
     const frame = await mountApp(input, { lang: "ja" });
-    const found = textsOf(frame.root).flatMap((text) => {
-      const shell = text
-        .split(" · ")
-        .filter((part) => shellPart(part, model))
-        .join(" · ");
-      return EN_ONLY.filter((part) => shell.includes(part)).map(
-        (part) => `${part} in "${text}"`,
-      );
+    const found = new Set<string>();
+    everyPanel(frame.root, () => {
+      for (const text of textsOf(frame.root)) {
+        const shell = text
+          .split(" · ")
+          .filter((part) => shellPart(part, model))
+          .join(" · ");
+        for (const part of EN_ONLY)
+          if (shell.includes(part)) found.add(`${part} in "${text}"`);
+      }
     });
-    expect(found).toEqual([]);
+    expect([...found]).toEqual([]);
   });
 });
 
@@ -119,11 +143,13 @@ describe("S15 and S29 the hostile payload", () => {
     expect(
       frame.root.querySelectorAll(".qt-root .qt-node").length,
     ).toBeGreaterThan(3);
-    expect(shellAudit(frame.root)).toEqual([]);
-    const texts = textsOf(frame.root).join("\n");
-    expect(texts.includes(MARKERS[2])).toBe(true);
-    expect(texts).not.toContain("function");
-    expect(texts).not.toContain("[object Object]");
+    everyPanel(frame.root, () => {
+      expect(shellAudit(frame.root)).toEqual([]);
+      const texts = textsOf(frame.root).join("\n");
+      expect(texts.includes(MARKERS[2])).toBe(true);
+      expect(texts).not.toContain("function");
+      expect(texts).not.toContain("[object Object]");
+    });
   });
 });
 
@@ -184,5 +210,89 @@ describe("S17 deep issue paths (ISSUE-005)", () => {
     }
     expect(textsOf(frame.root).join("\n")).not.toContain("qxmkey");
     expect(shellAudit(frame.root, ["qxmkey"])).toEqual([]);
+  });
+});
+
+// why: STORY-004-03 S16 — the hostile payload with 11 more hostile predicates, each in its own
+// hostile category, so both rows of the category bar are pickers
+const MORE = ["qxm031", "qxm032", "qxm033"];
+function manyHostile(): unknown {
+  const payload = hostilePayload() as {
+    nodes: { id: string }[];
+    edges: unknown[];
+    predicates: Record<string, unknown>;
+  };
+  const [from, to] = [payload.nodes[0].id, payload.nodes[1].id];
+  for (let i = 0; i < 11; i++) {
+    const predicate = `${MORE[0]}"<>&javascript:${i}`;
+    payload.edges.push({ subject: from, predicate, object: to });
+    payload.predicates[predicate] = { category: `${MORE[1]}"<>&${i}` };
+  }
+  return payload;
+}
+
+function typeQuery(menu: Element, query: string): void {
+  const search = menu.querySelector("input") as HTMLInputElement;
+  void act(() => {
+    search.value = query;
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+describe("S16 the controls on the hostile payload (STORY-004-03)", () => {
+  it("shows the prototype names as their own texts and no marker in an attribute", async () => {
+    const frame = await mountApp(appInput(hostilePayload()));
+    const types = frame.root.querySelectorAll(".controls .ctl-btn")[1];
+    void act(() => (types as HTMLElement).click());
+    const names = [
+      ...(types.nextElementSibling?.querySelectorAll(".type-list .name") ?? []),
+    ].map((el) => el.textContent);
+    expect(names).toContain("Constructor");
+    const pills = [...frame.root.querySelectorAll(".pill")];
+    expect(pills.map((pill) => pill.childNodes[1]?.textContent)).toContain(
+      "prototype",
+    );
+    const tab = [...frame.root.querySelectorAll(".fam-tab")].find(
+      (el) => el.textContent === "constructor",
+    );
+    expect(tab?.className).toBe("fam-tab qt-fam-5");
+    expect(shellAudit(frame.root)).toEqual([]);
+    const texts = textsOf(frame.root).join("\n");
+    expect(texts).not.toContain("function");
+    expect(texts).not.toContain("[object Object]");
+  });
+
+  it("keeps the pickers, the items and a hostile query out of every attribute", async () => {
+    const frame = await mountApp(appInput(manyHostile()));
+    const markers = [...MARKERS, ...MORE];
+    const pickers = [...frame.root.querySelectorAll(".catbar .pick-btn")];
+    expect(pickers).toHaveLength(2);
+    everyPanel(frame.root, () => {
+      expect(shellAudit(frame.root, markers)).toEqual([]);
+      const texts = textsOf(frame.root).join("\n");
+      expect(texts).not.toContain("function");
+      expect(texts).not.toContain("[object Object]");
+    });
+    const query = `${MORE[2]}"<>&javascript:`;
+    for (const [index, picker] of pickers.entries()) {
+      void act(() => (picker as HTMLElement).click());
+      const menu = picker.nextElementSibling as HTMLElement;
+      const constructor = [
+        ...menu.querySelectorAll(".fam-head, .pick-item"),
+      ].find((el) => el.textContent?.startsWith("constructor"));
+      expect(constructor?.className).toContain("qt-fam-5");
+      typeQuery(menu, query);
+      const empty = menu.querySelector(".pick-empty");
+      expect(empty?.childNodes).toHaveLength(1);
+      expect(empty?.firstChild?.nodeType).toBe(Node.TEXT_NODE);
+      expect(empty?.textContent).toContain(query);
+      expect(shellAudit(frame.root, markers)).toEqual([]);
+      typeQuery(menu, "prot");
+      const found = [...menu.querySelectorAll(".pick-item .nm")].map(
+        (el) => el.textContent,
+      );
+      expect(found).toEqual(index === 0 ? [] : ["prototype"]);
+      void act(() => (picker as HTMLElement).click());
+    }
   });
 });

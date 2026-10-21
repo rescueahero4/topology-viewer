@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
-import type { CanvasState, Frontier } from "@qdic-topology/engine";
+import {
+  firstView,
+  type CanvasState,
+  type Frontier,
+} from "@qdic-topology/engine";
 import { describe, expect, it, vi } from "vitest";
 import type { Canvas, CanvasEvent } from "./canvas/index";
 
@@ -133,7 +137,14 @@ describe("S22 the full warning list", () => {
 });
 
 describe("S27 canvasState from each event", () => {
-  const stateOf = (tag: string) => ({ tag }) as unknown as CanvasState;
+  // why: STORY-004-03 — the controls read the state, so each state of the stub is a real state
+  // (the first view of s-access) with its own `seq`
+  const stateOf = (seq: number): CanvasState => {
+    const input = fixtureModel("s-access");
+    if (!input.ok) throw new Error("fatal");
+    const { graph, vocab, payload, hash } = input.model;
+    return { ...firstView(graph, vocab, payload, hash), seq };
+  };
   const send = <K extends keyof CanvasEvent>(name: K, event: CanvasEvent[K]) =>
     stub.handlers.get(name)?.(event);
 
@@ -141,7 +152,7 @@ describe("S27 canvasState from each event", () => {
     stub.on = true;
     try {
       await mountApp(fixtureModel("s-access"));
-      const [a, b, c, d] = ["A", "B", "C", "D"].map(stateOf);
+      const [a, b, c, d] = [1, 2, 3, 4].map(stateOf);
       const firstFrontier = state.frontier.value;
       const firstCamera = state.camera.value;
       send("select", { selection: { node: "e:x" }, state: a });
