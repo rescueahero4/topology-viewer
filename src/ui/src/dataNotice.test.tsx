@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
-import {
-  dataNoticeLines,
-  noticeText,
-  type Info,
-  type Lang,
-} from "@qdic-topology/engine";
-import { loadFixture } from "@qdic-topology/fixtures";
+import type { Info, Lang } from "@qdic-topology/engine";
 import { act } from "preact/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import type { AppInput } from "./App";
@@ -25,6 +19,8 @@ vi.useFakeTimers({
   ],
 });
 vi.resetModules();
+const { dataNoticeLines, noticeText } = await import("@qdic-topology/engine");
+const { loadFixture } = await import("@qdic-topology/fixtures");
 const { mountApp } = await import("./testFrame");
 const { appInput, fixtureModel } = await import("./fixtureModel");
 const { t } = await import("./strings/index");
