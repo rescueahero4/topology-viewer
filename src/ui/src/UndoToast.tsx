@@ -15,7 +15,8 @@ import type { Start } from "./useRenderer";
 const TOAST_MS = 10_000;
 
 // why: rule 6 — a budget change, a reset or a pasted input keeps a snapshot; a new trigger replaces
-// it; an input from the model (or a fatal input, which has no canvas) closes the toast
+// it; an input from the model closes the toast. SA §10 guardrail 6 (ISSUE-012 C12) — a pasted
+// fatal input keeps the snapshot too, so the toast brings the previous chart back
 export function useUndo(input: AppInput) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const first = useRef(true);
@@ -24,7 +25,7 @@ export function useUndo(input: AppInput) {
       first.current = false;
       return;
     }
-    setSnapshot(input.ok && input.source === "paste" ? snapshotOf() : null);
+    setSnapshot(input.source === "paste" ? snapshotOf() : null);
   }, [input]);
   const keep = useCallback(() => setSnapshot(snapshotOf()), []);
   const close = useCallback(() => setSnapshot(null), []);

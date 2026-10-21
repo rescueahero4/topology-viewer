@@ -1,12 +1,19 @@
-import type { Lang, OnCanvas, Selection, Vocab } from "@qdic-topology/engine";
+import {
+  entityOfDrawnId,
+  type Lang,
+  type OnCanvas,
+  type Provenance,
+  type Selection,
+  type Vocab,
+} from "@qdic-topology/engine";
 import type { ComponentChildren, RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { Checkbox } from "./Checkbox";
 import { EyeIcon } from "./EyeIcon";
 import { familyClass } from "./familyLook";
-import { entityIdOf } from "./Inspector";
+import { provTag } from "./names";
 import { lang, selection } from "./state";
-import { tAround } from "./strings/index";
+import { t, tAround } from "./strings/index";
 import { useTip, type Tip } from "./Tooltip";
 import { TypeGlyph } from "./TypeGlyph";
 import { cellText, columnKey, type Column } from "./workbenchColumns";
@@ -84,7 +91,7 @@ function useFocusScroll(
 // why: mockup `isFocusRow` (app.js line 1012) — a selected entity marks its node rows; a group or
 // an edge selection marks none
 function focusOf(now: Selection): string | null {
-  return now !== null && "node" in now ? entityIdOf(now.node) : null;
+  return now !== null && "node" in now ? entityOfDrawnId(now.node) : null;
 }
 
 type Cells = {
@@ -127,7 +134,17 @@ function Cell({
       </td>
     );
   if (column.core === "kind" && row.rtype === "node")
-    return <KindCell {...{ text, row, vocab, anchor }} />;
+    return <KindCell {...{ ui, text, row, vocab, anchor }} />;
+  if (column.core === "predicate" && row.rtype === "edge")
+    return (
+      <td {...anchor}>
+        {text}
+        <ProvTag
+          ui={ui}
+          provenance={vocab.predicates.get(row.predicate)?.provenance}
+        />
+      </td>
+    );
   if (column.core === "name" && row.rtype === "edge")
     return (
       <td {...anchor}>
@@ -143,16 +160,24 @@ function Cell({
   return <td {...anchor}>{text}</td>;
 }
 
+// why: FR-VOC-3 (ISSUE-012 C7) — the inspector tag after the Kind of a node row and the Predicate
+// of an edge row; the cell text, the sort and the search stay without it
+function ProvTag({ ui, provenance }: { ui: Lang; provenance?: Provenance }) {
+  if (provenance === undefined) return null;
+  return <span class="prov mono">{provTag(ui, provenance)}</span>;
+}
+
 type KindProps = {
+  ui: Lang;
   text: string;
   row: Extract<Row, { rtype: "node" }>;
   vocab: Vocab;
   anchor: ReturnType<Tip["anchor"]>;
 };
 
-function KindCell({ text, row, vocab, anchor }: KindProps) {
-  const visual =
-    row.type === null ? null : (vocab.types.get(row.type)?.visual ?? null);
+function KindCell({ ui, text, row, vocab, anchor }: KindProps) {
+  const type = row.type === null ? undefined : vocab.types.get(row.type);
+  const visual = type?.visual ?? null;
   return (
     <td {...anchor}>
       <span class="kind">
@@ -162,6 +187,7 @@ function KindCell({ text, row, vocab, anchor }: KindProps) {
           untyped={row.type === null ? vocab.untyped : null}
         />
         {text}
+        <ProvTag ui={ui} provenance={type?.provenance} />
       </span>
     </td>
   );
@@ -201,6 +227,7 @@ function TableRow({
     >
       <td
         class="sel"
+        {...cells.tip.anchor(`${row.index}:sel`, t(cells.ui, "rangeTip"))}
         onMouseDown={(event) => {
           if (event.shiftKey) event.preventDefault();
         }}

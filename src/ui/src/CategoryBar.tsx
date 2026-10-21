@@ -113,6 +113,7 @@ export function CategoryBar({ actions }: { actions: Actions }) {
       </div>
       <div
         class="pill-row"
+        role="group"
         aria-label={t(ui, "catbar.predicates")}
         data-mode={modes.predicates}
       >

@@ -10,6 +10,7 @@ import { chipDismissed, showChip } from "./DataNotice";
 import { Menu, MenuItem } from "./Menu";
 import { resetView } from "./resetCompare";
 import { formatted, t, tAround, type Key } from "./strings/index";
+import type { Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   model: CanvasModel;
   state: CanvasState;
   drawn: Frontier;
+  tip: Tip;
 };
 
 type Option = { budget: Budget; note?: Key };
@@ -115,7 +117,7 @@ function ResetItem({ actions, lang, state }: Props) {
 // is one canvas call, and the engine re-selects under Active. STORY-004-08 rule 5 (FR-HOST-9,
 // H4 (b)) — one last item reopens a dismissed DataNotice
 export function ScopeMenu(props: Props) {
-  const { actions, lang, model, state, drawn } = props;
+  const { actions, lang, model, state, drawn, tip } = props;
   const all = state.scope.mode === "all";
   const values = {
     shown: drawn.nodes.length,
@@ -141,6 +143,7 @@ export function ScopeMenu(props: Props) {
       buttonClass="ctl-btn"
       menuClass="scope-menu"
       closeOnPick
+      anchor={tip.anchor("scope", t(lang, "scope.tip"))}
     >
       <Summary {...props} />
       <hr />

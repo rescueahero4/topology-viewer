@@ -1,4 +1,4 @@
-import type { Lang } from "@qdic-topology/engine";
+import { fold, type Lang } from "@qdic-topology/engine";
 import { useMemo, useState } from "preact/hooks";
 import { Menu, MenuItem } from "./Menu";
 import { t } from "./strings/index";
@@ -10,7 +10,6 @@ import {
   type Choice,
   type Column,
 } from "./workbenchColumns";
-import { fold } from "./FilterPicker";
 
 // why: rule 12 (Security round 4; Product Owner 2026-10-21) — the menu holds at most 200
 // attribute keys, so its DOM is bounded for any count of distinct keys

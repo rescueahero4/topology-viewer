@@ -2,7 +2,8 @@ import type { DrawnId, Vocab } from "@qdic-topology/engine";
 import { useId } from "preact/hooks";
 import { CheckMark } from "./Checkbox";
 import { lang } from "./state";
-import { tAround } from "./strings/index";
+import { t, tAround } from "./strings/index";
+import type { Tip } from "./Tooltip";
 import { TypeGlyph } from "./TypeGlyph";
 import { UiIcon } from "./UiIcon";
 
@@ -16,6 +17,7 @@ export type Row = {
 type Props = {
   row: Row;
   vocab: Vocab;
+  tip: Tip;
   active: boolean;
   ticked: boolean;
   onPress: (shift: boolean) => void;
@@ -28,6 +30,7 @@ type Props = {
 export function HiddenRow({
   row,
   vocab,
+  tip,
   active,
   ticked,
   onPress,
@@ -47,6 +50,7 @@ export function HiddenRow({
         if (event.shiftKey) event.preventDefault();
       }}
       onClick={(event) => onPress(event.shiftKey)}
+      {...tip.anchor(row.key, t(lang.value, "rangeTip"))}
     >
       <CheckMark checked={ticked} partial={false} />
       <span class="glyph">

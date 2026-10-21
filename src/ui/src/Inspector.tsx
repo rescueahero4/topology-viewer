@@ -1,6 +1,6 @@
 import { computed } from "@preact/signals";
 import {
-  entityDrawnId,
+  entityOfDrawnId,
   type DrawnId,
   type GroupNode,
   type ResolvedEntity,
@@ -29,11 +29,6 @@ import { t } from "./strings/index";
 import { useTip } from "./Tooltip";
 import type { RelCtx } from "./TripleRow";
 
-// why: the engine drawn id of an entity is `entityDrawnId(<entity id>)`; a group id has no entity
-const ENTITY = entityDrawnId("");
-export const entityIdOf = (drawn: DrawnId): string | null =>
-  drawn.startsWith(ENTITY) ? drawn.slice(ENTITY.length) : null;
-
 type Inspected =
   | { drawn: DrawnId; entity: ResolvedEntity; group?: undefined }
   | { drawn: DrawnId; group: GroupNode; entity?: undefined };
@@ -50,7 +45,7 @@ export const inspected = computed<Inspected | null>(() => {
   const now = model.value;
   if (picked === null || now === null) return null;
   const drawn = "edge" in picked ? picked.anchor : picked.node;
-  const id = entityIdOf(drawn);
+  const id = entityOfDrawnId(drawn);
   if (id !== null) {
     const entity = now.vocab.entities.get(id);
     return entity === undefined ? null : { drawn, entity };

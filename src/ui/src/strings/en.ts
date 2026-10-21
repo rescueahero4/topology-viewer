@@ -4,7 +4,6 @@ export const en = {
   typesMenu: "Types menu",
   datasetTable: "Dataset table",
   unknownType: "Unknown",
-
   "type.database": "Database",
   "type.schema": "Schema",
   "type.table": "Table",
@@ -31,7 +30,6 @@ export const en = {
   "type.model": "Model",
   "type.keyword": "Keyword",
   "type.bk": "Source file",
-
   "family.Structure": "Structure",
   "family.Lineage": "Lineage",
   "family.Reference": "Reference",
@@ -39,7 +37,6 @@ export const en = {
   "family.Ownership & Access": "Ownership & Access",
   "family.Other": "Other",
   "family.Custom": "Custom",
-
   "slot.physical_name": "Physical name",
   "slot.logical_name": "Logical name",
   "slot.description": "Description",
@@ -53,23 +50,19 @@ export const en = {
   "slot.asset_groups": "Asset groups",
   "slot.updated": "Updated",
   "slot.link": "Link",
-
   "group.Catalog structure": "Catalog structure",
   "group.People & access": "People & access",
   "group.Tagging": "Tagging",
   "group.Annotation concepts": "Annotation concepts",
   "group.Custom": "Custom",
-
   "provenance.system": "system",
   "provenance.custom": "custom",
   "provenance.inferred": "inferred",
-
   "eye.drawn": "Drawn on the canvas",
   "eye.notDrawn": "Not drawn. Click the row to bring it onto the canvas",
   "eye.hidden": "Hidden from the canvas. Click the row to show it again",
   "eye.faded": "Faded by Group around root",
   "eye.fadedTip": "faded",
-
   "canvas.name": "Topology graph",
   "canvas.group": "{type}",
   "canvas.collapsed": "Collapsed",
@@ -88,9 +81,7 @@ export const en = {
   "canvas.bubbleCount": " · {count}",
   "canvas.lost": "lost",
   "canvas.pillRetired": "{label} (retired)",
-
   default: "Default",
-
   "scope.label": "{shown} / {total}",
   "scope.labelAll": "{total} nodes",
   "scope.name": "{shown} of {total} nodes drawn",
@@ -109,10 +100,9 @@ export const en = {
   "scope.reset": "Reset to first view",
   "scope.noteFirst": "first view",
   "scope.noteAll": "all nodes",
-
+  "scope.tip": "How much of the dataset is drawn on the canvas",
   "types.button": "Types",
   "types.heading": "Node types",
-
   "layout.heading": "Layout",
   "layout.tree": "Tree",
   "layout.force": "Force",
@@ -127,14 +117,14 @@ export const en = {
   "layout.bubblesTip": "Similar nodes in labelled, draggable bubbles",
   "layout.treeHTip": "Data source → columns, curation right",
   "layout.treeVTip": "Data source → columns, curation below",
-
   "grouping.heading": "Collapse similar nodes",
   "grouping.atLeast": "{count} or more",
   "grouping.off": "Off",
   "grouping.offNote": "Show every node",
   "grouping.button": "Group {count}+",
   "grouping.buttonOff": "Group off",
-
+  "grouping.tip":
+    "Similar sibling nodes collapse into one; double-click to expand",
   "catbar.name": "Relationship filters",
   "catbar.families": "Relationship families",
   "catbar.predicates": "Predicates",
@@ -148,7 +138,6 @@ export const en = {
   },
   "catbar.customPredicate": " (custom predicate)",
   "catbar.dot": "◆",
-
   "pick.families": "Families",
   "pick.predicates": "Predicates",
   "pick.count": "{on}/{total}",
@@ -156,9 +145,10 @@ export const en = {
   "pick.searchPredicates": "Search predicates",
   "pick.noFamilies": "No families match “{query}”.",
   "pick.noPredicates": "No predicates match “{query}”.",
-
   "inspector.empty": "Click a node to inspect it",
   "inspector.root": "ROOT",
+  "inspector.rootTip":
+    "The selected node; the canvas is focused on its neighbourhood",
   "inspector.collapse": "Collapse inspector",
   "inspector.expand": "Expand inspector",
   "inspector.type": "Type",
@@ -178,14 +168,12 @@ export const en = {
   "inspector.openLink": "Open in source ↗",
   "inspector.yes": "Yes",
   "inspector.no": "No",
-
   "ai.badge": "AI",
   "ai.inferred": "Inferred by the AI client",
   "ai.mapped": "Field matched by the AI client",
   "ai.mappedDefault": "Mapped to this field by the AI client",
   "ai.label": "Label from the AI client",
   "ai.tip": "{name}: {reason}",
-
   "fact.service_name": "System",
   "fact.asset_type": "Asset type",
   "fact.data_type": "Data type",
@@ -200,7 +188,6 @@ export const en = {
   "fact.colour": "Colour",
   "fact.object_type": "Object type",
   "fact.owner": "Owner",
-
   "relations.counts": "{rows}e {ends}n",
   "relations.countRows": {
     one: "{count} relationship",
@@ -219,6 +206,8 @@ export const en = {
   "relations.noneHere": "No relationships in this direction.",
   "relations.familyCount": "({count})",
   "relations.prov": "[{prov}]",
+  "relations.provSystem": "System predicate from the Graph Vocabulary",
+  "relations.provCustom": "Custom predicate",
   "relations.goTo": "Go to {name}",
   "relations.inverse": "{name} · inverse: {inverse}",
   "relations.attr": "{name}: {value}",
@@ -233,7 +222,6 @@ export const en = {
   "relations.ruleType": "A new custom node must use a custom-defined node type",
   "relations.rulePairing": "Every edge must match an allowed pairing",
   "relations.ruleEnds": "Both ends of a custom edge cannot be system-owned",
-
   "notes.member":
     "Expanded from a group of similar nodes. Double-click a member to collapse.",
   "notes.opened":
@@ -250,7 +238,6 @@ export const en = {
   "notes.collapse": "Collapse",
   "notes.show": "Show",
   "notes.expand": "Expand",
-
   "actions.center": "Center the atomic layout on this node",
   "actions.centerTip": "Center the rings on this node",
   "actions.around": "Group neighbours by type around this node",
@@ -262,10 +249,11 @@ export const en = {
   "actions.hideTip":
     "Hide from canvas (stays in the dataset; bring it back from Hidden)",
   "actions.clear": "Clear selection and fit view",
-
   "hidden.name": "Hidden from canvas",
   "hidden.chip": "Hidden",
   "hidden.collapse": "Collapse hidden items",
+  "hidden.show": "Show hidden items",
+  rangeTip: "Shift-click to select a range",
   "hidden.list": "Hidden items",
   "hidden.together": "{count} hidden together",
   "hidden.stranded": {
@@ -277,16 +265,15 @@ export const en = {
   "hidden.showSelected": "Show {count} on canvas",
   "hidden.showAll": "Show all on canvas",
   "hidden.showOne": "Show {name} on canvas",
-
   "pill.focused": "Focused on {name}",
   "pill.faded": " · {count} faded",
   "pill.showAll": "Show all",
+  nameSep: ", ",
   "pill.tip": {
     one: "Showing only {name} and its neighbours. Click to show the {count} faded node again.",
     other:
       "Showing only {name} and its neighbours. Click to show the {count} faded nodes again.",
   },
-
   "search.label": "Search nodes",
   "search.key": "/",
   "search.more": "{count} more…",
@@ -298,7 +285,6 @@ export const en = {
   "search.notDrawn": " · not drawn",
   "search.hidden": " · hidden",
   "search.faded": " · faded",
-
   "wb.dataset": "Dataset",
   "wb.toggleTip": "View dataset (Ctrl+.)",
   "wb.toggleTipMac": "View dataset (⌘.)",
@@ -307,6 +293,7 @@ export const en = {
   "wb.scopeAll": "All rows",
   "wb.scopeCanvas": "On canvas",
   "wb.scopeHidden": "Hidden",
+  "wb.scopeHiddenTip": "Rows you hid from the canvas",
   "wb.rowType": "Row type",
   "wb.both": "Both",
   "wb.nodes": "Nodes",
@@ -365,7 +352,6 @@ export const en = {
   "wb.hideTip": "Hide from the canvas. They move to the Hidden list",
   "wb.hideNone": "No selected node is on the canvas",
   "wb.selectAll": "Select all {count}",
-
   "action.show-types": "Show all types",
   "action.reset-view": "Reset to first view",
   "action.retry": "Try again",

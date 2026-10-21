@@ -1,9 +1,9 @@
-import type { DrawnId, Selection } from "@qdic-topology/engine";
+import type { DrawnId, Provenance, Selection } from "@qdic-topology/engine";
 import { useId, useLayoutEffect, useRef } from "preact/hooks";
 import type { Actions } from "./actions";
 import type { CanvasModel } from "./canvas/index";
 import { predicateColour } from "./familyLook";
-import { provenanceName } from "./names";
+import { provTag } from "./names";
 import {
   endName,
   isGroup,
@@ -13,7 +13,7 @@ import {
 } from "./relations";
 import { rendererText } from "./rendererText";
 import { lang } from "./state";
-import { t, tAround } from "./strings/index";
+import { formatted, t, tAround, type Key } from "./strings/index";
 import type { Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 
@@ -66,6 +66,39 @@ function GoTo({ ctx, row }: { ctx: RelCtx; row: Relation }) {
   );
 }
 
+// why: ISSUE-012 C1 (mockup app.js line 772) — the mockup has a tip for a system and a custom tag
+// only, so an inferred tag has none
+const PROV_TIPS: Partial<Record<Provenance, Key>> = {
+  system: "relations.provSystem",
+  custom: "relations.provCustom",
+};
+
+// why: mockup app.js lines 771-772 — the member count of a group end (ISSUE-012 C3), then the
+// provenance tag (FR-VOC-3) with its tip
+function Marks({ ctx, row }: { ctx: RelCtx; row: Relation }) {
+  const ui = lang.value;
+  const other = ctx.nodes.get(row.other);
+  const predicate = ctx.model.vocab.predicates.get(row.edge.predicate);
+  const provTip = predicate && PROV_TIPS[predicate.provenance];
+  return (
+    <>
+      {other !== undefined && isGroup(other) && (
+        <span class="cnt">{formatted(ui, other.count)}</span>
+      )}
+      {predicate !== undefined && (
+        <span
+          class="prov mono"
+          {...(provTip === undefined
+            ? {}
+            : ctx.tip.anchor(`${row.edge.key}:prov`, t(ui, provTip)))}
+        >
+          {provTag(ui, predicate.provenance)}
+        </span>
+      )}
+    </>
+  );
+}
+
 // why: FR-INSPECT-1, FR-CANVAS-10, rules 5 and 6 (mockup app.js lines 761-772) — the row picks its
 // edge as the canvas does; the picked row scrolls into view; the predicate tip is made on open
 export function TripleRow({ ctx, row }: { ctx: RelCtx; row: Relation }) {
@@ -85,7 +118,6 @@ export function TripleRow({ ctx, row }: { ctx: RelCtx; row: Relation }) {
     event.preventDefault();
     select();
   };
-  const predicate = ctx.model.vocab.predicates.get(edge.predicate);
   const name = edge.retired
     ? rendererText(ui).pillRetired(edge.predicate)
     : edge.predicate;
@@ -112,13 +144,7 @@ export function TripleRow({ ctx, row }: { ctx: RelCtx; row: Relation }) {
       <span class="o">
         <End ctx={ctx} id={edge.object} />
       </span>
-      {predicate !== undefined && (
-        <span class="prov mono">
-          {t(ui, "relations.prov", {
-            prov: provenanceName(ui, predicate.provenance),
-          })}
-        </span>
-      )}
+      <Marks ctx={ctx} row={row} />
       <GoTo ctx={ctx} row={row} />
     </div>
   );

@@ -1,5 +1,6 @@
 import {
   canvasLookup,
+  fold,
   type CanvasLookup,
   type DrawnId,
   type Lang,
@@ -20,7 +21,6 @@ import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { closeWorkbench, expandTable, layout } from "./split";
 import { canvasState, frontier, lang, model } from "./state";
 import { t } from "./strings/index";
-import { fold } from "./FilterPicker";
 import { WorkbenchBar } from "./WorkbenchBar";
 import {
   attributeKeys,

@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import type { ComponentChildren, JSX } from "preact";
+import type { ComponentChildren, JSX, RefObject } from "preact";
 import { useId, useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import { CheckMark } from "./Checkbox";
 import { RadioMark } from "./Radio";
@@ -20,6 +20,7 @@ type MenuProps = {
   buttonClass: string;
   menuClass?: string;
   closeOnPick?: boolean;
+  anchor?: JSX.HTMLAttributes<HTMLButtonElement>;
   children: ComponentChildren;
 };
 
@@ -30,18 +31,13 @@ const FIRST = 'input, [role^="menuitem"], [role="checkbox"]';
 // radio or an action closes its menu; a check item keeps it open
 const PICK = '[role="menuitemradio"], [role="menuitem"]';
 
-// why: P18, NF-5 — the first item takes focus on open; Escape closes the menu and gives the focus
-// back to its button; a press outside closes it
-export function Menu(props: MenuProps) {
-  const { label, name, buttonClass, menuClass, closeOnPick, children } = props;
-  const me = useMemo(() => ({}), []);
-  const id = useId();
-  const button = useRef<HTMLButtonElement>(null);
-  const list = useRef<HTMLDivElement>(null);
-  const open = openMenu.value === me;
-  const close = () => {
-    if (openMenu.value === me) openMenu.value = null;
-  };
+// why: P18, NF-5 — the first item takes focus on open; a press outside closes the menu
+function useOpenMenu(
+  open: boolean,
+  button: RefObject<HTMLButtonElement>,
+  list: RefObject<HTMLDivElement>,
+  close: () => void,
+) {
   useLayoutEffect(() => {
     if (!open) return;
     list.current?.querySelector<HTMLElement>(FIRST)?.focus();
@@ -55,9 +51,24 @@ export function Menu(props: MenuProps) {
     doc?.addEventListener("click", outside);
     return () => doc?.removeEventListener("click", outside);
   }, [open]);
+}
+
+// why: P18, NF-5 — Escape closes the menu and gives the focus back to its button
+export function Menu(props: MenuProps) {
+  const { label, name, buttonClass, menuClass, closeOnPick, children } = props;
+  const me = useMemo(() => ({}), []);
+  const id = useId();
+  const button = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const open = openMenu.value === me;
+  const close = () => {
+    if (openMenu.value === me) openMenu.value = null;
+  };
+  useOpenMenu(open, button, list, close);
   return (
     <div class="menu-anchor">
       <button
+        {...props.anchor}
         ref={button}
         id={id}
         type="button"

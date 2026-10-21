@@ -5,10 +5,16 @@ import { t } from "./strings/index";
 // 2,048 characters, so the host message is bounded
 const LINK_LIMIT = 2048;
 // why: rule 7, hand-off item 4 (Security round 4 build condition) — the JSON text of an object
-// stops at 1,000 characters and at nesting level 4; the walk stops there too
-const JSON_LIMIT = 1000;
+// stops at 1,000 characters and at nesting level 4; the walk stops there too. STORY-004-05 rule 5
+// cuts each key, value and line of the predicate tip with the same rule
+export const TEXT_LIMIT = 1000;
 const JSON_DEPTH = 4;
 const CUT = "…";
+
+export const cutText = (text: string) =>
+  text.length > TEXT_LIMIT
+    ? `${text.slice(0, TEXT_LIMIT - CUT.length)}${CUT}`
+    : text;
 // why: mockup `fmtDate` (app.js lines 572-575) — a number below 1e12 is seconds, else milliseconds
 const MS_FROM = 1e12;
 const DATE: Intl.DateTimeFormatOptions = {
@@ -38,11 +44,11 @@ class Budget {
   readonly parts: string[] = [];
   length = 0;
   get full(): boolean {
-    return this.length > JSON_LIMIT;
+    return this.length > TEXT_LIMIT;
   }
   push(text: string): void {
     if (this.full) return;
-    const part = text.slice(0, JSON_LIMIT + 1 - this.length);
+    const part = text.slice(0, TEXT_LIMIT + 1 - this.length);
     this.parts.push(part);
     this.length += part.length;
   }
@@ -50,7 +56,7 @@ class Budget {
 
 function scalarJson(value: unknown): string {
   if (typeof value === "string")
-    return JSON.stringify(value.slice(0, JSON_LIMIT + 1));
+    return JSON.stringify(value.slice(0, TEXT_LIMIT + 1));
   if (typeof value === "number" || typeof value === "boolean")
     return String(value);
   return "null";
@@ -69,7 +75,7 @@ function walk(value: unknown, level: number, out: Budget): void {
     if (!Object.hasOwn(value, key)) continue;
     if (!first) out.push(",");
     first = false;
-    if (!list) out.push(`${JSON.stringify(key.slice(0, JSON_LIMIT + 1))}:`);
+    if (!list) out.push(`${JSON.stringify(key.slice(0, TEXT_LIMIT + 1))}:`);
     walk((value as Record<string, unknown>)[key], level + 1, out);
   }
   out.push(list ? "]" : "}");
@@ -78,10 +84,7 @@ function walk(value: unknown, level: number, out: Budget): void {
 export function jsonText(value: object): string {
   const out = new Budget();
   walk(value, 1, out);
-  const text = out.parts.join("");
-  return text.length > JSON_LIMIT
-    ? `${text.slice(0, JSON_LIMIT - CUT.length)}${CUT}`
-    : text;
+  return cutText(out.parts.join(""));
 }
 
 function itemText(lang: Lang, value: unknown): string {

@@ -7,6 +7,7 @@ import type {
   Vocab,
 } from "@qdic-topology/engine";
 import type { ComponentChildren } from "preact";
+import { colourVar } from "./familyLook";
 import { namesakeLine } from "./namesake";
 import { endName } from "./relations";
 import { lang } from "./state";
@@ -34,7 +35,6 @@ type Props = {
   children: ComponentChildren;
 };
 
-const HEX = /^#[0-9A-Fa-f]{6}$/;
 // why: EPIC-003 TL-9 — the badge reads only this slot entry, as the canvas subtitle does
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
@@ -42,10 +42,8 @@ const SERVICE_FROM = "attribute service_name";
 // why: rule 2, reading (d1), B4 amendment — one fixed property `--c`, only from the guarded colour
 // of the type (`typeColour`, the colour of the canvas node) and only as a six-digit hex colour;
 // with no colour the pill keeps the token colour
-function pillColour(visual: Visual | null, canvas: Hex) {
-  const colour = typeColour(visual, canvas);
-  return colour !== null && HEX.test(colour) ? { "--c": colour } : undefined;
-}
+const pillColour = (visual: Visual | null, canvas: Hex) =>
+  colourVar(typeColour(visual, canvas));
 
 // why: TL-9 — the first `service_name` entry, its first UTF-16 unit in upper case
 function serviceOf(entity: ResolvedEntity): string {
@@ -100,6 +98,7 @@ export function InspectorHeader(props: Props) {
         <span
           class="root-pill"
           style={pillColour(visual ?? vocab.untyped, canvas)}
+          {...tip.anchor("root", t(ui, "inspector.rootTip"))}
         >
           {t(ui, "inspector.root")}
         </span>

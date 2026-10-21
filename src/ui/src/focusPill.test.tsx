@@ -157,7 +157,7 @@ describe("S12 no shell text calls a faded node hidden", () => {
     groupAround(root, "e:t_FCT_REVENUE", "ja");
     const shown = pill(root) as HTMLElement;
     void act(() => void shown.dispatchEvent(new MouseEvent("mouseenter")));
-    expect(text(shown)).toBe("FCT_REVENUE に注目 · 薄く表示 1 件すべて表示");
+    expect(text(shown)).toBe("FCT_REVENUE に注目 · 薄く表示 1 件、すべて表示");
     const tip = text(root.querySelector(".tip"));
     expect(tip).toContain("薄く表示");
     const walker = root.ownerDocument.createTreeWalker(

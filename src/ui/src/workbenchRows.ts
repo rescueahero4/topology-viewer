@@ -1,12 +1,13 @@
-import type {
-  Graph,
-  Lang,
-  NodeRecord,
-  OnCanvas,
-  Triple,
-  Vocab,
+import {
+  entityOfRecord,
+  fold,
+  type Graph,
+  type Lang,
+  type NodeRecord,
+  type OnCanvas,
+  type Triple,
+  type Vocab,
 } from "@qdic-topology/engine";
-import { fold } from "./FilterPicker";
 import { cellText } from "./workbenchColumns";
 
 type NodeRow = {
@@ -40,19 +41,10 @@ const PART = " · ";
 
 const built = new WeakMap<Graph, readonly Row[]>();
 
-// why: `canvasLookup` of view/lookup — a record id names the first entity that lists it
-function entityOfRecord(graph: Graph): Map<string, string> {
-  const owner = new Map<string, string>();
-  for (const entity of graph.entities)
-    for (const id of entity.records)
-      if (!owner.has(id)) owner.set(id, entity.id);
-  return owner;
-}
-
 function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
   const owner = entityOfRecord(graph);
   return graph.records.map((record, index) => {
-    const entity = owner.get(record.id) ?? record.id;
+    const entity = owner(record.id) ?? record.id;
     return {
       rtype: "node",
       index,
