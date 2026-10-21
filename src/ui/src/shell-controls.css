@@ -1,0 +1,267 @@
+/* The category bar and the control bar: the v56 mockup rules (styles.css lines 35, 85-86,
+   88-112, 122-133, 176-182) with every colour from tokens.css (STORY-004-03 rules 7, 9;
+   STORY-004-02 rule 17). The family colours come from the family sets of tokens.css through the
+   qt-fam-N classes; the predicate colour is the fixed property --c (reading d1). The menu bodies
+   are in shell-menus.css. */
+
+/* why: rule 7 — the class of the family place sets the family set of tokens.css. The rules live
+   here because each .qt- class of tokens.css is a canvas class (EPIC-003 B7, domAudit.test.ts) */
+.qt-fam-0 {
+  --tint: var(--fam-0-tint);
+  --pill-border: var(--fam-0-border);
+  --main: var(--fam-0-main);
+}
+.qt-fam-1 {
+  --tint: var(--fam-1-tint);
+  --pill-border: var(--fam-1-border);
+  --main: var(--fam-1-main);
+}
+.qt-fam-2 {
+  --tint: var(--fam-2-tint);
+  --pill-border: var(--fam-2-border);
+  --main: var(--fam-2-main);
+}
+.qt-fam-3 {
+  --tint: var(--fam-3-tint);
+  --pill-border: var(--fam-3-border);
+  --main: var(--fam-3-main);
+}
+.qt-fam-4 {
+  --tint: var(--fam-4-tint);
+  --pill-border: var(--fam-4-border);
+  --main: var(--fam-4-main);
+}
+.qt-fam-5 {
+  --tint: var(--fam-5-tint);
+  --pill-border: var(--fam-5-border);
+  --main: var(--fam-5-main);
+}
+.mono {
+  font-family:
+    ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+.float-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--zinc-200);
+  flex: none;
+}
+
+.catbar {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 250px;
+  z-index: 10;
+  pointer-events: none;
+}
+.catbar > * {
+  pointer-events: auto;
+}
+.fam-tabs {
+  display: inline-flex;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--warm-line);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 100%;
+}
+.fam-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink-600);
+  background: var(--surface);
+  border: 0;
+  border-right: 1px solid var(--zinc-200);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+.fam-tab:last-child {
+  border-right: 0;
+}
+.fam-tab:hover {
+  background: var(--zinc-50);
+}
+.fam-tab .ic {
+  width: 12px;
+  height: 12px;
+  color: var(--ink-600);
+}
+.fam-tab[aria-pressed="true"] {
+  color: var(--ink-700);
+  background: var(--tint);
+  border-bottom-color: var(--main);
+}
+.fam-tab[aria-pressed="true"] .ic {
+  color: var(--main);
+}
+.fam-tab[data-partial] {
+  border-bottom-style: dashed;
+}
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 0;
+}
+.fam-tabs[data-mode="advanced"] {
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  backdrop-filter: none;
+}
+.pill-row[data-mode="advanced"] {
+  padding-left: 0;
+}
+.catbar[data-layout="inline"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.catbar[data-layout="inline"] .pill-row {
+  padding: 0;
+}
+
+.pick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--warm-line);
+  border-radius: 4px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pick-btn:hover,
+.pick-btn[aria-expanded="true"] {
+  background: var(--zinc-50);
+}
+.pick-btn.filtered {
+  border-color: var(--zinc-500);
+}
+.pick-count {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--zinc-100);
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--zinc-600);
+  font-variant-numeric: tabular-nums;
+}
+.pick-btn.filtered .pick-count {
+  background: var(--zinc-900);
+  color: var(--surface);
+}
+.pick-btn .chev {
+  width: 12px;
+  height: 12px;
+  color: var(--zinc-500);
+}
+.pick-item {
+  font-size: 12px;
+}
+.pick-item .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 3px;
+  border: 1px solid var(--warm-off);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pill-ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.15s;
+}
+.pill:hover {
+  filter: brightness(0.98);
+}
+.pill .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--main);
+  display: inline-grid;
+  place-items: center;
+  font-size: 8px;
+  color: var(--main);
+}
+.pill[aria-pressed="true"] {
+  background: var(--tint);
+  border-color: var(--pill-border);
+  color: var(--ink-700);
+}
+.pill[aria-pressed="true"] .dot {
+  background: var(--c);
+  border-color: var(--c);
+  color: var(--pill-text);
+}
+.pill .n {
+  color: var(--zinc-600);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+}
+.controls {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+.ctl-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-700);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ctl-btn:hover,
+.ctl-btn[aria-expanded="true"] {
+  background: var(--zinc-100);
+}
+.ctl-btn .ic {
+  color: var(--zinc-500);
+}
+.ctl-btn .chev {
+  width: 12px;
+  height: 12px;
+}
