@@ -31,6 +31,8 @@ import type { RelCtx } from "./TripleRow";
 
 // why: the engine drawn id of an entity is `entityDrawnId(<entity id>)`; a group id has no entity
 const ENTITY = entityDrawnId("");
+export const entityIdOf = (drawn: DrawnId): string | null =>
+  drawn.startsWith(ENTITY) ? drawn.slice(ENTITY.length) : null;
 
 type Inspected =
   | { drawn: DrawnId; entity: ResolvedEntity; group?: undefined }
@@ -48,8 +50,9 @@ export const inspected = computed<Inspected | null>(() => {
   const now = model.value;
   if (picked === null || now === null) return null;
   const drawn = "edge" in picked ? picked.anchor : picked.node;
-  if (drawn.startsWith(ENTITY)) {
-    const entity = now.vocab.entities.get(drawn.slice(ENTITY.length));
+  const id = entityIdOf(drawn);
+  if (id !== null) {
+    const entity = now.vocab.entities.get(id);
     return entity === undefined ? null : { drawn, entity };
   }
   const node = drawnNodes.value.get(drawn);

@@ -251,4 +251,31 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "actions.hideTip":
     "キャンバスから非表示 (データセットには残ります。「非表示」から戻せます)",
   "actions.clear": "選択を解除して全体を表示",
+
+  "hidden.name": "キャンバスで非表示",
+  "hidden.chip": "非表示",
+  "hidden.collapse": "非表示の項目を折りたたむ",
+  "hidden.list": "非表示の項目",
+  "hidden.together": "{count} 件をまとめて非表示",
+  "hidden.stranded": "+隣接ノード {count} 件",
+  "hidden.selected": "{total} 件中 {count} 件を選択",
+  "hidden.selectAll": "すべて選択",
+  "hidden.showSelected": "{count} 件をキャンバスに表示",
+  "hidden.showAll": "すべてキャンバスに表示",
+  "hidden.showOne": "{name} をキャンバスに表示",
+
+  "pill.focused": "{name} に注目",
+  "pill.faded": " · 薄く表示 {count} 件",
+  "pill.showAll": "すべて表示",
+  "pill.tip":
+    "{name} と隣接ノードだけを表示しています。クリックすると、薄く表示の {count} 件のノードを戻します。",
+
+  "search.label": "ノードを検索",
+  "search.key": "/",
+  "search.more": "ほか {count} 件…",
+  "search.none": "「{query}」に一致するノードはありません",
+  "search.records": " · レコード {count} 件",
+  "search.notDrawn": " · 未描画",
+  "search.hidden": " · 非表示",
+  "search.faded": " · 薄く表示",
 };

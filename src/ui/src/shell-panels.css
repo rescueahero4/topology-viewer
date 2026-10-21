@@ -1,0 +1,378 @@
+/* The search card, the Hidden chip and card, and the focus pill: the mockup styles.css lines 34-37,
+   136-144, 195-200, 269-305, 321-332, 337-338 and 372, with each colour as a tokens.css name
+   (STORY-004-02 rule 17, B3). STORY-004-06. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.spacer {
+  flex: 1;
+}
+
+.tools {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  transition: transform var(--panel-dur) var(--panel-ease);
+}
+.canvas[data-inspector="expanded"] .tools {
+  transform: translateX(-384px);
+}
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+}
+.search > .ic {
+  color: var(--zinc-500);
+}
+.search input {
+  width: 180px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--zinc-900);
+  padding: 5px 0;
+  outline: none;
+}
+.search input::placeholder {
+  color: var(--zinc-500);
+}
+.search:focus-within {
+  box-shadow: inset 0 -2px 0 var(--focus);
+}
+kbd {
+  font-family:
+    ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  color: var(--zinc-500);
+  border: 1px solid var(--zinc-200);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  line-height: 14px;
+}
+.search-results {
+  top: calc(100% + 6px);
+  right: -2px;
+  width: 320px;
+}
+/* why: FR-CANVAS-19, rule 3 (H1) — the namesake line wraps under the meta line in the sub-line
+   style of the Hidden rows (styles.css line 297) */
+.search-results li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--zinc-700);
+}
+.search-results li[aria-selected="true"],
+.search-results li:hover {
+  background: var(--zinc-100);
+}
+.search-results .glyph svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+.search-results .meta {
+  margin-left: auto;
+  color: var(--zinc-500);
+  font-size: 11px;
+}
+.search-results .none {
+  color: var(--zinc-500);
+  cursor: default;
+}
+.search-results .sub {
+  flex-basis: 100%;
+  padding-left: 24px;
+  font-size: 10px;
+  color: var(--zinc-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The Hidden card docks left of the inspector: --hid-right is the inspector width and the gap
+   (useDock). The chip is as wide as its label; the card is inspector-wide. */
+.hidden-panel {
+  position: absolute;
+  right: var(--hid-right, 6px);
+  bottom: 6px;
+  top: 6px;
+  z-index: 12;
+  width: auto;
+  max-width: calc(100% - 12px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(calc(100% - 32px));
+  transition:
+    transform var(--panel-dur) var(--panel-ease),
+    box-shadow var(--panel-dur) var(--panel-ease);
+}
+.hidden-panel[data-state="expanded"] {
+  width: 372px;
+  transform: none;
+  box-shadow: var(--shadow-pop);
+}
+.hidden-panel[data-state="expanded"] .insp-head {
+  border-bottom: 1px solid var(--zinc-200);
+  background: var(--surface);
+}
+.hid-head {
+  gap: 6px;
+}
+.hid-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--zinc-900);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.hid-toggle:hover {
+  background: var(--zinc-100);
+}
+.hid-toggle .ic {
+  color: var(--zinc-500);
+}
+.hid-toggle .chev {
+  margin-left: 2px;
+}
+.hid-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--zinc-900);
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.hid-count.bump {
+  animation: hid-bump 600ms var(--panel-ease);
+}
+@keyframes hid-bump {
+  from {
+    background: var(--badge);
+  }
+  to {
+    background: var(--zinc-900);
+  }
+}
+.hid-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--zinc-200);
+  font-size: 11px;
+  color: var(--zinc-600);
+}
+.hid-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+}
+.hid-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 4px 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.hid-row:hover {
+  background: var(--zinc-50);
+}
+.hid-row:focus-visible {
+  outline-offset: -2px;
+}
+.hid-row[aria-selected="true"] {
+  background: var(--zinc-100);
+}
+/* why: P17 — the row box is the mockup checked box (styles.css lines 159-172) of the ticked row */
+.hid-row[aria-selected="true"] > .cb {
+  border-color: var(--select);
+  background-color: var(--select);
+}
+.hid-row .glyph {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.hid-row .glyph svg {
+  max-width: 18px;
+  max-height: 18px;
+}
+.hid-row .txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.hid-row .name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hid-row .sub {
+  font-size: 10px;
+  color: var(--zinc-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hid-row .icon-btn {
+  flex: none;
+  opacity: 0.6;
+}
+.hid-row:hover .icon-btn,
+.hid-row .icon-btn:focus-visible {
+  opacity: 1;
+}
+.canvas[data-hidden="expanded"] .tools {
+  transform: translateX(calc(-1 * (var(--hid-right, 6px) + 372px)));
+}
+.canvas[data-hidden="expanded"] .catbar {
+  right: calc(var(--hid-right, 6px) + 618px);
+}
+.btn.primary {
+  background: var(--zinc-900);
+  border-color: var(--zinc-900);
+  color: var(--surface);
+}
+.btn.primary:hover {
+  background: var(--zinc-700);
+}
+
+/* Bottom-centre status stack: the focus pill (STORY-004-08 adds the DataNotice above it). */
+.status-stack {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translateX(-50%);
+  max-width: min(460px, calc(100% - 24px));
+  pointer-events: none;
+}
+.status-stack > * {
+  pointer-events: auto;
+}
+.focus-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(440px, calc(100% - 24px));
+  padding: 4px 6px 4px 8px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--zinc-700);
+  cursor: pointer;
+  white-space: nowrap;
+  animation: pill-in var(--panel-dur) var(--panel-ease);
+}
+.focus-pill:hover {
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.focus-pill .ic {
+  width: 14px;
+  height: 14px;
+  color: var(--focus);
+  flex: none;
+}
+.focus-pill .fp-txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.focus-pill .fp-name {
+  color: var(--zinc-900);
+  font-weight: 600;
+}
+.focus-pill .fp-n {
+  color: var(--zinc-500);
+  font-variant-numeric: tabular-nums;
+}
+.focus-pill .fp-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--zinc-900);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 500;
+  flex: none;
+}
+.focus-pill .fp-act .ic {
+  width: 12px;
+  height: 12px;
+  color: var(--surface);
+}
+.focus-pill:hover .fp-act {
+  background: var(--zinc-700);
+}
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* why: rule 1, ddr-0027 — the count bump and the pill entry are off under reduced motion (mockup
+   styles.css lines 332, 372) */
+@media (prefers-reduced-motion: reduce) {
+  .hid-count.bump,
+  .focus-pill {
+    animation: none;
+  }
+}

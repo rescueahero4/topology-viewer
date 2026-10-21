@@ -262,4 +262,40 @@ export const en = {
   "actions.hideTip":
     "Hide from canvas (stays in the dataset; bring it back from Hidden)",
   "actions.clear": "Clear selection and fit view",
+
+  "hidden.name": "Hidden from canvas",
+  "hidden.chip": "Hidden",
+  "hidden.collapse": "Collapse hidden items",
+  "hidden.list": "Hidden items",
+  "hidden.together": "{count} hidden together",
+  "hidden.stranded": {
+    one: "+{count} neighbour",
+    other: "+{count} neighbours",
+  },
+  "hidden.selected": "{count} of {total} selected",
+  "hidden.selectAll": "Select all",
+  "hidden.showSelected": "Show {count} on canvas",
+  "hidden.showAll": "Show all on canvas",
+  "hidden.showOne": "Show {name} on canvas",
+
+  "pill.focused": "Focused on {name}",
+  "pill.faded": " · {count} faded",
+  "pill.showAll": "Show all",
+  "pill.tip": {
+    one: "Showing only {name} and its neighbours. Click to show the {count} faded node again.",
+    other:
+      "Showing only {name} and its neighbours. Click to show the {count} faded nodes again.",
+  },
+
+  "search.label": "Search nodes",
+  "search.key": "/",
+  "search.more": "{count} more…",
+  "search.none": "No nodes match “{query}”",
+  "search.records": {
+    one: " · {count} record",
+    other: " · {count} records",
+  },
+  "search.notDrawn": " · not drawn",
+  "search.hidden": " · hidden",
+  "search.faded": " · faded",
 } as const;

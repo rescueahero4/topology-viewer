@@ -77,12 +77,25 @@ export function familyBlocks(
     .sort((a, b) => place(a.family) - place(b.family));
 }
 
+// why: the canvas group text: `RendererText.groupLabel` of the type display name and the count;
+// STORY-004-06 names a hidden group row and a group root with it (rules 1, 2)
+export function groupText(
+  lang: Lang,
+  vocab: Vocab,
+  type: string | null,
+  count: number,
+): string {
+  return rendererText(lang).groupLabel(
+    typeName(lang, type, vocab.types),
+    count,
+  );
+}
+
 // why: rule 5 (Implementer item 4) — an entity end shows its label; a group end the canvas text
 export function endName(lang: Lang, vocab: Vocab, node: DrawnNode | undefined) {
   if (node === undefined) return MISSING;
   if (!isGroup(node)) return node.label;
-  const type = typeName(lang, node.type, vocab.types);
-  return rendererText(lang).groupLabel(type, node.count);
+  return groupText(lang, vocab, node.type, node.count);
 }
 
 const endsOf = (node: DrawnNode | undefined): ReadonlySet<string> =>
