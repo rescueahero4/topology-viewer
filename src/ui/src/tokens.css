@@ -52,6 +52,9 @@
   --ai-tint: #ede9fe;
   --ai-ink: #6d28d9;
   --link: #0891b2;
+  /* The triple rows (mockup styles.css lines 264, 499); STORY-004-05. */
+  --pred-ink: #6b7280;
+  --picked: #eef2ff;
   /* Family tint, border and main (mockup CATEGORIES, lib/topology.js lines 34-39), one set for
      each place 0-5 of the engine familyOrder(): Structure, Lineage, Reference, Annotation,
      Ownership & Access, Other. A custom family and Custom take set 5 (STORY-004-03 rule 7). */

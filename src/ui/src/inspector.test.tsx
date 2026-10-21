@@ -280,7 +280,7 @@ describe("S15 the collapsed card stays collapsed", () => {
   it("keeps the user's choice across selections", async () => {
     const { root } = await mountApp(fixtureModel("s-access"));
     const toggle = () =>
-      card(root).querySelector<HTMLButtonElement>(".insp-bar .icon-btn");
+      card(root).querySelector<HTMLButtonElement>(".insp-bar [aria-expanded]");
     expect(toggle()?.getAttribute("aria-label")).toBe("Collapse inspector");
     void act(() => toggle()?.click());
     expect(card(root).dataset.state).toBe("collapsed");

@@ -200,4 +200,66 @@ export const en = {
   "fact.colour": "Colour",
   "fact.object_type": "Object type",
   "fact.owner": "Owner",
+
+  "relations.counts": "{rows}e {ends}n",
+  "relations.countRows": {
+    one: "{count} relationship",
+    other: "{count} relationships",
+  },
+  "relations.countEnds": {
+    one: "{count} neighbour",
+    other: "{count} neighbours",
+  },
+  "relations.countTip": "{rows}, {ends}",
+  "relations.tabs": "Relationship direction",
+  "relations.all": "All ({count})",
+  "relations.out": "Outgoing ({count})",
+  "relations.in": "Incoming ({count})",
+  "relations.none": "No relationships.",
+  "relations.noneHere": "No relationships in this direction.",
+  "relations.familyCount": "({count})",
+  "relations.prov": "[{prov}]",
+  "relations.goTo": "Go to {name}",
+  "relations.inverse": "{name} · inverse: {inverse}",
+  "relations.attr": "{name}: {value}",
+  "relations.isActive": "Active",
+  "relations.validFrom": "Valid from",
+  "relations.validTo": "Valid to",
+  "relations.more": "{count} more",
+  "relations.allowed": "Allowed: {pairs}",
+  "relations.pair": "{subject} → {object}",
+  "relations.anyType": "any type",
+  "relations.rulesName": "Write rules",
+  "relations.ruleType": "A new custom node must use a custom-defined node type",
+  "relations.rulePairing": "Every edge must match an allowed pairing",
+  "relations.ruleEnds": "Both ends of a custom edge cannot be system-owned",
+
+  "notes.member":
+    "Expanded from a group of similar nodes. Double-click a member to collapse.",
+  "notes.opened":
+    "Expanded here. Double-click the node to collapse what it brought in.",
+  "notes.openedChip": "−",
+  "notes.more": {
+    one: "{count} more connection in the dataset isn’t drawn yet. Double-click the node to show it.",
+    other:
+      "{count} more connections in the dataset aren’t drawn yet. Double-click the node to show them.",
+  },
+  "notes.moreChip": "+{count}",
+  "notes.group":
+    "{count} similar {type} collapsed. Double-click the node to expand.",
+  "notes.collapse": "Collapse",
+  "notes.show": "Show",
+  "notes.expand": "Expand",
+
+  "actions.center": "Center the atomic layout on this node",
+  "actions.centerTip": "Center the rings on this node",
+  "actions.around": "Group neighbours by type around this node",
+  "actions.aroundTip":
+    "Focus on this node: group its neighbours by type around it and fade out the rest",
+  "actions.aroundOnTip":
+    "Showing only this node and its neighbours, grouped by type. Click to bring the rest back",
+  "actions.hide": "Hide from canvas",
+  "actions.hideTip":
+    "Hide from canvas (stays in the dataset; bring it back from Hidden)",
+  "actions.clear": "Clear selection and fit view",
 } as const;

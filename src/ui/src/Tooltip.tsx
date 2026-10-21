@@ -2,7 +2,10 @@ import type { ComponentChildren, JSX } from "preact";
 import { useId, useState } from "preact/hooks";
 
 type At = { x: number; y: number };
-type Shown = { key: string; tip: string; at: At };
+// why: STORY-004-05 rules 5, 10 (Security gap 1) — a tip of many lines is a function, so its lines
+// are made only when the tip opens, never at render
+export type TipText = string | (() => readonly string[]);
+type Shown = { key: string; tip: string | readonly string[]; at: At };
 
 export type Tip = ReturnType<typeof useTip>;
 
@@ -22,14 +25,26 @@ function placeOf(event: Event): At {
   };
 }
 
+const made = (tip: TipText) => (typeof tip === "string" ? tip : tip());
+
+function body(tip: Shown["tip"]) {
+  if (typeof tip === "string") return tip;
+  return tip.map((line, i) => (
+    <span key={i} class="tip-line">
+      {line}
+    </span>
+  ));
+}
+
 // why: P18, P21, f-0053 — the tip is a text node (never a `title` or an attribute) and shows on
 // hover and on focus; Escape hides it (mockup `.tip`, app.js lines 513-526). One tip serves many
 // anchors, as the one mockup tip does, so a container can put it outside a clipped row
 export function useTip() {
   const id = useId();
   const [shown, setShown] = useState<Shown | null>(null);
-  const anchor = (key: string, tip: string) => {
-    const show = (event: Event) => setShown({ key, tip, at: placeOf(event) });
+  const anchor = (key: string, tip: TipText) => {
+    const show = (event: Event) =>
+      setShown({ key, tip: made(tip), at: placeOf(event) });
     const hide = () => setShown((now) => (now?.key === key ? null : now));
     return {
       "aria-describedby": shown?.key === key ? id : undefined,
@@ -43,9 +58,9 @@ export function useTip() {
     };
   };
   // why: STORY-004-04 rule 8 (H4 (b)) — a touch press shows the tip, a second press hides it
-  const toggle = (key: string, tip: string, event: Event) => {
+  const toggle = (key: string, tip: TipText, event: Event) => {
     const at = placeOf(event);
-    setShown((now) => (now?.key === key ? null : { key, tip, at }));
+    setShown((now) => (now?.key === key ? null : { key, tip: made(tip), at }));
   };
   const node =
     shown === null ? null : (
@@ -55,7 +70,7 @@ export function useTip() {
         class="tip"
         style={{ left: `${shown.at.x}px`, top: `${shown.at.y}px` }}
       >
-        {shown.tip}
+        {body(shown.tip)}
       </span>
     );
   return { anchor, toggle, node };
