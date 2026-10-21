@@ -1,0 +1,210 @@
+/* The shell frame and the primitives: the v56 mockup rules (styles.css lines 1-43, 82-84, 146-174,
+   469-472, 495-496) with every colour from tokens.css (STORY-004-02 rules 11 and 17). */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--canvas);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--zinc-700);
+}
+.shell *,
+.shell *::before,
+.shell *::after {
+  box-sizing: border-box;
+}
+.shell :focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.shell button {
+  font: inherit;
+  color: inherit;
+}
+
+.canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.graph {
+  position: absolute;
+  inset: 0;
+}
+/* why: rule 5 — the container that useRenderer() makes and removes; it fills the mockup .graph */
+.graph-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.ic {
+  display: inline-flex;
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.ic svg {
+  width: 100%;
+  height: 100%;
+}
+
+.menu-anchor {
+  position: relative;
+}
+.menu {
+  position: absolute;
+  z-index: 200;
+  min-width: 208px;
+  max-height: min(420px, 70vh);
+  overflow: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+}
+.menu[hidden] {
+  display: none;
+}
+.menu-label {
+  margin: 4px 8px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--zinc-500);
+}
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--zinc-200);
+  margin: 4px 0;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 12px;
+  color: var(--zinc-700);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--zinc-100);
+  outline: none;
+}
+.menu-item small {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--zinc-500);
+  font-size: 11px;
+}
+.menu-item[aria-checked="true"] {
+  color: var(--zinc-900);
+  font-weight: 500;
+}
+
+/* One checkbox and one radio look everywhere (P17); the tick and the dash are inline SVG with a
+   token stroke, so no data URL holds a colour (rule 17). */
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.cb,
+.rd {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border: 1px solid var(--zinc-300);
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+.cb {
+  border-radius: 3px;
+}
+.rd {
+  border-radius: 50%;
+}
+:hover > .cb,
+:hover > .rd {
+  border-color: var(--zinc-500);
+}
+[aria-checked="true"] > .cb,
+[aria-checked="mixed"] > .cb {
+  border-color: var(--select);
+  background-color: var(--select);
+}
+.cb svg {
+  width: 10px;
+  height: 10px;
+  stroke: var(--surface);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+[aria-checked="true"] > .rd {
+  border-color: var(--select);
+  background-color: var(--select);
+  box-shadow: inset 0 0 0 3px var(--surface);
+}
+
+.tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 240px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--tip-bg);
+  color: var(--tip-text);
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  box-shadow: var(--shadow-pop);
+  transform: translateY(-50%);
+}
+
+/* Canvas state glyph: eye = drawn (and faded, which stays on the canvas), faint eye = not drawn,
+   eye-off = hidden. */
+.oc {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  color: var(--zinc-300);
+}
+.oc svg {
+  width: 100%;
+  height: 100%;
+}
+.oc.on {
+  color: var(--focus);
+}
+.oc.hid {
+  color: var(--zinc-500);
+}

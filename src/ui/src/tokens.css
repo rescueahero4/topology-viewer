@@ -19,6 +19,29 @@
   --tip-sub: #a1a1aa;
   --lost-fill: #fee2e2;
   --lost-ink: #b91c1c;
+  /* Light shell tokens: the mockup :root (styles.css lines 3-30) and, as tokens, its rgba() colours
+     of lines 85, 91, 107 (card), 344 (overlay) and 376 (backdrop); STORY-004-02 rule 17 (B3). */
+  --surface: #ffffff;
+  --zinc-50: #fafafa;
+  --zinc-100: #f4f4f5;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-900: #18181b;
+  --warm-line: #e8e5df;
+  --warm-off: #f0eeea;
+  --danger: #b91c1c;
+  --select: #2563eb;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --panel-dur: 300ms;
+  --panel-ease: ease;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --overlay-bg: rgba(244, 244, 245, 0.86);
+  --backdrop: rgba(24, 24, 27, 0.3);
 }
 
 .qt-root {

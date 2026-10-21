@@ -3,14 +3,18 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./src/index.ts",
     "./canvas": "./src/canvas/index.ts"
   },
   "scripts": {
-    "harness": "vite src/canvas"
+    "harness": "vite src/canvas",
+    "shell-harness": "vite src"
   },
   "dependencies": {
+    "@preact/signals": "2.11.3",
     "@qdic-topology/engine": "workspace:*",
-    "@qdic-topology/renderer": "workspace:*"
+    "@qdic-topology/renderer": "workspace:*",
+    "preact": "10.29.8"
   },
   "devDependencies": {
     "@qdic-topology/contract": "workspace:*",
