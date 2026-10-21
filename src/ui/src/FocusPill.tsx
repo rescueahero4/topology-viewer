@@ -1,0 +1,68 @@
+import {
+  aroundInfo,
+  groupParts,
+  type AroundInfo,
+  type Lang,
+  type Vocab,
+} from "@qdic-topology/engine";
+import type { Actions } from "./actions";
+import { drawnNodes } from "./Inspector";
+import { groupText, isGroup } from "./relations";
+import { canvasState, frontier, lang, model } from "./state";
+import { t, tAround } from "./strings/index";
+import { useTip } from "./Tooltip";
+import { UiIcon } from "./UiIcon";
+
+// why: rule 2 (Implementer item 3) — an entity root shows its label; a group root (no label) shows
+// the canvas group text of the `groupParts` type and the member count of its group node
+function rootName(ui: Lang, vocab: Vocab, info: AroundInfo): string {
+  if (info.label !== null) return info.label;
+  const node = drawnNodes.value.get(info.id);
+  const count = node !== undefined && isGroup(node) ? node.count : 0;
+  return groupText(ui, vocab, groupParts(info.id)?.type ?? null, count);
+}
+
+// why: FR-CANVAS-14, NF-5, P19, P20, rule 2 (mockup app.js lines 532-545, styles.css lines
+// 321-332) — the pill shows exactly while `aroundInfo` is not null and says "faded", never
+// "hidden"; its name comes from its text nodes; one press ends the grouping
+export function FocusPill({ actions }: { actions: Actions }) {
+  const tip = useTip();
+  const state = canvasState.value;
+  const drawn = frontier.value;
+  const now = model.value;
+  const info =
+    state === null || drawn === null ? null : aroundInfo(state, drawn);
+  if (info === null || now === null) return null;
+  const ui = lang.value;
+  const name = rootName(ui, now.vocab, info);
+  const count = info.total - info.shown;
+  const [before, after] = tAround(ui, "pill.focused", "name");
+  return (
+    <>
+      <button
+        type="button"
+        class="focus-pill float-card"
+        aria-live="polite"
+        onClick={() => actions.groupAroundRoot(false)}
+        {...tip.anchor("pill", t(ui, "pill.tip", { name, count }))}
+      >
+        <span class="ic">
+          <UiIcon name="group-root" />
+        </span>
+        <span class="fp-txt">
+          {before}
+          <span class="fp-name">{name}</span>
+          {after}
+          <span class="fp-n">{t(ui, "pill.faded", { count })}</span>
+        </span>
+        <span class="fp-act">
+          <span class="ic">
+            <UiIcon name="x" />
+          </span>
+          {t(ui, "pill.showAll")}
+        </span>
+      </button>
+      {tip.node}
+    </>
+  );
+}
