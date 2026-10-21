@@ -6,6 +6,22 @@ type Shown = { key: string; tip: string; at: At };
 
 export type Tip = ReturnType<typeof useTip>;
 
+// why: the CSS `max-width` of `.tip` and the mockup edge gap (app.js lines 521-523): a tip near the
+// right edge moves left, so a tip of the right-hand inspector stays inside the frame
+const TIP_WIDTH = 240;
+const GAP = 8;
+
+function placeOf(event: Event): At {
+  const anchor = event.currentTarget as Element;
+  const box = anchor.getBoundingClientRect();
+  const width = anchor.ownerDocument.documentElement.clientWidth;
+  const right = width > 0 ? width - TIP_WIDTH - GAP : Infinity;
+  return {
+    x: Math.max(GAP, Math.min(box.right + GAP, right)),
+    y: box.top + box.height / 2,
+  };
+}
+
 // why: P18, P21, f-0053 — the tip is a text node (never a `title` or an attribute) and shows on
 // hover and on focus; Escape hides it (mockup `.tip`, app.js lines 513-526). One tip serves many
 // anchors, as the one mockup tip does, so a container can put it outside a clipped row
@@ -13,11 +29,7 @@ export function useTip() {
   const id = useId();
   const [shown, setShown] = useState<Shown | null>(null);
   const anchor = (key: string, tip: string) => {
-    const show = (event: Event) => {
-      const box = (event.currentTarget as Element).getBoundingClientRect();
-      const at = { x: box.right + 8, y: box.top + box.height / 2 };
-      setShown({ key, tip, at });
-    };
+    const show = (event: Event) => setShown({ key, tip, at: placeOf(event) });
     const hide = () => setShown((now) => (now?.key === key ? null : now));
     return {
       "aria-describedby": shown?.key === key ? id : undefined,
@@ -30,6 +42,11 @@ export function useTip() {
       },
     };
   };
+  // why: STORY-004-04 rule 8 (H4 (b)) — a touch press shows the tip, a second press hides it
+  const toggle = (key: string, tip: string, event: Event) => {
+    const at = placeOf(event);
+    setShown((now) => (now?.key === key ? null : { key, tip, at }));
+  };
   const node =
     shown === null ? null : (
       <span
@@ -41,7 +58,7 @@ export function useTip() {
         {shown.tip}
       </span>
     );
-  return { anchor, node };
+  return { anchor, toggle, node };
 }
 
 type Props = JSX.HTMLAttributes<HTMLSpanElement> & {

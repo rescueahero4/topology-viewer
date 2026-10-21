@@ -7,8 +7,9 @@ export type Values = Readonly<Record<string, string | number>>;
 type Text = string | { readonly one: string; readonly other: string };
 
 const TABLES: Readonly<Record<Lang, Readonly<Record<Key, Text>>>> = { en, ja };
-// why: the engine `fill` rule (data/notices.ts) — a placeholder with no value reads as a dash
-const MISSING = "—";
+// why: the engine `fill` rule (data/notices.ts) — a placeholder with no value reads as a dash;
+// STORY-004-04 shows an empty slot and an empty path segment with the same dash (question 10)
+export const MISSING = "—";
 const PLACEHOLDER = /\{(\w+)\}/g;
 const numbers = new Map<Lang, Intl.NumberFormat>();
 

@@ -47,6 +47,11 @@
   --ink-600: #525252;
   --ink-700: #404040;
   --pill-ink: #666666;
+  /* The inspector (mockup styles.css lines 230, 240, 243, 245); STORY-004-04. */
+  --zinc-400: #a1a1aa;
+  --ai-tint: #ede9fe;
+  --ai-ink: #6d28d9;
+  --link: #0891b2;
   /* Family tint, border and main (mockup CATEGORIES, lib/topology.js lines 34-39), one set for
      each place 0-5 of the engine familyOrder(): Structure, Lineage, Reference, Annotation,
      Ownership & Access, Other. A custom family and Custom take set 5 (STORY-004-03 rule 7). */

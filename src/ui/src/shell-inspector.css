@@ -1,0 +1,289 @@
+/* The inspector card, its header and the catalog metadata: the mockup styles.css lines 138, 145-146
+   and 205-247, with each colour as a tokens.css name (STORY-004-02 rule 17, B3). STORY-004-04. */
+
+.canvas[data-inspector="expanded"] .catbar {
+  right: 630px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--zinc-600);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: var(--zinc-100);
+}
+
+/* The card is always full height; collapsed, it slides down (transform only) until its header
+   shows. */
+.inspector {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  top: 6px;
+  z-index: 12;
+  width: 372px;
+  max-width: calc(100% - 12px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(calc(100% - var(--insp-peek, 32px)));
+  transition:
+    transform var(--panel-dur) var(--panel-ease),
+    box-shadow var(--panel-dur) var(--panel-ease);
+}
+.inspector[data-state="expanded"] {
+  transform: none;
+  box-shadow: var(--shadow-pop);
+}
+.inspector[data-state="empty"] {
+  width: auto;
+}
+.insp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  min-height: 30px;
+}
+.inspector[data-state="expanded"] .insp-head {
+  border-bottom: 1px solid var(--zinc-200);
+  background: var(--surface);
+}
+/* The guarded type colour in --c (reading d1); a type with no colour keeps the token colour. */
+.root-pill {
+  --c: var(--zinc-500);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  flex: none;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 10%, transparent);
+}
+.root-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.insp-head.is-node {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 4px 6px 6px;
+}
+.insp-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+.insp-head .spacer {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.insp-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 4px;
+}
+.insp-title .glyph {
+  flex: none;
+  padding-top: 1px;
+}
+.insp-title .glyph svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+/* A long name wraps to two lines before it is cut; the full name is in the tip. */
+.insp-title strong {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--zinc-900);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.insp-title .sys-badge {
+  margin-top: 1px;
+}
+.sys-badge {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--zinc-100);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--zinc-600);
+}
+/* The namesake line: the sub-line of the Hidden rows (mockup styles.css line 297), under the name. */
+.insp-head .sub {
+  padding: 0 4px 0 28px;
+  font-size: 10px;
+  color: var(--zinc-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.insp-empty {
+  font-size: 11px;
+  color: var(--zinc-500);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+.insp-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.facts {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--zinc-200);
+}
+.facts dl {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: 11px;
+}
+.facts dt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--zinc-500);
+}
+.facts dd {
+  margin: 0;
+  font-weight: 500;
+  color: var(--zinc-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.facts dd.wide {
+  white-space: normal;
+  line-height: 1.4;
+  font-weight: 400;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+.facts dd.empty {
+  color: var(--zinc-400);
+  font-weight: 400;
+}
+/* The vocabulary description of the type, under the Type row (FR-INSPECT-2). */
+.facts .type-desc {
+  grid-column: 2;
+  color: var(--zinc-500);
+}
+.facts .tag-chip {
+  display: inline-block;
+  margin: 0 4px 2px 0;
+  padding: 0 5px;
+  border: 1px solid var(--zinc-200);
+  border-radius: 4px;
+  background: var(--zinc-100);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--zinc-600);
+}
+.facts dd:has(.tag-chip) {
+  white-space: normal;
+}
+/* The whole link target stays visible next to its button (rule 7). */
+.facts dd:has(.link-btn) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.facts .status,
+.facts .src {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--zinc-500);
+}
+/* Fields that an AI client inferred or matched (mockup styles.css line 240). */
+.ai-mark {
+  flex: none;
+  margin-left: 4px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--ai-tint);
+  color: var(--ai-ink);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 13px;
+  letter-spacing: 0.02em;
+  cursor: help;
+}
+.blurb .ai-mark {
+  display: inline-block;
+  margin: 0 4px 0 0;
+  vertical-align: 1px;
+}
+.facts-sub {
+  margin: 10px 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--zinc-500);
+}
+.facts-more,
+.link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--link);
+  cursor: pointer;
+}
+.facts-more {
+  margin: 4px 0 0 92px;
+}
+.link-btn {
+  margin-left: 6px;
+}
+.facts-more:hover,
+.link-btn:hover {
+  text-decoration: underline;
+}
+.facts .blurb {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--zinc-500);
+}
+.facts .lost {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--lost-fill);
+  color: var(--lost-ink);
+  font-size: 10px;
+  font-weight: 500;
+}
