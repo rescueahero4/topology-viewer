@@ -191,12 +191,14 @@
   padding: 0 5px;
   line-height: 14px;
 }
-/* why: FR-VOC-3, ISSUE-012 C7 — the triple tag (mockup styles.css line 265) on the inspector Type
-   row and in the table, with no auto margin in a text line (LEARNINGS 38) */
+/* why: FR-VOC-3, ISSUE-012 C7, ISSUE-013 — the triple tag (mockup styles.css line 265) on the
+   inspector Type row and in the table, with no auto margin in a text line (LEARNINGS 38); weight 400
+   as in the mockup .triple, not the 500 of .facts dd */
 .facts .prov,
 .wb-table .prov {
-  padding-left: 6px;
+  padding-left: 8px;
   font-size: 10px;
+  font-weight: 400;
   color: var(--zinc-500);
 }
 .triple .goto {
