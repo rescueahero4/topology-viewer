@@ -124,6 +124,42 @@ describe("S1 each id is unique after a new tool call or a pick", () => {
     expectClean(trace, Object.keys(trace));
     expect(frame.root.querySelector("section.workbench")?.id).toMatch(MADE);
   });
+
+  // why: LEARNINGS 42, S4 (b) — the tip, the Hidden row and the AI mark render no id in the S1
+  // inputs, so this case mounts them after the third input
+  it("the tip, a Hidden row and an AI mark after the third input", async () => {
+    const frame = await mountApp(appInput(datasets.access.graph));
+    await step(frame, { input: appInput(datasets.catalog.graph) });
+    await step(frame, { input: fixtureModel("s-access") });
+    const { root } = frame;
+    const hover = (el: Element) =>
+      void act(() => void el.dispatchEvent(new MouseEvent("mouseenter")));
+    const tipOf = (el: Element) => {
+      const tip = root.querySelector('[role="tooltip"]');
+      expect(el.getAttribute("aria-describedby")).toBe(tip?.id);
+      return tip;
+    };
+    const hide = [
+      ...root.querySelectorAll<HTMLElement>(".inspector .insp-bar .icon-btn"),
+    ].find((el) => el.getAttribute("aria-label") === "Hide from canvas");
+    void act(() => hide?.click());
+    paint();
+    void act(() =>
+      root.querySelector<HTMLElement>(".hidden-panel .hid-toggle")?.click(),
+    );
+    const row = root.querySelector(".hid-row") as HTMLElement;
+    hover(row);
+    expect(tipOf(row)).not.toBeNull();
+    const trace = { "s-access": audit(root) };
+    await step(frame, { input: fixtureModel("s-vocab-meta") });
+    const mark = root.querySelector(".ai-mark") as HTMLElement;
+    hover(mark);
+    expect(tipOf(mark)).not.toBeNull();
+    expectClean({ ...trace, "s-vocab-meta": audit(root) }, [
+      "s-access",
+      "s-vocab-meta",
+    ]);
+  });
 });
 
 describe("S6 each id is unique after a paste and a fatal input", () => {
