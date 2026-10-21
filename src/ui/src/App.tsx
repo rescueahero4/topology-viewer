@@ -18,6 +18,7 @@ import "./shell-frame.css";
 import "./shell-controls.css";
 import "./shell-menus.css";
 import "./shell-inspector.css";
+import "./shell-relations.css";
 
 type NormalizedOk = Extract<Normalized, { ok: true }>;
 
@@ -64,6 +65,7 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
         {actions !== null && (
           <Inspector
             host={host}
+            actions={actions}
             open={open}
             onToggle={() => setOpen((now) => !now)}
           />

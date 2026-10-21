@@ -195,4 +195,60 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "fact.colour": "色",
   "fact.object_type": "オブジェクトの種類",
   "fact.owner": "オーナー",
+
+  "relations.counts": "{rows}e {ends}n",
+  "relations.countRows": "関係 {count} 件",
+  "relations.countEnds": "隣接ノード {count} 件",
+  "relations.countTip": "{rows}、{ends}",
+  "relations.tabs": "関係の方向",
+  "relations.all": "すべて ({count})",
+  "relations.out": "出力 ({count})",
+  "relations.in": "入力 ({count})",
+  "relations.none": "関係はありません。",
+  "relations.noneHere": "この方向の関係はありません。",
+  "relations.familyCount": "({count})",
+  "relations.prov": "[{prov}]",
+  "relations.goTo": "{name} へ移動",
+  "relations.inverse": "{name} · 逆: {inverse}",
+  "relations.attr": "{name}: {value}",
+  "relations.isActive": "有効",
+  "relations.validFrom": "有効開始",
+  "relations.validTo": "有効終了",
+  "relations.more": "ほか {count} 件",
+  "relations.allowed": "許可: {pairs}",
+  "relations.pair": "{subject} → {object}",
+  "relations.anyType": "任意の種類",
+  "relations.rulesName": "書き込みルール",
+  "relations.ruleType":
+    "新しいカスタムノードには、カスタム定義のノード種類が必要です",
+  "relations.rulePairing":
+    "すべてのエッジは、許可されたペアリングに一致する必要があります",
+  "relations.ruleEnds":
+    "カスタムエッジの両端を、どちらもシステム所有にはできません",
+
+  "notes.member":
+    "類似ノードのグループから展開されました。メンバーをダブルクリックすると折りたたみます。",
+  "notes.opened":
+    "ここで展開されました。ノードをダブルクリックすると、展開した分を折りたたみます。",
+  "notes.openedChip": "−",
+  "notes.more":
+    "データセット内のほか {count} 件の接続は、まだ描画されていません。ノードをダブルクリックすると表示します。",
+  "notes.moreChip": "+{count}",
+  "notes.group":
+    "類似の{type} {count} 件を折りたたんでいます。ノードをダブルクリックすると展開します。",
+  "notes.collapse": "折りたたむ",
+  "notes.show": "表示",
+  "notes.expand": "展開",
+
+  "actions.center": "アトミックレイアウトの中心をこのノードにする",
+  "actions.centerTip": "リングの中心をこのノードにする",
+  "actions.around": "隣接ノードを種類ごとにこのノードの周りにまとめる",
+  "actions.aroundTip":
+    "このノードに注目: 隣接ノードを種類ごとに周りにまとめ、ほかを薄く表示します",
+  "actions.aroundOnTip":
+    "このノードと隣接ノードだけを種類ごとにまとめて表示しています。クリックするとほかを戻します",
+  "actions.hide": "キャンバスから非表示",
+  "actions.hideTip":
+    "キャンバスから非表示 (データセットには残ります。「非表示」から戻せます)",
+  "actions.clear": "選択を解除して全体を表示",
 };

@@ -1,0 +1,208 @@
+/* The inspector counts, actions, notes, tabs and triple rows: the mockup styles.css lines 226,
+   248-267, 335-341, 458, 467, 490-501, with each colour as a tokens.css name (STORY-004-02 rule 17,
+   B3). STORY-004-05. */
+
+.hops {
+  flex: none;
+  font-size: 10px;
+  color: var(--zinc-500);
+}
+.icon-btn[aria-pressed="true"] {
+  background: var(--zinc-100);
+  color: var(--zinc-900);
+}
+/* why: question 19 — the mockup has no disabled icon button; the look of a disabled menu item
+   (styles.css line 466; LEARNINGS 38) */
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  background: transparent;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--zinc-200);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-700);
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn:hover {
+  background: var(--zinc-100);
+}
+.btn.small {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.bucket-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 12px 0;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--zinc-100);
+  font-size: 11px;
+  color: var(--zinc-600);
+}
+.bucket-note button {
+  margin-left: auto;
+}
+.more-note .more-chip {
+  flex: none;
+}
+/* why: FR-CANVAS-6, rule 7 — after an expansion the chip is a solid −; the mockup draws both
+   chips with the dashed .more-chip (styles.css line 461), and the PRD rules over it */
+.more-note .more-chip.open {
+  border-style: solid;
+}
+
+.insp-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--zinc-200);
+}
+.insp-tabs .tab-list {
+  display: flex;
+  gap: 4px;
+}
+.insp-tab {
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--zinc-600);
+  cursor: pointer;
+}
+.insp-tab:hover {
+  background: var(--zinc-100);
+}
+.insp-tab[aria-selected="true"] {
+  background: var(--zinc-900);
+  color: var(--surface);
+}
+/* why: rule 10 (b) — the info icon of the mockup menu items (styles.css lines 492-494) at the end
+   of the tab row */
+.insp-tabs .info {
+  margin-left: auto;
+  color: var(--zinc-500);
+  cursor: help;
+}
+.insp-tabs .info:hover {
+  color: var(--zinc-700);
+}
+
+.triples {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 4px;
+}
+.fam-group + .fam-group {
+  margin-top: 8px;
+}
+.fam-group .fam-head {
+  color: var(--main);
+}
+.fam-head .n {
+  color: var(--zinc-500);
+  font-weight: 500;
+}
+.triple {
+  --c: var(--zinc-400);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 8px 4px 5px;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 11px;
+  color: var(--zinc-600);
+  text-align: left;
+  cursor: pointer;
+}
+.triple:hover,
+.triple:focus-visible {
+  background: var(--zinc-50);
+  outline: none;
+  border-left-color: var(--c);
+  color: var(--zinc-900);
+}
+.triple.is-picked {
+  background: var(--picked);
+  border-left-color: var(--c);
+  color: var(--zinc-900);
+}
+.triple .d {
+  width: 6px;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 50%;
+  flex: none;
+  align-self: flex-start;
+  background: var(--c);
+}
+.triple .s,
+.triple .o {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.triple .me {
+  color: var(--zinc-900);
+  font-weight: 500;
+}
+.triple .p {
+  font-style: italic;
+  color: var(--pred-ink);
+  white-space: nowrap;
+  flex: none;
+}
+.triple .prov {
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 10px;
+  color: var(--zinc-500);
+  flex: none;
+}
+.triple .goto {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-left: 2px;
+  opacity: 0;
+}
+.triple:hover .goto,
+.triple:focus-within .goto,
+.triple.is-picked .goto {
+  opacity: 1;
+}
+.triple.muted {
+  opacity: 0.55;
+}
+.triple.muted .d {
+  background: var(--zinc-400);
+}
+.none-note {
+  padding: 12px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--zinc-500);
+}
+.tip-line {
+  display: block;
+}
