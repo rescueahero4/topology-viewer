@@ -70,7 +70,7 @@ export function retiredOf(row: Row | undefined): boolean {
   return row !== undefined && own(row, "is_active") === false;
 }
 
-const fold = (text: string) => text.normalize("NFC").toLowerCase();
+export const fold = (text: string) => text.normalize("NFC").toLowerCase();
 
 // why: lead decisions D15 (PO P4) and D51 — a supplied category that equals a profile family
 // after NFC and lower case is that family with the profile spelling; `Custom` joins Custom

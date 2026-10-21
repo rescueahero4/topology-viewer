@@ -45,6 +45,7 @@ export type ResolvedType = {
   builtIn?: true;
   level?: number;
   treeRole?: TreeRole;
+  description?: string;
   count: number;
   visual: Visual;
 };
@@ -167,6 +168,9 @@ function typeEntry(
   const reason = shaped.get(name);
   const level = base?.level ?? sent?.level;
   const treeRole = base?.treeRole ?? sent?.role;
+  // why: STORY-004-01 Rule D (FR-INSPECT-2) — the first supplied row of the name; `types[t]` has
+  // no description key (SA §4.1)
+  const description = row === undefined ? undefined : own(row, "description");
   return {
     name,
     label: labelOf(name, ctx),
@@ -177,6 +181,9 @@ function typeEntry(
     ...(base?.builtIn ? { builtIn: base.builtIn } : {}),
     ...(level === undefined ? {} : { level }),
     ...(treeRole === undefined ? {} : { treeRole }),
+    ...(typeof description === "string" && description !== ""
+      ? { description }
+      : {}),
   };
 }
 

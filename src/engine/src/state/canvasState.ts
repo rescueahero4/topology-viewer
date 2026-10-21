@@ -146,6 +146,32 @@ export function groupKeyOf(id: DrawnId): GroupKey | null {
   return id.startsWith(GROUP_PREFIX) ? id.slice(GROUP_PREFIX.length) : null;
 }
 
+export type GroupParts = {
+  anchor: string;
+  predicate: string;
+  direction: Direction;
+  type: string | null;
+};
+
+// why: STORY-004-01 Rule F (G8) — the shell names a hidden group row and a group root from these
+// parts; a value that the engine did not make gives null, never a throw
+export function groupParts(id: DrawnId): GroupParts | null {
+  const key = groupKeyOf(id);
+  if (key === null) return null;
+  let parts: unknown;
+  try {
+    parts = JSON.parse(key);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(parts) || parts.length !== 4) return null;
+  const [anchor, predicate, direction, type] = parts as unknown[];
+  if (typeof anchor !== "string" || typeof predicate !== "string") return null;
+  if (direction !== ">" && direction !== "<") return null;
+  if (type !== null && typeof type !== "string") return null;
+  return { anchor, predicate, direction, type };
+}
+
 export function entityOfDrawnId(id: DrawnId): string | null {
   return id.startsWith(ENTITY_PREFIX) ? id.slice(ENTITY_PREFIX.length) : null;
 }

@@ -320,7 +320,7 @@ function entityIndex(graph: Graph, id: string): number {
   );
 }
 
-function offTheCanvas(state: CanvasState) {
+export function offTheCanvas(state: CanvasState) {
   const drawn = new Set(state.revealed ?? []);
   return (id: string) => state.revealed !== null && !drawn.has(id);
 }

@@ -41,7 +41,7 @@ describe("S35 notYetIncluded aliases", () => {
     expect(values(vocab, "t", "description")).toEqual(["a", "b"]);
     expect(values(vocab, "t", "ddl_comment")).toEqual(["c"]);
     expect(slot(vocab, "t", "data_source")).toEqual([
-      { value: "d9", from: "attribute data_source_id" },
+      { value: "d9", from: "attribute data_source_id", external: true },
     ]);
     const all = entitySlots(vocab, "t")?.slots.flatMap((s) => s.entries) ?? [];
     expect(all.some((e) => /ext_name|stats_size/.test(e.from))).toBe(false);

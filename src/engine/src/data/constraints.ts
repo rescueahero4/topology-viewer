@@ -39,6 +39,15 @@ const PAIRINGS = new Map<string, Pair[]>();
 for (const pairing of profile.pairings)
   add(PAIRINGS, pairing.predicate, pairing);
 
+// why: STORY-004-01 Rule H (G10; PRD FR-QDIC-8) — the profile pairings of a predicate, every owner,
+// in profile order; new objects with two keys, so a caller cannot change the profile
+export function pairingsOf(predicate: string): readonly Pair[] {
+  return (PAIRINGS.get(predicate) ?? []).map(({ subject, object }) => ({
+    subject,
+    object,
+  }));
+}
+
 function matches(pairs: Pair[] | undefined, subject: string, object: string) {
   return (pairs ?? []).some(
     (pair) =>
