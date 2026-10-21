@@ -30,11 +30,19 @@ export const frontier = signal<Frontier | null>(null);
 export const camera = signal<Camera | null>(null);
 export const selection = signal<Selection>(null);
 export const lastNotice = signal<NoticeKind | null>(null);
+// why: STORY-004-08 rule 6 — the input on the canvas (after an Undo of a paste it is not the prop)
+// and the state and camera of the last `settle`, for the Undo snapshot
+export const shownInput = signal<AppInput | null>(null);
+export const settled = signal<{ state: CanvasState; camera: Camera } | null>(
+  null,
+);
 
 // why: owner decision H8 — a new input is a new canvas, so the state of the old canvas goes; the
 // model is kept by reference only and never serialised (EPIC-002 hand-off items 1, 2)
 export function takeInput(input: AppInput): void {
   batch(() => {
+    shownInput.value = input;
+    settled.value = null;
     model.value = input.ok ? input.model : null;
     warnings.value = input.ok ? input.warnings : [];
     counts.value = input.ok ? input.counts : null;
@@ -77,6 +85,7 @@ export const feed: Feed = {
       canvasState.value = e.state;
       frontier.value = e.frontier;
       camera.value = e.camera;
+      settled.value = { state: e.state, camera: e.camera };
     });
   },
   notice: (e) => {

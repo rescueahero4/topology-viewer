@@ -36,12 +36,12 @@ vi.useFakeTimers({
 vi.resetModules();
 const { mountApp } = await import("./testFrame");
 const { appInput, fixtureModel } = await import("./fixtureModel");
-const { hostilePayload, shellAudit, MARKERS } = await import("./shellAudit");
+const { hostilePayload, shellAudit, MARKERS, EN_ONLY, enTexts } =
+  await import("./shellAudit");
 const { fixtures } = await import("@qdic-topology/fixtures");
 const { TypeGlyph } = await import("./TypeGlyph");
 const state = await import("./state");
 const { en } = await import("./strings/en");
-const { ja } = await import("./strings/ja");
 const { isKey } = await import("./strings/index");
 
 // why: EPIC-003 success metric 1 — the 32 fixtures less the four with no first view to draw
@@ -83,19 +83,6 @@ function textsOf(root: Element): string[] {
   return texts;
 }
 
-// why: S14 — the literal parts of every `en` text of 4 or more characters that no `ja` text has
-const jaText = Object.values(ja).join("\n");
-const EN_ONLY = [
-  ...new Set(
-    Object.values(en)
-      .flatMap((text) =>
-        typeof text === "string" ? [text] : [text.one, text.other],
-      )
-      .flatMap((text) => text.split(/\{\w+\}/).map((part) => part.trim()))
-      .filter((part) => part.length >= 4 && !jaText.includes(part)),
-  ),
-];
-
 // why: S14 reads the shell texts; a model text (a label, a predicate, an attribute value, the label
 // of a type that has no table name) or its middle cut (14 + "…" + 7) is data, not a shell text
 function modelTexts(input: AppInput): Set<string> {
@@ -117,14 +104,6 @@ function modelTexts(input: AppInput): Set<string> {
   );
 }
 
-function shellPart(part: string, model: Set<string>): boolean {
-  const text = part.trim().toLowerCase();
-  if (text === "" || model.has(text)) return false;
-  const [head, tail, ...rest] = text.split("…");
-  if (tail === undefined || rest.length > 0) return true;
-  return ![...model].some((m) => m.startsWith(head) && m.endsWith(tail));
-}
-
 describe("S14 the ja text audit", () => {
   it("covers the 28 drawing fixtures", () => {
     expect(DRAWING).toHaveLength(28);
@@ -137,16 +116,39 @@ describe("S14 the ja text audit", () => {
     const frame = await mountApp(input, { lang: "ja" });
     const found = new Set<string>();
     everyPanel(frame.root, () => {
-      for (const text of textsOf(frame.root)) {
-        const shell = text
-          .split(" · ")
-          .filter((part) => shellPart(part, model))
-          .join(" · ");
-        for (const part of EN_ONLY)
-          if (shell.includes(part)) found.add(`${part} in "${text}"`);
-      }
+      for (const item of enTexts(frame.root, model)) found.add(item);
     });
     expect([...found]).toEqual([]);
+  });
+
+  // why: QA plants x17 and x18 — an `en` word of the tables in the Types button or the Layout
+  // heading, or in a `code` element outside a notice, is found
+  it("finds an en table word outside the code of a notice", async () => {
+    const input = fixtureModel("s-access");
+    const frame = await mountApp(input, { lang: "ja" });
+    const model = modelTexts(input);
+    const audit = () => enTexts(frame.root, model);
+    expect(audit()).toEqual([]);
+    const [, types, layout] = frame.root.querySelectorAll(".controls .ctl-btn");
+    const label = [...types.childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE,
+    ) as Text;
+    const jaLabel = label.data;
+    label.data = en["types.button"];
+    expect(audit()).toContain('Types in "Types"');
+    label.data = jaLabel;
+    void act(() => (layout as HTMLElement).click());
+    const heading = layout.nextElementSibling?.querySelector(".menu-label");
+    const jaHeading = heading?.textContent ?? "";
+    if (heading) heading.textContent = en["layout.heading"];
+    expect(audit()).toContain('Layout in "Layout"');
+    if (heading) heading.textContent = jaHeading;
+    const code = frame.root.ownerDocument.createElement("code");
+    code.textContent = en["types.button"];
+    frame.root.querySelector(".controls")?.appendChild(code);
+    expect(audit()).toContain('Types in "Types"');
+    code.remove();
+    expect(audit()).toEqual([]);
   });
 });
 

@@ -6,6 +6,7 @@ import type {
 } from "@qdic-topology/engine";
 import type { Actions } from "./actions";
 import type { CanvasModel } from "./canvas/index";
+import { chipDismissed, showChip } from "./DataNotice";
 import { Menu, MenuItem } from "./Menu";
 import { resetView } from "./resetCompare";
 import { formatted, t, tAround, type Key } from "./strings/index";
@@ -111,7 +112,8 @@ function ResetItem({ actions, lang, state }: Props) {
 }
 
 // why: FR-CANVAS-5, FR-CANVAS-13 — the scope button names the drawn count; a budget or a reset
-// is one canvas call, and the engine re-selects under Active
+// is one canvas call, and the engine re-selects under Active. STORY-004-08 rule 5 (FR-HOST-9,
+// H4 (b)) — one last item reopens a dismissed DataNotice
 export function ScopeMenu(props: Props) {
   const { actions, lang, model, state, drawn } = props;
   const all = state.scope.mode === "all";
@@ -156,6 +158,11 @@ export function ScopeMenu(props: Props) {
       ))}
       <hr />
       <ResetItem {...props} />
+      {chipDismissed() && (
+        <MenuItem kind="action" onSelect={showChip}>
+          {t(lang, "chip.reopen")}
+        </MenuItem>
+      )}
     </Menu>
   );
 }

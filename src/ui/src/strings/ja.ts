@@ -342,4 +342,28 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "wb.hideTip": "キャンバスから非表示にします。非表示リストに移ります",
   "wb.hideNone": "選択したノードはキャンバス上にありません",
   "wb.selectAll": "{count} 件をすべて選択",
+
+  "action.show-types": "すべてのタイプを表示",
+  "action.reset-view": "最初の表示に戻す",
+  "action.retry": "再試行",
+  "action.table": "データセット表を開く",
+  "action.copy": "AI クライアント向けの詳細をコピー",
+  "notice.user": "できること",
+  "notice.ai": "AI クライアント向け",
+  "notice.details": "技術的な詳細",
+  "copy.copied": "コピーしました。チャットに貼り付けてください",
+  "copy.failed": "コピーできませんでした。詳細のテキストを選択してください",
+  "copy.sent": "AI クライアントに送信しました",
+  "chip.skipped": "{count} 件のレコードをこのチャートから除外しました",
+  "chip.warnings": "この結果に {count} 件の警告があります",
+  "chip.intro":
+    "結果の残りは描画されています。次のレコードは配置できませんでした:",
+  "chip.dismiss": "閉じる",
+  "chip.copyHead":
+    "Quollio トポロジーチャートは前回の結果の一部のレコードを除外しました:",
+  "chip.copyLine": "- {line}",
+  "chip.copyFix": "修正方法: {ai}",
+  "chip.reopen": "データ通知を表示",
+  "undo.text": "表示をリセットしました",
+  "undo.action": "元に戻す",
 };

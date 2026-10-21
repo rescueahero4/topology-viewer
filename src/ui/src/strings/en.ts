@@ -365,4 +365,34 @@ export const en = {
   "wb.hideTip": "Hide from the canvas. They move to the Hidden list",
   "wb.hideNone": "No selected node is on the canvas",
   "wb.selectAll": "Select all {count}",
+
+  "action.show-types": "Show all types",
+  "action.reset-view": "Reset to first view",
+  "action.retry": "Try again",
+  "action.table": "Open Dataset table",
+  "action.copy": "Copy details for the AI client",
+  "notice.user": "What you can do",
+  "notice.ai": "For the AI client",
+  "notice.details": "Technical details",
+  "copy.copied": "Copied. Paste it into the chat",
+  "copy.failed": "Couldn't copy. Select the details text instead",
+  "copy.sent": "Sent to the AI client",
+  "chip.skipped": {
+    one: "{count} record left out of this chart",
+    other: "{count} records left out of this chart",
+  },
+  "chip.warnings": {
+    one: "{count} warning in this result",
+    other: "{count} warnings in this result",
+  },
+  "chip.intro":
+    "The rest of the result is drawn. These records couldn't be placed:",
+  "chip.dismiss": "Dismiss",
+  "chip.copyHead":
+    "The Quollio topology chart left some records out of your last result:",
+  "chip.copyLine": "- {line}",
+  "chip.copyFix": "How to fix it: {ai}",
+  "chip.reopen": "Show data notice",
+  "undo.text": "View reset",
+  "undo.action": "Undo",
 } as const;
