@@ -1,11 +1,6 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
-import {
-  copyMessage,
-  noticeText,
-  type Fatal,
-  type Info,
-} from "@qdic-topology/engine";
+import type { Fatal, Info } from "@qdic-topology/engine";
 import { act } from "preact/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import type { AppInput } from "./App";
@@ -24,6 +19,7 @@ vi.useFakeTimers({
   ],
 });
 vi.resetModules();
+const { copyMessage, noticeText } = await import("@qdic-topology/engine");
 const { mountApp } = await import("./testFrame");
 const { appInput, fixtureModel } = await import("./fixtureModel");
 const { t } = await import("./strings/index");

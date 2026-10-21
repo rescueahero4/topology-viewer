@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
-import { stats } from "@qdic-topology/engine";
 import { act } from "preact/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import type { AppInput } from "./App";
@@ -34,6 +33,7 @@ vi.useFakeTimers({
   ],
 });
 vi.resetModules();
+const { stats } = await import("@qdic-topology/engine");
 const { mountApp } = await import("./testFrame");
 const { appInput, fixtureModel } = await import("./fixtureModel");
 const state = await import("./state");
@@ -107,9 +107,7 @@ function typesOff(off: (type: string | null) => boolean): void {
 
 describe("S11 the host port only on a press", () => {
   it("has no host call before the copy press and one after it", async () => {
-    const frame = await mountApp(fixtureModel("s-access"), {
-      reducedMotion: true,
-    });
+    const frame = await mountApp(fixtureModel("s-access"));
     const codes = new Set<string>();
     const read = () => {
       const code = frame.root.querySelector(".notice-details code");

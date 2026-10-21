@@ -1,3 +1,6 @@
+import { en } from "./strings/en";
+import { ja } from "./strings/ja";
+
 // why: rule 14 (Security round 1 item 2) — each hostile value starts with its own marker of six
 // letters and digits, then the characters that break HTML and URLs; one value has 10,000 characters
 const TAIL = `"<>&javascript:`;
@@ -98,4 +101,56 @@ export function shellAudit(
         findings.push(`${el.tagName.toLowerCase()}[${name}] ${found}`);
     }
   return findings;
+}
+
+// why: S14 — the literal parts of every `en` text of 4 or more characters that no `ja` text has
+const jaText = Object.values(ja).join("\n");
+export const EN_ONLY = [
+  ...new Set(
+    Object.values(en)
+      .flatMap((text) =>
+        typeof text === "string" ? [text] : [text.one, text.other],
+      )
+      .flatMap((text) => text.split(/\{\w+\}/).map((part) => part.trim()))
+      .filter((part) => part.length >= 4 && !jaText.includes(part)),
+  ),
+];
+
+// why: STORY-004-08 rule 2 (epic metric 1) — a backtick span of a notice or of the DataNotice chip
+// is `ja` contract text in a `code` element; only these text nodes are left out
+function shellTextsOf(root: Element): string[] {
+  const walker = root.ownerDocument.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT,
+  );
+  const texts: string[] = [];
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    const parent = node.parentElement;
+    if (parent?.tagName === "CODE" && parent.closest(".overlay, .data-notice"))
+      continue;
+    texts.push(node.textContent ?? "");
+  }
+  return texts;
+}
+
+// why: STORY-004-02 S14 — each `en` table part in a shell text; a model text is data
+export function enTexts(root: Element, model: Set<string>): string[] {
+  const found = new Set<string>();
+  for (const text of shellTextsOf(root)) {
+    const shell = text
+      .split(" · ")
+      .filter((part) => shellPart(part, model))
+      .join(" · ");
+    for (const part of EN_ONLY)
+      if (shell.includes(part)) found.add(`${part} in "${text}"`);
+  }
+  return [...found];
+}
+
+function shellPart(part: string, model: Set<string>): boolean {
+  const text = part.trim().toLowerCase();
+  if (text === "" || model.has(text)) return false;
+  const [head, tail, ...rest] = text.split("…");
+  if (tail === undefined || rest.length > 0) return true;
+  return ![...model].some((m) => m.startsWith(head) && m.endsWith(tail));
 }

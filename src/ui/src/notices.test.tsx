@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"runScripts":"outside-only"}
-import {
-  copyMessage,
-  noticeText,
-  stats,
-  type Info,
-  type Lang,
-} from "@qdic-topology/engine";
+import type { Info, Lang } from "@qdic-topology/engine";
 import { act } from "preact/test-utils";
 import { describe, expect, it, vi, type MockInstance } from "vitest";
 import type { AppInput } from "./App";
@@ -61,6 +55,8 @@ vi.useFakeTimers({
   ],
 });
 vi.resetModules();
+const { copyMessage, noticeText, stats } =
+  await import("@qdic-topology/engine");
 const { mountApp } = await import("./testFrame");
 const { appInput, fixtureModel } = await import("./fixtureModel");
 const state = await import("./state");
@@ -177,21 +173,28 @@ describe("S1 and S22 the six fatal notices", () => {
   });
 });
 
-// why: the Givens table — the type rows of the state on the canvas, turned off one by one; under
-// reduced motion each change settles at once (NF-8), so no toggle comes during a motion
+// why: the Givens table — the type rows of the state on the canvas, turned off one by one with
+// motion on; each toggle gives exactly one `settle` (the shell feed of rule 1 (c))
 async function typesOff(lang: Lang, off: (type: string | null) => boolean) {
-  const frame = await mountApp(fixtureModel("s-access"), {
-    lang,
-    reducedMotion: true,
-  });
+  const frame = await mountApp(fixtureModel("s-access"), { lang });
   const now = state.model.value;
   const at = state.canvasState.value;
   if (now === null || at === null) throw new Error("no canvas");
+  let settles = 0;
+  canvas().on("settle", () => (settles += 1));
+  let toggles = 0;
   for (const row of stats(now.vocab, at).types)
-    if (off(row.type))
+    if (off(row.type)) {
+      toggles += 1;
       step(() =>
         canvas().setFilters({ kind: "toggleType", type: row.type, on: false }),
       );
+      for (let i = 0; i < 60; i++)
+        void act(() => {
+          vi.advanceTimersByTime(16);
+        });
+      expect(settles).toBe(toggles);
+    }
   expect(state.frontier.value?.nodes).toHaveLength(0);
   return frame;
 }
