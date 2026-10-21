@@ -1,0 +1,93 @@
+{
+  "key": "s-merge-namesakes",
+  "group": "Data shape",
+  "label": "Merge and namesakes · ORDERS",
+  "tests": "FR-DATA-5, FR-QDIC-6, FR-CANVAS-19: two equal ORDERS records in SALES merge; ORDERS in FINANCE is a namesake; two ORDERS_ARCHIVE records with distinct globalId do not merge; a 34-character label for the middle cut.",
+  "graph": {
+    "nodes": [
+      { "id": "db_analytics", "type": "database", "label": "ANALYTICS" },
+      { "id": "sch_sales", "type": "schema", "label": "SALES" },
+      { "id": "sch_finance", "type": "schema", "label": "FINANCE" },
+      {
+        "id": "t_orders_a",
+        "type": "table",
+        "label": "ORDERS",
+        "attrs": { "service_name": "snowflake" }
+      },
+      {
+        "id": "t_orders_b",
+        "type": "table",
+        "label": "ORDERS",
+        "attrs": { "service_name": "snowflake" }
+      },
+      {
+        "id": "t_orders_f",
+        "type": "table",
+        "label": "ORDERS",
+        "attrs": { "service_name": "snowflake" }
+      },
+      { "id": "sch_reporting", "type": "schema", "label": "REPORTING" },
+      {
+        "id": "t_long",
+        "type": "table",
+        "label": "ANALYTICS_PRODUCTION_REVENUE_DAILY",
+        "attrs": { "service_name": "snowflake" }
+      },
+      {
+        "globalId": "tbl-orders-1",
+        "nodeType": "table",
+        "physicalName": "ORDERS_ARCHIVE"
+      },
+      {
+        "globalId": "tbl-orders-2",
+        "nodeType": "table",
+        "physicalName": "ORDERS_ARCHIVE"
+      }
+    ],
+    "edges": [
+      {
+        "subject": "db_analytics",
+        "predicate": "contains",
+        "object": "sch_sales"
+      },
+      {
+        "subject": "db_analytics",
+        "predicate": "contains",
+        "object": "sch_finance"
+      },
+      {
+        "subject": "sch_sales",
+        "predicate": "contains",
+        "object": "t_orders_a"
+      },
+      {
+        "subject": "sch_sales",
+        "predicate": "contains",
+        "object": "t_orders_b"
+      },
+      {
+        "subject": "sch_finance",
+        "predicate": "contains",
+        "object": "t_orders_f"
+      },
+      {
+        "subject": "db_analytics",
+        "predicate": "contains",
+        "object": "sch_reporting"
+      },
+      {
+        "subject": "sch_reporting",
+        "predicate": "contains",
+        "object": "t_long"
+      }
+    ],
+    "view": { "budget": "all" }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

@@ -11,6 +11,7 @@ export const fixtures = corpus.fixtures;
 export const datasets = corpus.datasets;
 export const loadFixture = corpus.load;
 export * as generate from "./generate";
+export { producers, type Producer } from "./producers";
 export {
   createCorpus,
   type Corpus,

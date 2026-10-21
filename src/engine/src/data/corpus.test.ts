@@ -144,11 +144,11 @@ describe("S10 the empty fixtures", () => {
   });
 });
 
-describe("S27 the 32 fixtures", () => {
+describe("S27 the 38 fixtures", () => {
   const keys = Object.keys(fixtures);
 
-  it("has 32 fixtures", () => {
-    expect(keys).toHaveLength(32);
+  it("has 38 fixtures", () => {
+    expect(keys).toHaveLength(38);
   });
 
   it.each(keys)("%s", (key) => {

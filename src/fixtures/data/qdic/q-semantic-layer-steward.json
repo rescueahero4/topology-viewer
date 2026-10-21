@@ -1,0 +1,90 @@
+{
+  "key": "q-semantic-layer-steward",
+  "group": "QDIC",
+  "label": "QDIC Semantic Layer neighborhood with a steward",
+  "tests": "FR-QDIC-6, FR-QDIC-9: the GraphQL neighborhood result around CUSTOMER after Scenarios A and B, and the REST vocabulary responses with their extra keys (created_at, created_by, id). The custom steward type, hasSteward in the governance category, no warning.",
+  "graph": {
+    "neighborhood": {
+      "nodes": [
+        {
+          "globalId": "tbl-customer",
+          "physicalName": "CUSTOMER",
+          "nodeType": "table"
+        },
+        {
+          "globalId": "clmn-customer-email",
+          "physicalName": "CUSTOMER_EMAIL",
+          "nodeType": "column"
+        },
+        {
+          "globalId": "node-8f3a",
+          "physicalName": "PII",
+          "nodeType": "classification"
+        },
+        {
+          "globalId": "node-2c9b",
+          "physicalName": "Jane Doe",
+          "nodeType": "steward"
+        }
+      ],
+      "edges": [
+        {
+          "subjectNodeId": "tbl-customer",
+          "predicate": "contains",
+          "objectNodeId": "clmn-customer-email"
+        },
+        {
+          "subjectNodeId": "clmn-customer-email",
+          "predicate": "classifiedAs",
+          "objectNodeId": "node-8f3a"
+        },
+        {
+          "subjectNodeId": "tbl-customer",
+          "predicate": "hasSteward",
+          "objectNodeId": "node-2c9b"
+        }
+      ]
+    },
+    "vocabulary": {
+      "nodeTypes": [
+        {
+          "name": "steward",
+          "description": "A person designated as accountable for a data asset.",
+          "is_system": false,
+          "is_active": true,
+          "created_at": "2026-09-01T09:55:00Z",
+          "created_by": "usr-jane-admin"
+        }
+      ],
+      "predicates": [
+        {
+          "name": "hasSteward",
+          "category": "governance",
+          "description": "The person accountable for the accuracy and appropriate use of this asset.",
+          "inverse_predicate": null,
+          "is_system": false,
+          "is_active": true,
+          "created_at": "2026-09-01T10:00:00Z",
+          "created_by": "usr-jane-admin"
+        }
+      ],
+      "edgeConstraints": [
+        {
+          "id": 42,
+          "predicate": "hasSteward",
+          "subject_node_type": "table",
+          "object_node_type": "steward",
+          "is_system": false,
+          "is_active": true
+        }
+      ]
+    }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "passive", "selected": null },
+    "notice": null,
+    "warnings": {}
+  }
+}

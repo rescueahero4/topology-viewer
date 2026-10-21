@@ -71,7 +71,7 @@ const LAYOUTS: LayoutName[] = [
   "tree-h",
   "tree-v",
 ];
-// why: EPIC-003 success metric 1 — the 32 fixtures less the four with no first view to draw
+// why: EPIC-003 success metric 1 — the 38 fixtures less the four with no first view to draw
 const NOT_DRAWN = ["s-invalid", "s-not-graph", "s-noid-all", "s-stress"];
 
 type Run = { graph: Graph; vocab: Vocab; state: CanvasState };
@@ -118,8 +118,8 @@ const CASES = Object.keys(fixtures)
   .flatMap((key) => LAYOUTS.map((name) => [key, name] as const));
 
 describe("S1 one edge and one hit path per frontier edge", () => {
-  it("has 28 drawing fixtures in 5 layouts", () => {
-    expect(CASES).toHaveLength(140);
+  it("has 34 drawing fixtures in 5 layouts", () => {
+    expect(CASES).toHaveLength(170);
   });
 
   it.each(CASES)("%s in %s", (key, name) => {

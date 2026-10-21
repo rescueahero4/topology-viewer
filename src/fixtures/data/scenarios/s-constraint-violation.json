@@ -1,0 +1,66 @@
+{
+  "key": "s-constraint-violation",
+  "group": "Edge cases",
+  "label": "Constraint violation · 2 edges",
+  "tests": "FR-QDIC-7: one edge against a system pairing (column contains table) and one edge against a supplied constraint (dashboard hasSteward steward); both are drawn and reported.",
+  "graph": {
+    "nodes": [
+      { "id": "t_orders", "type": "table", "label": "ORDERS" },
+      { "id": "c_order_id", "type": "column", "label": "ORDER_ID" },
+      { "id": "d_sales", "type": "dashboard", "label": "Sales overview" },
+      { "id": "st_ann", "type": "steward", "label": "Ann Lee" }
+    ],
+    "edges": [
+      {
+        "subject": "t_orders",
+        "predicate": "contains",
+        "object": "c_order_id"
+      },
+      {
+        "subject": "c_order_id",
+        "predicate": "contains",
+        "object": "t_orders"
+      },
+      { "subject": "t_orders", "predicate": "hasSteward", "object": "st_ann" },
+      { "subject": "d_sales", "predicate": "hasSteward", "object": "st_ann" }
+    ],
+    "vocabulary": {
+      "nodeTypes": [
+        {
+          "name": "steward",
+          "description": "A person designated as accountable for a data asset.",
+          "is_system": false,
+          "is_active": true
+        }
+      ],
+      "predicates": [
+        {
+          "name": "hasSteward",
+          "category": "governance",
+          "inverse_predicate": null,
+          "is_system": false,
+          "is_active": true
+        }
+      ],
+      "edgeConstraints": [
+        {
+          "predicate": "hasSteward",
+          "subject_node_type": "table",
+          "object_node_type": "steward"
+        }
+      ]
+    },
+    "view": {
+      "approach": "active",
+      "root": "t_orders",
+      "reveal": ["c_order_id", "st_ann", "d_sales"]
+    }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_orders" },
+    "notice": null,
+    "warnings": { "constraint-violation": 2 }
+  }
+}

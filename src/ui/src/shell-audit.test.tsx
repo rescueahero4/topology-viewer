@@ -44,7 +44,7 @@ const state = await import("./state");
 const { en } = await import("./strings/en");
 const { isKey } = await import("./strings/index");
 
-// why: EPIC-003 success metric 1 — the 32 fixtures less the four with no first view to draw
+// why: EPIC-003 success metric 1 — the 38 fixtures less the four with no first view to draw
 const NOT_DRAWN = ["s-invalid", "s-not-graph", "s-noid-all", "s-stress"];
 const DRAWING = Object.keys(fixtures)
   .filter((key) => !NOT_DRAWN.includes(key))
@@ -105,8 +105,8 @@ function modelTexts(input: AppInput): Set<string> {
 }
 
 describe("S14 the ja text audit", () => {
-  it("covers the 28 drawing fixtures", () => {
-    expect(DRAWING).toHaveLength(28);
+  it("covers the 34 drawing fixtures", () => {
+    expect(DRAWING).toHaveLength(34);
     expect(EN_ONLY.length).toBeGreaterThan(50);
   });
 
@@ -302,6 +302,7 @@ describe("S16 the controls on the hostile payload (STORY-004-03)", () => {
     expect(texts).not.toContain("[object Object]");
   });
 
+  // why: LEARNINGS 24, 62 — 4,698 ms under full-suite load (STORY-005-02 T5); limit ≥ 2 × that
   it("keeps the pickers, the items and a hostile query out of every attribute", async () => {
     const frame = await mountApp(appInput(manyHostile()));
     const markers = [...MARKERS, ...MORE];
@@ -334,7 +335,7 @@ describe("S16 the controls on the hostile payload (STORY-004-03)", () => {
       expect(found).toEqual(index === 0 ? [] : ["prototype"]);
       void act(() => (picker as HTMLElement).click());
     }
-  });
+  }, 10_000);
 });
 
 // why: STORY-004-04 S16 — every hostile entity in the card, with the tip of every AI mark (hover,

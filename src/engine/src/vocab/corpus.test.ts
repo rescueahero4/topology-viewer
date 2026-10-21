@@ -26,7 +26,7 @@ function joined(input: unknown) {
 const counts = (warnings: { code: string; count: number }[] | null) =>
   Object.fromEntries((warnings ?? []).map((w) => [w.code, w.count]));
 
-describe("S30 the 32 fixtures", () => {
+describe("S30 the 38 fixtures", () => {
   it.each(Object.keys(fixtures))("%s gives its expect.warnings", (key) => {
     const { input, expect: outcome } = loadFixture(key);
     const { result, warnings } = joined(input);
