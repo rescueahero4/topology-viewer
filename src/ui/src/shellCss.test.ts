@@ -191,3 +191,23 @@ describe("S21 the family token sets (STORY-004-03 rule 7)", () => {
     expect(root.filter((d) => d.startsWith("--fam-"))).toHaveLength(18);
   });
 });
+
+describe("ISSUE-013 the tag on the inspector Type row and in the Workbench", () => {
+  const relations = read("shell-relations.css");
+
+  it("has the look of the mockup triple tag", () => {
+    expect(ruleOf(relations, ".facts .prov, .wb-table .prov")?.body).toEqual([
+      "padding-left: 8px",
+      "font-size: 10px",
+      "font-weight: 400",
+      "color: var(--zinc-500)",
+    ]);
+    expect(ruleOf(relations, ".triple .prov")?.body).toEqual(
+      expect.arrayContaining([
+        "padding-left: 8px",
+        "font-size: 10px",
+        "color: var(--zinc-500)",
+      ]),
+    );
+  });
+});
