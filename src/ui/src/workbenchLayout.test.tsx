@@ -180,8 +180,8 @@ describe("Ctrl+. with a fatal input (QA Done gate item 5)", () => {
     const split = root.querySelector(".split");
     expect(split?.getAttribute("data-layout")).toBe("canvas-only");
     expect(
-      (root.querySelector("main.canvas") as HTMLElement).style.flexGrow,
-    ).toBe("1");
+      (root.querySelector("main.canvas") as HTMLElement).style.height,
+    ).toBe("600px");
     expect(root.querySelector(".workbench")).toBeNull();
     await frame.update({ input: fixtureModel("s-access") });
     expect(split?.getAttribute("data-layout")).toBe("canvas-only");
@@ -196,8 +196,8 @@ describe("Ctrl+. with a fatal input (QA Done gate item 5)", () => {
       "canvas-only",
     );
     expect(
-      (root.querySelector("main.canvas") as HTMLElement).style.flexGrow,
-    ).toBe("1");
+      (root.querySelector("main.canvas") as HTMLElement).style.height,
+    ).toBe("600px");
   });
 });
 

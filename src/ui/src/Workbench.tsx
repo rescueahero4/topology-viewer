@@ -17,7 +17,7 @@ import { TableHead } from "./BulkBar";
 import type { CanvasModel } from "./canvas/index";
 import type { ShellHost } from "./host";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
-import { expandTable, grows, layout, ratio } from "./split";
+import { closeWorkbench, expandTable, layout } from "./split";
 import { canvasState, frontier, lang, model } from "./state";
 import { t } from "./strings/index";
 import { fold } from "./FilterPicker";
@@ -289,7 +289,7 @@ function WorkbenchBody(props: BodyProps) {
         hidden={view.hidden}
         layout={layout.value}
         onExpand={() => expandTable(host)}
-        onClose={() => (layout.value = "canvas-only")}
+        onClose={closeWorkbench}
       />
       <BodyTable
         {...props}
@@ -319,14 +319,12 @@ export function Workbench({ id, actions, host }: Props) {
     }, DEBOUNCE_MS);
   };
   const open = layout.value !== "canvas-only";
-  const { table } = grows(layout.value, ratio.value);
   return (
     <section
       id={id}
       class="workbench"
       aria-label={t(ui, "datasetTable")}
       inert={!open}
-      style={{ flexGrow: String(table) }}
     >
       {open && now !== null && actions !== null && (
         <WorkbenchBody {...{ now, actions, host, session, update, onText }} />

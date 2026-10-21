@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { colourLiterals } from "./cssRules";
 
 const SRC = import.meta.dirname;
 const read = (name: string) =>
@@ -53,25 +54,6 @@ describe("S19 the Menu item rule", () => {
   });
 });
 
-const NAMED = (
-  "aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue " +
-  "blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk " +
-  "crimson cyan darkblue darkcyan darkgoldenrod darkgray darkgreen darkgrey darkkhaki " +
-  "darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen " +
-  "darkslateblue darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue " +
-  "dimgray dimgrey dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite " +
-  "gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory khaki " +
-  "lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan " +
-  "lightgoldenrodyellow lightgray lightgreen lightgrey lightpink lightsalmon lightseagreen " +
-  "lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime limegreen linen " +
-  "magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen " +
-  "mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream " +
-  "mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid " +
-  "palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum " +
-  "powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown " +
-  "seagreen seashell sienna silver skyblue slateblue slategray slategrey snow springgreen " +
-  "steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen"
-).split(" ");
 const TOKENS = new Set(
   [
     ...readFileSync(path.join(SRC, "tokens.css"), "utf8").matchAll(
@@ -80,35 +62,8 @@ const TOKENS = new Set(
   ].map((m) => m[1]),
 );
 
-// why: rule 17 (B3) — the colour literal forms; `var(--c)` and a `color-mix` of it are the one
-// exception, and a length fallback in `var()` is not a colour
-const COLOUR =
-  /^(color|background(-color|-image)?|border(-(top|right|bottom|left))?(-color)?|outline(-color)?|fill|stroke|box-shadow|text-shadow|text-decoration(-color)?|caret-color|accent-color|column-rule)$/;
-
-function literals(value: string, property = "color"): string[] {
-  const found: string[] = [];
-  if (/#[0-9a-f]{3,8}\b/i.test(value)) found.push("hex");
-  if (/%23[0-9a-f]{3,8}/i.test(value)) found.push("%23 hex");
-  if (/\b(rgba?|hsla?|color)\(/i.test(value)) found.push("colour function");
-  const words =
-    value
-      .replace(/var\([^)]*\)/g, " ")
-      .toLowerCase()
-      .match(/[a-z-]+/g) ?? [];
-  for (const word of words)
-    if (NAMED.includes(word)) found.push(`named ${word}`);
-  for (const m of value.matchAll(/var\((--[\w-]+)\s*(?:,\s*([^)]*))?\)/g)) {
-    const [, name, fallback] = m;
-    if (
-      fallback !== undefined &&
-      !/^-?[\d.]+(px|%|em|rem|ms|s)?$/.test(fallback.trim())
-    )
-      found.push(`fallback ${fallback}`);
-    if (COLOUR.test(property) && name !== "--c" && !TOKENS.has(name))
-      found.push(`not a token ${name}`);
-  }
-  return found;
-}
+const literals = (value: string, property = "color") =>
+  colourLiterals(value, property, TOKENS);
 
 describe("S31 no colour literal in the shell CSS", () => {
   it("finds the shell CSS files of this story", () => {

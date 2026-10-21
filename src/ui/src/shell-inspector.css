@@ -21,7 +21,7 @@
 }
 
 /* The card is always full height; collapsed, it slides down (transform only) until its header
-   shows. */
+   shows. The shadow changes at once (STORY-004-09 rule 1, SA §6 row 7). */
 .inspector {
   position: absolute;
   right: 6px;
@@ -34,9 +34,7 @@
   flex-direction: column;
   overflow: hidden;
   transform: translateY(calc(100% - var(--insp-peek, 32px)));
-  transition:
-    transform var(--panel-dur) var(--panel-ease),
-    box-shadow var(--panel-dur) var(--panel-ease);
+  transition: transform var(--panel-dur) var(--panel-ease);
 }
 .inspector[data-state="expanded"] {
   transform: none;
@@ -286,4 +284,12 @@
   color: var(--lost-ink);
   font-size: 10px;
   font-weight: 500;
+}
+
+/* why: rule 2, SA §5 Accessibility — no inspector slide under reduced motion (mockup styles.css
+   line 372) */
+@media (prefers-reduced-motion: reduce) {
+  .inspector {
+    transition: none;
+  }
 }

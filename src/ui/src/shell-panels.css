@@ -112,7 +112,8 @@ kbd {
 }
 
 /* The Hidden card docks left of the inspector: --hid-right is the inspector width and the gap
-   (useDock). The chip is as wide as its label; the card is inspector-wide. */
+   (useDock). The chip is as wide as its label; the card is inspector-wide. The width and the
+   shadow change at once (STORY-004-09 rule 1, SA §6 row 7). */
 .hidden-panel {
   position: absolute;
   right: var(--hid-right, 6px);
@@ -125,9 +126,7 @@ kbd {
   flex-direction: column;
   overflow: hidden;
   transform: translateY(calc(100% - 32px));
-  transition:
-    transform var(--panel-dur) var(--panel-ease),
-    box-shadow var(--panel-dur) var(--panel-ease);
+  transition: transform var(--panel-dur) var(--panel-ease);
 }
 .hidden-panel[data-state="expanded"] {
   width: 372px;
@@ -369,10 +368,14 @@ kbd {
 }
 
 /* why: rule 1, ddr-0027 — the count bump and the pill entry are off under reduced motion (mockup
-   styles.css lines 332, 372) */
+   styles.css lines 332, 372); STORY-004-09 rule 2 — so are the search card and Hidden card slides */
 @media (prefers-reduced-motion: reduce) {
   .hid-count.bump,
   .focus-pill {
     animation: none;
+  }
+  .tools,
+  .hidden-panel {
+    transition: none;
   }
 }
