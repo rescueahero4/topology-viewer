@@ -22,6 +22,16 @@ function firstEntity(graph: Graph): Map<string, number> {
   return index;
 }
 
+// why: STORY-004-07 rule 2 (guardrail 10) — the entity of a record id, by the `entityIndex` rule
+// of view/hidden; the Workbench reads it, so the shell keeps no copy of the rule
+export function entityOfRecord(graph: Graph): (id: string) => string | null {
+  const first = firstEntity(graph);
+  return (id) => {
+    const at = first.get(id);
+    return at === undefined ? null : graph.entities[at].id;
+  };
+}
+
 // why: `hiddenOf` of view/hidden — among the entries that still have a member off the canvas, the
 // first entry that lists the entity as a member, else the first that lists it as a strand
 function ownerOf(state: CanvasState, off: (id: string) => boolean) {
