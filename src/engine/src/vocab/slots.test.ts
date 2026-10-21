@@ -112,7 +112,11 @@ describe("S23 s-vocab-meta, entity tb", () => {
       },
     ]);
     expect(slot(vocab, "tb", "ddl_comment")).toEqual([
-      { value: "one row per issued invoice", from: "attribute comment_on_ddl" },
+      {
+        value: "one row per issued invoice",
+        from: "attribute comment_on_ddl",
+        external: true,
+      },
     ]);
     expect(values(vocab, "tb", "path")).toEqual([
       ["BigQuery · acme-dw", "acme-dw", "finance", "invoices"],

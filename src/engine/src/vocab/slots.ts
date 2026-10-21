@@ -1,5 +1,12 @@
-import type { Profile, RenderInput } from "@qdic-topology/contract";
+import {
+  profile as engineProfile,
+  type Profile,
+  type RenderInput,
+} from "@qdic-topology/contract";
 import type { Entity, NodeRecord, Triple } from "../data/merge";
+import type { Payload } from "../data/normalize";
+import { entriesOf } from "./predicates";
+import type { Vocab } from "./resolve";
 
 type SlotSpec = Profile["slots"][number];
 type ItemName = NonNullable<SlotSpec["itemName"]>[number];
@@ -11,6 +18,7 @@ export type Entry = {
   from: string;
   inferred?: string;
   mapped?: string;
+  external?: true;
 };
 export type Slot = { slot: string; entries: readonly Entry[] };
 export type Slots = { slots: Slot[]; isCatalog: boolean };
@@ -18,7 +26,12 @@ export type Slots = { slots: Slot[]; isCatalog: boolean };
 type Mapping = { index: number; why: string };
 type Mappings = ReadonlyMap<string, ReadonlyMap<string, Mapping>>;
 type EdgeIndex = ReadonlyMap<string, ReadonlyMap<string, Triple[]>>;
-type NativeKeys = { plain: string[]; asset: string[] };
+type NativeKeys = {
+  plain: string[];
+  asset: string[];
+  external: ReadonlySet<string>;
+};
+type Mark = { mapped?: string; external?: true };
 
 export type SlotContext = {
   profile: Profile;
@@ -120,7 +133,7 @@ function addKey(
   key: string,
   record: NodeRecord,
   spec: SlotSpec,
-  mapped?: string,
+  mark: Mark,
 ): void {
   for (const value of itemsOf(readKey(record, key), spec)) {
     const reason = Object.hasOwn(record.inferred, key)
@@ -128,7 +141,8 @@ function addKey(
       : undefined;
     const entry: Entry = { value, from: `${ATTRIBUTE}${key}` };
     if (reason !== undefined) entry.inferred = reason;
-    if (mapped !== undefined) entry.mapped = mapped;
+    if (mark.mapped !== undefined) entry.mapped = mark.mapped;
+    if (mark.external) entry.external = true;
     out.add(entry, `${typeof value}:${String(value)}`);
   }
 }
@@ -138,9 +152,12 @@ function addKeys(
   keys: readonly string[],
   records: NodeRecord[],
   spec: SlotSpec,
+  external: ReadonlySet<string>,
 ): void {
-  for (const key of keys)
-    for (const record of records) addKey(out, key, record, spec);
+  for (const key of keys) {
+    const mark: Mark = external.has(key) ? { external: true } : {};
+    for (const record of records) addKey(out, key, record, spec, mark);
+  }
 }
 
 // why: Security blocking item (1) (a) — a record reads only its own keys that have a mapping, so
@@ -161,7 +178,7 @@ function addMapped(
     }
   found.sort((a, b) => a.mapping.index - b.mapping.index);
   for (const { key, record, mapping } of found)
-    addKey(out, key, record, spec, mapping.why);
+    addKey(out, key, record, spec, { mapped: mapping.why });
 }
 
 export function mappingsOf(fields: ReadonlyMap<string, Field>): Mappings {
@@ -189,16 +206,23 @@ export function edgeIndex(triples: Triple[]): EdgeIndex {
 }
 
 // why: the step-1 key list of each profile slot is made once for each call, for an asset type and
-// for any other type
+// for any other type; STORY-004-01 Rule C — `external` holds every `notYetIncluded` field of the
+// slot, also one that is a native or late key (GV §Not yet included: source data, not the graph)
 export function nativeKeysOf(profile: Profile): NativeKeys[] {
   return profile.slots.map((spec) => {
     const late = spec.late ?? [];
-    const aliases = profile.notYetIncluded
+    const fields = profile.notYetIncluded
       .filter((item) => item.slot === spec.slot)
-      .map((item) => item.field)
-      .filter((field) => !spec.keys.includes(field) && !late.includes(field));
+      .map((item) => item.field);
+    const aliases = fields.filter(
+      (field) => !spec.keys.includes(field) && !late.includes(field),
+    );
     const plain = [...spec.keys, ...aliases];
-    return { plain, asset: [...plain, ...(spec.assetOnlyKeys ?? [])] };
+    return {
+      plain,
+      asset: [...plain, ...(spec.assetOnlyKeys ?? [])],
+      external: new Set(fields),
+    };
   });
 }
 
@@ -263,17 +287,18 @@ function derivedOf(
 function slotOf(
   spec: SlotSpec,
   keys: readonly string[],
+  external: ReadonlySet<string>,
   entity: Entity,
   records: NodeRecord[],
   ctx: SlotContext,
 ): Slot {
   const out = new Collector();
-  addKeys(out, keys, records, spec);
+  addKeys(out, keys, records, spec, external);
   if (spec.edge !== undefined && spec.derive !== "parent-owners")
     addEdges(out, spec.edge, entity.id, spec.edge, ctx, spec.edgeObject);
   const at = out.entries.length;
   const derived = derivedOf(spec, entity, ctx);
-  addKeys(out, spec.late ?? [], records, spec);
+  addKeys(out, spec.late ?? [], records, spec, external);
   addMapped(out, records, spec, ctx);
   // why: Security blocking item (1) (b) — the children of one container share its read-only
   // owner list when the slot has no other entry
@@ -295,8 +320,9 @@ export function slotsOf(entity: Entity, ctx: SlotContext): Slots {
   const records = entity.records.flatMap((id) => ctx.records.get(id) ?? []);
   const asset = ctx.isAsset(entity.id);
   const slots = specs.map((spec, i) => {
-    const keys = asset ? ctx.native[i].asset : ctx.native[i].plain;
-    return slotOf(spec, keys, entity, records, ctx);
+    const { plain, asset: assetKeys, external } = ctx.native[i];
+    const keys = asset ? assetKeys : plain;
+    return slotOf(spec, keys, external, entity, records, ctx);
   });
   const isCatalog = slots.some(
     (slot, i) =>
@@ -304,6 +330,33 @@ export function slotsOf(entity: Entity, ctx: SlotContext): Slots {
       slot.entries.some((entry) => entry.from.startsWith(ATTRIBUTE)),
   );
   return { slots, isCatalog };
+}
+
+const NATIVE = nativeKeysOf(engineProfile);
+const SLOT_NAMES = new Set(engineProfile.slots.map((spec) => spec.slot));
+
+// why: STORY-004-01 Rule E (G7; PRD FR-INSPECT-4, mockup `KNOWN_KEYS`, app.js lines 595, 753) —
+// every key that a slot of the entity reads: native keys with the alias list, late keys, and each
+// `fields` key mapped to a profile slot (FR-DATA-7: unknown slots are ignored); the inspector shows
+// the other keys as "Other attributes", so the slot map stays in the profile
+export function slotKeys(
+  vocab: Vocab,
+  payload: Payload,
+  entityId: string,
+): ReadonlySet<string> {
+  const keys = new Set<string>();
+  const entity = vocab.entities.get(entityId);
+  if (entity === undefined) return keys;
+  const type = entity.type === null ? undefined : vocab.types.get(entity.type);
+  // why: lead decision D61, as `isAsset` of `vocab/resolve` — `treeRole` `structure` is an asset
+  const asset = type?.treeRole === "structure";
+  engineProfile.slots.forEach((spec, i) => {
+    for (const key of asset ? NATIVE[i].asset : NATIVE[i].plain) keys.add(key);
+    for (const key of spec.late ?? []) keys.add(key);
+  });
+  for (const [key, field] of entriesOf(payload.fields))
+    if (field.slot !== undefined && SLOT_NAMES.has(field.slot)) keys.add(key);
+  return keys;
 }
 
 // why: app.js lines 600-628 — one parent for each entity, the first containment triple in triple

@@ -50,6 +50,16 @@ function groupOf(type: string): string {
     : CUSTOM;
 }
 
+// why: STORY-004-01 Rule G (G9) — the shell reads the group order of the Types menu and the family
+// order here, because `ui` does not import `contract` (SA §3)
+export function typeGroups(): readonly string[] {
+  return [...profile.typeMenuCategories.order, CUSTOM];
+}
+
+export function familyOrder(): readonly string[] {
+  return [...profile.categoryOrder];
+}
+
 // why: mockup `stats` (lib/topology.js line 2263) — one row per present type in the order of first
 // appearance; the entities with no type share one row, key `null`, in the Custom group, at the place
 // of the first of them (lead decision D93 (1), PRD v0.10 FR-FILTER-3; mockup type `unknown`, line

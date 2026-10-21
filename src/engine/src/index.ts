@@ -7,6 +7,7 @@ export {
   type Payload,
 } from "./data/normalize";
 export type { EdgeRecord, Entity, NodeRecord, Triple } from "./data/merge";
+export { pairingsOf } from "./data/constraints";
 export type { Shaped } from "./data/shape";
 export {
   canvasNotice,
@@ -31,13 +32,20 @@ export {
   type ResolvedType,
   type Vocab,
 } from "./vocab/resolve";
-export type { Entry, Slot, Slots, Value } from "./vocab/slots";
+export {
+  slotKeys,
+  type Entry,
+  type Slot,
+  type Slots,
+  type Value,
+} from "./vocab/slots";
 export { guardColor, type Designed, type Visual } from "./vocab/visual";
 export {
   edgeKey,
   entityDrawnId,
   groupDrawnId,
   groupKey,
+  groupParts,
   type Action,
   type Approach,
   type Around,
@@ -48,6 +56,7 @@ export {
   type Filters,
   type Grouping,
   type GroupKey,
+  type GroupParts,
   type HiddenEntry,
   type Hint,
   type LayoutName,
@@ -72,8 +81,10 @@ export {
 } from "./view/frontier";
 export { firstView, hide, transition } from "./view/story";
 export {
+  familyOrder,
   filterMode,
   stats,
+  typeGroups,
   type FamilyRow,
   type FilterModes,
   type Mode,
@@ -89,6 +100,8 @@ export {
   type HideResult,
   type OnCanvas,
 } from "./view/hidden";
+export { canvasLookup, type CanvasLookup } from "./view/lookup";
+export { matchEntities } from "./view/search";
 export { bubbleRooms, type Bubble } from "./layout/bubbles";
 export { LABEL_CHARS } from "./layout/drawn";
 export type { IconMetrics, Tier } from "./layout/drawn";
