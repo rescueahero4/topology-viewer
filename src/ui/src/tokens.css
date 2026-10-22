@@ -496,6 +496,11 @@
   dominant-baseline: central;
 }
 
+/* why: owner decision H18 (FR-CANVAS-10) sets the mockup aside; a pill passes the pointer on. */
+.qt-elabel {
+  pointer-events: none;
+}
+
 /* Group around root (FR-CANVAS-14, SA §6 row 11; mockup lib/topology.js lines 122-125): a faded
    element gets no pointer events and no keyboard focus. !important wins over the
    pointer-events: stroke of .qt-ehit; visibility: hidden takes a node out of the Tab order. */
