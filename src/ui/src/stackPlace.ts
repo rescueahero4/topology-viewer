@@ -5,6 +5,14 @@ import { canvasState, frontier, model } from "./state";
 
 // why: STORY-005-11 rules 1, 5 — the gap of a floating part (mockup styles.css line 304)
 const GAP_PX = 6;
+// why: the head height of a collapsed card (`translateY(calc(100% - 32px))`, shell-panels.css)
+const PEEK_PX = 32;
+// why: STORY-005-11 rule 5; STORY-005-07 (ISSUE-025) — the collapsed Hidden card meets the control
+// bar below 760 px as the inspector head does, so it moves up the same way
+const CARDS = [
+  { card: ".inspector", head: ".insp-head", lift: "--insp-lift" },
+  { card: ".hidden-panel", head: ".hid-head", lift: "--hid-lift" },
+];
 
 // why: ControlBar.tsx renders `.controls` only with a model, a state and a frontier, so the bar
 // comes after the first `settle` of each canvas, and a new input makes a new bar
@@ -41,7 +49,8 @@ function placeStack({ canvas, controls, stack }: Parts): void {
 // box, the card inset and `--insp-peek`, because the head itself moves during the slide
 function liftOf(parts: Parts, card: HTMLElement, head: Element): number {
   const canvas = parts.canvas.getBoundingClientRect();
-  const peek = parseFloat(card.style.getPropertyValue("--insp-peek"));
+  const peek =
+    parseFloat(card.style.getPropertyValue("--insp-peek")) || PEEK_PX;
   const inset = parseFloat(getComputedStyle(card).bottom);
   const top = canvas.bottom - inset - peek + card.clientTop;
   const bottom = top + head.getBoundingClientRect().height;
@@ -55,15 +64,15 @@ function liftOf(parts: Parts, card: HTMLElement, head: Element): number {
   return Number.isFinite(lift) ? lift : 0;
 }
 
-function liftHead(parts: Parts): void {
-  const card = parts.canvas.querySelector<HTMLElement>(":scope > .inspector");
-  const head = card?.querySelector(":scope > .insp-head");
+function liftHead(parts: Parts, part: (typeof CARDS)[number]): void {
+  const card = parts.canvas.querySelector<HTMLElement>(`:scope > ${part.card}`);
+  const head = card?.querySelector(`:scope > ${part.head}`);
   if (!card || !head) return;
   const lift =
     card.dataset.state === "collapsed" ? liftOf(parts, card, head) : 0;
   card.toggleAttribute("data-lift", lift > 0);
-  if (lift > 0) card.style.setProperty("--insp-lift", `${lift}px`);
-  else card.style.removeProperty("--insp-lift");
+  if (lift > 0) card.style.setProperty(part.lift, `${lift}px`);
+  else card.style.removeProperty(part.lift);
 }
 
 function partsOf(
@@ -81,7 +90,7 @@ function partsOf(
 
 function measure(parts: Parts): void {
   placeStack(parts);
-  liftHead(parts);
+  for (const part of CARDS) liftHead(parts, part);
 }
 
 type Watch = { observer: ResizeObserver; parts: Parts | null; on: Element[] };
@@ -114,13 +123,13 @@ export function useStackPlace(
     const now = watch.current;
     if (now === null) return;
     const parts = actions !== null && shown ? partsOf(root, frame) : null;
-    const head = frame.current?.querySelector(
-      ":scope > .inspector > .insp-head",
+    const heads = CARDS.map((part) =>
+      frame.current?.querySelector(`:scope > ${part.card} > ${part.head}`),
     );
     const on =
       parts === null
         ? []
-        : [parts.shell, parts.controls, parts.stack, parts.tools, head];
+        : [parts.shell, parts.controls, parts.stack, parts.tools, ...heads];
     const next = on.filter((el): el is Element => el != null);
     for (const el of now.on) if (!next.includes(el)) now.observer.unobserve(el);
     for (const el of next) if (!now.on.includes(el)) now.observer.observe(el);
