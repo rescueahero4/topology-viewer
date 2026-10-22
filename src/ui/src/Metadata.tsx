@@ -54,26 +54,11 @@ function headFacts({ ctx, model, entity }: Props): VNode[] {
   return [type, keyed("write", <WriteFact writable={entity.writable} />)];
 }
 
-// why: FR-INSPECT-4 (ISSUE-024, mockup `always`, app.js lines 581-588) — the slots up to Data
-// source show "—" when empty; the later slots show only when present
-const ALWAYS = new Set([
-  "physical_name",
-  "logical_name",
-  "description",
-  "owners",
-  "tags",
-  "path",
-  "data_source",
-]);
-
-// why: rule 4 — catalog mode: the slots in profile order, never capped, then "Other attributes"
+// why: rule 4 — catalog mode: the 13 slots in profile order, never capped, then "Other attributes"
 function Catalog({ props, cap }: { props: Props; cap: Cap }) {
   const ui = lang.value;
   const { ctx, model, entity } = props;
-  const present = entity.slots.filter(
-    (slot) => slot.entries.length > 0 || ALWAYS.has(slot.slot),
-  );
-  const slots = present.map((slot) =>
+  const slots = entity.slots.map((slot) =>
     keyed(
       slot.slot,
       <SlotFact

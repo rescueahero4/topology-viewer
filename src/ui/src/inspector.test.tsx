@@ -153,7 +153,7 @@ describe("rule 2 the ROOT pill colour", () => {
 });
 
 describe("S3 the catalog metadata of s-access", () => {
-  it("lists the present slots in profile order with their values", async () => {
+  it("lists the 13 slots in profile order with their values", async () => {
     const { root } = await mountApp(fixtureModel("s-access"));
     const list = mainList(root);
     expect(card(root).querySelector(".facts")?.getAttribute("data-state")).toBe(
@@ -168,6 +168,8 @@ describe("S3 the catalog metadata of s-access", () => {
       "Tags",
       "Path",
       "Data source",
+      "Parent owners",
+      "Data type",
       "DDL comment",
       "Asset groups",
       "Updated",
@@ -193,6 +195,9 @@ describe("S3 the catalog metadata of s-access", () => {
     expect(text(cell(list, "Data source"))).toBe(
       "Snowflake · ACME prod, snowflake",
     );
+    expect(text(cell(list, "Parent owners"))).toBe("—");
+    expect(text(cell(list, "Data type"))).toBe("—");
+    expect(cell(list, "Data type").className).toBe("empty");
     expect(text(cell(list, "DDL comment"))).toBe(
       "fact table – revenue lines (USD)",
     );
@@ -234,23 +239,6 @@ describe("S4 and S5 the AI marks and the link of s-vocab-meta", () => {
   it("S4 shows the marks, the source-system text, the date and the link", async () => {
     const { root } = await mountApp(fixtureModel("s-vocab-meta"));
     const list = mainList(root);
-    // why: FR-INSPECT-4 (ISSUE-024) — an empty slot up to Data source keeps "—"; an empty later slot
-    // has no row
-    expect(rows(list).map(([n]) => n)).toEqual([
-      "Type",
-      "Physical name",
-      "Logical name",
-      "Description",
-      "Owners",
-      "Tags",
-      "Path",
-      "Data source",
-      "DDL comment",
-      "Updated",
-      "Link",
-    ]);
-    expect(text(cell(list, "Description"))).toBe("—");
-    expect(cell(list, "Description").className).toBe("wide empty");
     expect(values(cell(list, "Physical name"))).toEqual(["invoices"]);
     const logical = cell(list, "Logical name");
     expect(values(logical)).toEqual(["Customer invoices"]);
