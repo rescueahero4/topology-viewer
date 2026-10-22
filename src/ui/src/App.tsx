@@ -262,7 +262,7 @@ export function App(props: AppProps) {
   // why: ISSUE-012 C6 — the Inspector mounts a new card element when the floating controls come or
   // go and when it changes between its empty and its filled card
   useDock(frame, [actions === null, card === "empty"]);
-  useStackPlace(root, frame, actions, card);
+  useStackPlace(root, frame, actions, `${card} ${anyHidden} ${hiddenOpen}`);
   return (
     <div ref={root} class="shell" data-theme={theme}>
       <Split
