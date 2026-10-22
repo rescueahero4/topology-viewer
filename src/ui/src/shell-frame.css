@@ -26,7 +26,9 @@
   outline: 2px solid var(--focus);
   outline-offset: 1px;
 }
-.shell button {
+/* The mockup reset `button { font: inherit; color: inherit; }` (styles.css:39) with its own weight
+   (0,0,1), so a class rule of a button keeps its font and colour (STORY-005-07; ISSUE-022). */
+:where(.shell) button {
   font: inherit;
   color: inherit;
 }

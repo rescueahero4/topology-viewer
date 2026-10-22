@@ -63,7 +63,9 @@
   z-index: 10;
   pointer-events: none;
 }
-.catbar > * {
+/* STORY-005-07 (ISSUE-020): the tip of a bar control stays without pointer events (the mockup
+   `.tip`, styles.css:495). */
+.catbar > :not(.tip) {
   pointer-events: auto;
 }
 .fam-tabs {
