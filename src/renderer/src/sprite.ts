@@ -76,23 +76,42 @@ export function symbolOf(
 
 export type Hrefs = (node: SceneNode) => string;
 
+type Drawn = { key: string; symbol: Element };
+
+// why: STORY-005-09 rule 2 (b), (c) — the id and the `keyOf` key of each drawn symbol stay in
+// memory only, by `defs`
+const drawnSymbols = new WeakMap<Element, ReadonlyMap<string, Drawn>>();
+
 // why: mockup `ensureSymbol` (lib/topology.js lines 459-469) — one `<symbol>` per distinct
-// visual; ids are numbers in first-use order, so no type name reaches an id
+// visual; ids are numbers in first-use order, so no type name reaches an id. ISSUE-015: a new
+// `<symbol>` makes Chromium build each `<use>` of it again, which stops a `dblclick`, so a
+// symbol with the same id and key stays; every other child of `defs` goes
 export function drawSymbols(
   defs: Element,
   nodes: readonly SceneNode[],
   prefix: string,
 ): Hrefs {
   const doc = defs.ownerDocument;
+  const last = drawnSymbols.get(defs);
   const ids = new Map<string, string>();
-  const symbols: Element[] = [];
+  const drawn = new Map<string, Drawn>();
   for (const { visual } of nodes) {
     const key = keyOf(visual);
     if (ids.has(key)) continue;
     const id = `${prefix}-s-${ids.size}`;
     ids.set(key, id);
-    symbols.push(symbolOf(doc, id, visual));
+    const old = last?.get(id);
+    const symbol =
+      old?.key === key && old.symbol.parentNode === defs
+        ? old.symbol
+        : symbolOf(doc, id, visual);
+    drawn.set(id, { key, symbol });
   }
-  defs.replaceChildren(...symbols);
+  const symbols = new Set([...drawn.values()].map((d) => d.symbol));
+  for (const child of [...defs.children])
+    if (!symbols.has(child)) child.remove();
+  for (const symbol of symbols)
+    if (symbol.parentNode !== defs) defs.appendChild(symbol);
+  drawnSymbols.set(defs, drawn);
   return (node) => `#${ids.get(keyOf(node.visual))}`;
 }

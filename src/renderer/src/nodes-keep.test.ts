@@ -92,11 +92,17 @@ describe("S1 a select paint keeps the node children", () => {
   const scene = sceneOf([RAW, node("other", { x: 90 })]);
 
   it("keeps each child element, connected, with no new attribute", () => {
-    const { div } = mount();
+    const { doc, div } = mount();
     const renderer = createRenderer(div, { text: TEXT });
     renderer.draw(scene);
     const el = nodeEl(div, "raw");
     const before = inside(el);
+    const symbolOf = () =>
+      doc.getElementById(
+        (el.querySelector("use")?.getAttribute("href") ?? "").slice(1),
+      );
+    const symbol = symbolOf();
+    expect(symbol?.localName).toBe("symbol");
     const names = attributes(el);
     expect(before.map((e) => e.localName)).toEqual(
       expect.arrayContaining(["use", "text", "g", "rect"]),
@@ -109,6 +115,8 @@ describe("S1 a select paint keeps the node children", () => {
     const after = inside(el);
     expect(after).toHaveLength(before.length);
     after.forEach((e, i) => expect(e).toBe(before[i]));
+    expect(symbolOf()).toBe(symbol);
+    expect(symbol?.isConnected).toBe(true);
     expect(attributes(el)).toEqual(names);
     for (const e of [el, ...inside(el)])
       expect(e.getAttributeNames().some((n) => n.startsWith("data-"))).toBe(
