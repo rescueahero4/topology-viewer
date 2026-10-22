@@ -51,8 +51,10 @@ describe("S24 the test frame", () => {
     expect(container.clientWidth).toBe(800);
   });
 
-  it("starts at 800 × 600 with no zero-size notice and reduced motion off", async () => {
-    await mountApp(fixtureModel("s-access"));
+  it("starts at 1000 × 600 with no zero-size notice and reduced motion off", async () => {
+    const frame = await mountApp(fixtureModel("s-access"));
+    const box = frame.root.querySelector(".shell")?.getBoundingClientRect();
+    expect([box?.width, box?.height]).toEqual([1000, 600]);
     expect(state.lastNotice.value).toBeNull();
     expect(matchMedia("(prefers-reduced-motion: reduce)").matches).toBe(false);
   });

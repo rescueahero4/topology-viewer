@@ -40,6 +40,14 @@
   transform: none;
   box-shadow: var(--shadow-pop);
 }
+/* STORY-005-11 rule 5 (H17 (a1)): the collapsed head moves up above the bottom part it meets. The
+   lift is a part of the transform, and only the head part of the card shows (build note N5). */
+.inspector[data-state="collapsed"][data-lift] {
+  transform: translateY(
+    calc(100% - var(--insp-peek, 32px) - var(--insp-lift, 0px))
+  );
+  clip-path: inset(0 0 calc(100% - var(--insp-peek, 32px)) 0);
+}
 .inspector[data-state="empty"] {
   width: auto;
 }
