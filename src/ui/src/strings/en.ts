@@ -381,4 +381,22 @@ export const en = {
   "chip.reopen": "Show data notice",
   "undo.text": "View reset",
   "undo.action": "Undo",
+  "app.name": "Quollio Topology Visualizer",
+  "app.demo": "Standalone demo",
+  "picker.load": "Load JSON…",
+  "picker.pasted": "Pasted JSON",
+  "import.title": "Render your own graph",
+  "import.intro": "Paste JSON shaped as {shape}.",
+  "import.introMore":
+    "Unknown types and predicates are fine: they get a generic icon and edge style.",
+  "import.shape":
+    '{ "nodes": [{ "id", "type", "label" }], "edges": [{ "source", "target", "predicate" }] }',
+  "import.label": "Graph JSON",
+  "import.sample": "Insert sample",
+  "import.cancel": "Cancel",
+  "import.render": "Render",
+  "import.empty": "Paste some JSON first.",
+  "import.invalid": "Not valid JSON: {message}",
+  "send.title": "Message for the AI client",
+  "send.close": "Close",
 } as const;

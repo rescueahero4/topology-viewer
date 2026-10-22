@@ -1,0 +1,34 @@
+{
+  "key": "s-fields-vs-edge",
+  "group": "Data shape",
+  "label": "Owners from an attribute, an edge and fields",
+  "tests": "FR-DATA-7, SA §6 invariant row 14: a native owners attribute, an ownedBy edge and owner_email mapped to owners through fields all show in the Owners slot, in this order.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "t_customer",
+        "type": "table",
+        "label": "CUSTOMER",
+        "attrs": { "owners": "Data team", "owner_email": "ops@example.com" }
+      },
+      { "id": "u_ann", "type": "user", "label": "Ann Lee" }
+    ],
+    "edges": [
+      { "subject": "t_customer", "predicate": "ownedBy", "object": "u_ann" }
+    ],
+    "fields": {
+      "owner_email": {
+        "slot": "owners",
+        "why": "column name in the source sheet"
+      }
+    },
+    "view": { "approach": "active", "root": "t_customer", "reveal": ["u_ann"] }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_customer" },
+    "notice": null,
+    "warnings": {}
+  }
+}

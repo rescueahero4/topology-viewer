@@ -5,6 +5,8 @@ import { App, type AppInput, type AppProps } from "./App";
 import type { ShellHost } from "./host";
 import { camera } from "./state";
 
+export { enTexts } from "./shellAudit";
+
 // why: rule 15, `canvas.test.ts` lines 55-72 — the caller turns on the fake clock and calls
 // `vi.resetModules()` before it imports this module with `await import`, so `d3-timer` loads
 // under the fake clock
@@ -33,7 +35,10 @@ export function memoryStorage(start: Record<string, string> = {}): Storage {
   };
 }
 
-let frame: Size = { width: 800, height: 600 };
+// why: STORY-005-11 rule 3 — above the 900 px of rule 4, so a test starts with the open inspector
+const DEFAULT_FRAME: Size = { width: 1000, height: 600 };
+
+let frame: Size = DEFAULT_FRAME;
 let sized = new WeakMap<Element, Size>();
 const observers = new Set<Observer>();
 const mounted: HTMLElement[] = [];
@@ -119,36 +124,21 @@ const flush = () =>
     await Promise.resolve();
   });
 
-// why: rule 15 — every `<App>` test of STORY-004-02 to 09 mounts through this frame
-export async function mountApp(input: AppInput, options: Options = {}) {
-  frame = options.size ?? { width: 800, height: 600 };
+type FrameOptions = Pick<Options, "size" | "reducedMotion" | "storage">;
+
+// why: STORY-005-03 rule 11 — the frame part of `mountApp`, for a test that renders `<App>` itself
+// (the `startWidget` tests of `apps/widget`)
+export function mountFrame(options: FrameOptions = {}) {
+  frame = options.size ?? DEFAULT_FRAME;
   const scrolls: Element[] = [];
-  const calls: Call[] = [];
   install(options.reducedMotion === true, scrolls);
   vi.stubGlobal("localStorage", options.storage ?? memoryStorage());
   const root = document.createElement("div");
   document.body.appendChild(root);
   mounted.push(root);
-  let props: AppProps = {
-    input,
-    lang: options.lang ?? "en",
-    locale: options.locale ?? "en-US",
-    theme: options.theme ?? "light",
-    host: stubHost(calls),
-  };
-  const draw = async (next: Partial<AppProps>) => {
-    props = { ...props, ...next };
-    void act(() => render(h(App, props), root));
-    await flush();
-  };
-  await draw({});
   return {
     root,
-    host: props.host,
-    calls,
     scrolls,
-    update: draw,
-    unmount: () => void act(() => render(null, root)),
     resize(size: Size) {
       frame = size;
       void act(() => {
@@ -162,6 +152,8 @@ export async function mountApp(input: AppInput, options: Options = {}) {
       });
     },
     observerRuns: () => [...observers].map((observer) => observer.runs),
+    // why: STORY-005-11 rule 3 (ii), S5b — the targets of each stub observer, read only
+    observed: () => [...observers].map((observer) => [...observer.targets]),
     sizeOf(el: Element, size: Size) {
       sized.set(el, size);
     },
@@ -174,6 +166,32 @@ export async function mountApp(input: AppInput, options: Options = {}) {
         });
       if (camera.value === before) throw new Error("testFrame: no settle");
     },
+  };
+}
+
+// why: rule 15 — every `<App>` test of STORY-004-02 to 09 mounts through this frame
+export async function mountApp(input: AppInput, options: Options = {}) {
+  const shell = mountFrame(options);
+  const calls: Call[] = [];
+  let props: AppProps = {
+    input,
+    lang: options.lang ?? "en",
+    locale: options.locale ?? "en-US",
+    theme: options.theme ?? "light",
+    host: stubHost(calls),
+  };
+  const draw = async (next: Partial<AppProps>) => {
+    props = { ...props, ...next };
+    void act(() => render(h(App, props), shell.root));
+    await flush();
+  };
+  await draw({});
+  return {
+    ...shell,
+    host: props.host,
+    calls,
+    update: draw,
+    unmount: () => void act(() => render(null, shell.root)),
   };
 }
 

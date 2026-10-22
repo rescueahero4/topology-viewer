@@ -170,13 +170,13 @@ const DRAWING = Object.keys(fixtures)
   .filter((key) => !NOT_DRAWN.includes(key))
   .sort();
 
-describe("S1 the first paint of the 28 drawing fixtures", () => {
-  it("has 28 fixtures, 12 of them Active", () => {
-    expect(DRAWING).toHaveLength(28);
+describe("S1 the first paint of the 34 drawing fixtures", () => {
+  it("has 34 fixtures, 16 of them Active", () => {
+    expect(DRAWING).toHaveLength(34);
     const active = DRAWING.filter(
       (key) => fixtures[key].expect.firstPaint.approach === "active",
     );
-    expect(active).toHaveLength(12);
+    expect(active).toHaveLength(16);
   });
 
   it.each(DRAWING)("%s", async (key) => {

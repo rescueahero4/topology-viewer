@@ -1,0 +1,48 @@
+{
+  "key": "s-cjk-labels",
+  "group": "Custom vocabulary",
+  "label": "CJK labels · 部門 and 部署",
+  "tests": "FR-VOC-4 (first-character marks), FR-CANVAS-15, FR-CANVAS-19, NF-10: Japanese, Chinese and Korean labels; two custom types with the same first character get the same mark and different colours; a 26-character table label.",
+  "graph": {
+    "nodes": [
+      {
+        "id": "t_sales",
+        "type": "table",
+        "label": "売上テーブル_月次_集計_東京本社_営業部門_確定版"
+      },
+      { "id": "c_customer", "type": "column", "label": "顧客ID" },
+      { "id": "dept_sales", "type": "部門", "label": "営業部" },
+      { "id": "dept_finance", "type": "部署", "label": "経理部" },
+      { "id": "u_kim", "type": "user", "label": "김민수" },
+      { "id": "tag_cn", "type": "tag", "label": "客户数据" }
+    ],
+    "edges": [
+      { "subject": "t_sales", "predicate": "contains", "object": "c_customer" },
+      { "subject": "t_sales", "predicate": "ownedBy", "object": "u_kim" },
+      { "subject": "t_sales", "predicate": "taggedWith", "object": "tag_cn" },
+      {
+        "subject": "dept_sales",
+        "predicate": "relatedTo",
+        "object": "t_sales"
+      },
+      {
+        "subject": "dept_finance",
+        "predicate": "relatedTo",
+        "object": "t_sales"
+      }
+    ],
+    "types": { "部門": { "label": "部門" }, "部署": { "label": "部署" } },
+    "view": {
+      "approach": "active",
+      "root": "t_sales",
+      "reveal": ["c_customer", "dept_sales", "dept_finance", "u_kim", "tag_cn"]
+    }
+  },
+  "story": null,
+  "expect": {
+    "schema": "pass",
+    "firstPaint": { "approach": "active", "selected": "t_sales" },
+    "notice": null,
+    "warnings": {}
+  }
+}

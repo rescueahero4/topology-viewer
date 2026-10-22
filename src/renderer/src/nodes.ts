@@ -70,7 +70,37 @@ function drawLabels(node: NodeSelection, d: SceneNode, ctx: NodeContext) {
     .text(d.fullLabel === "" ? d.sub : d.fullLabel);
 }
 
+// why: STORY-005-09 rule 2 (c), ISSUE-015 — the last drawn inputs of each node stay in memory
+// only, never in the DOM
+const drawnInputs = new WeakMap<SVGGElement, string>();
+
+// why: STORY-005-09 rule 2 (a) — every input that `fillNode` reads
+function inputsOf(d: SceneNode, ctx: NodeContext): string {
+  return JSON.stringify([
+    d.kind,
+    d.r,
+    d.colour,
+    ctx.hrefOf(d),
+    d.w,
+    d.h,
+    d.label,
+    d.sub,
+    d.fullLabel,
+    ctx.big,
+    ctx.lostMark,
+    d.count,
+    d.lost,
+    d.more,
+    d.opened,
+  ]);
+}
+
+// why: ISSUE-015 — Chromium fires `dblclick` only when both clicks hit the same element, and the
+// select of the first click paints again, so a node with equal inputs keeps its children
 function fillNode(el: SVGGElement, d: SceneNode, ctx: NodeContext): void {
+  const inputs = inputsOf(d, ctx);
+  if (drawnInputs.get(el) === inputs) return;
+  drawnInputs.set(el, inputs);
   el.replaceChildren();
   const node = select<SVGGElement, SceneNode>(el);
   if (d.kind === "group") drawHalo(node, d);

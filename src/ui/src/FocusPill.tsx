@@ -8,7 +8,7 @@ import {
 import type { Actions } from "./actions";
 import { drawnNodes } from "./Inspector";
 import { groupText, isGroup } from "./relations";
-import { canvasState, frontier, lang, model } from "./state";
+import { frontier, lang, model, settled } from "./state";
 import { t, tAround } from "./strings/index";
 import { useTip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
@@ -24,10 +24,12 @@ function rootName(ui: Lang, vocab: Vocab, info: AroundInfo): string {
 
 // why: FR-CANVAS-14, NF-5, P19, P20, rule 2 (mockup app.js lines 532-545, styles.css lines
 // 321-332) — the pill shows exactly while `aroundInfo` is not null and says "faded", never
-// "hidden"; its name comes from its text nodes; one press ends the grouping
+// "hidden"; its name comes from its text nodes; one press ends the grouping. SA §6 row 10
+// (STORY-005-07; ISSUE-021) — the state and the frontier of the last `settle`: a `select` or an
+// `explore` event of an exit carries the end state before the glide home is drawn
 export function FocusPill({ actions }: { actions: Actions }) {
   const tip = useTip();
-  const state = canvasState.value;
+  const state = settled.value?.state ?? null;
   const drawn = frontier.value;
   const now = model.value;
   const info =

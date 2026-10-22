@@ -128,6 +128,12 @@ kbd {
   transform: translateY(calc(100% - 32px));
   transition: transform var(--panel-dur) var(--panel-ease);
 }
+/* STORY-005-07 (ISSUE-025): the collapsed head moves up above the bottom part it meets, as the
+   inspector head (STORY-005-11 rule 5); only the head part of the card shows. */
+.hidden-panel[data-state="collapsed"][data-lift] {
+  transform: translateY(calc(100% - 32px - var(--hid-lift, 0px)));
+  clip-path: inset(0 0 calc(100% - 32px) 0);
+}
 .hidden-panel[data-state="expanded"] {
   width: 372px;
   transform: none;
@@ -297,6 +303,11 @@ kbd {
 }
 .status-stack > * {
   pointer-events: auto;
+}
+/* STORY-005-11 rule 1 (H17): when the stack would meet the control bar, it moves up in the form of
+   the mockup narrow rule `.tools { bottom: 48px }`: 6 px + the 30.8 px control bar + 6 px. */
+.canvas[data-stack="raised"] > .status-stack {
+  bottom: 42.8px;
 }
 .focus-pill {
   position: relative;

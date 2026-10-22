@@ -14,13 +14,13 @@ const eslint = new ESLint({
   overrideConfigFile: path.join(REPO, "scripts", "eslint.config.mjs"),
 });
 
-async function errorsOf(lines: number): Promise<string[]> {
+async function errorsOf(lines: number, filePath = HOST): Promise<string[]> {
   const body = Array.from(
     { length: lines },
     (_, i) => `export const v${i} = ${i};`,
   );
   const [result] = await eslint.lintText(`${body.join("\n")}\n`, {
-    filePath: HOST,
+    filePath,
   });
   return result.messages
     .filter((m) => m.severity === 2)
@@ -33,6 +33,23 @@ describe("C10 max-lines on the shell test files", () => {
     async () => {
       expect(await errorsOf(401)).toEqual(["max-lines"]);
       expect(await errorsOf(400)).toEqual([]);
+    },
+    TIME_OUT,
+  );
+});
+
+// why: STORY-005-04 S17, EPIC-004 build item B2 — only the two string tables lose the limit
+describe("S17 max-lines on the string tables", () => {
+  const at = (file: string) => path.join(REPO, "packages/ui/src", file);
+  it(
+    "gives no max-lines error for en.ts and ja.ts and one for index.ts and App.tsx",
+    async () => {
+      expect(await errorsOf(401, at("strings/en.ts"))).toEqual([]);
+      expect(await errorsOf(401, at("strings/ja.ts"))).toEqual([]);
+      expect(await errorsOf(401, at("strings/index.ts"))).toEqual([
+        "max-lines",
+      ]);
+      expect(await errorsOf(401, at("App.tsx"))).toEqual(["max-lines"]);
     },
     TIME_OUT,
   );

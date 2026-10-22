@@ -1,5 +1,6 @@
 import type { ComponentChildren, JSX } from "preact";
-import { useId, useLayoutEffect, useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
+import { useElementId } from "./ids";
 
 type At = { x: number; y: number };
 // why: STORY-004-05 rules 5, 10 (Security gap 1) — a tip of many lines is a function, so its lines
@@ -50,7 +51,7 @@ function body(tip: Shown["tip"]) {
 // hover and on focus; Escape hides it (mockup `.tip`, app.js lines 513-526). One tip serves many
 // anchors, as the one mockup tip does, so a container can put it outside a clipped row
 export function useTip() {
-  const id = useId();
+  const id = useElementId();
   const [shown, setShown] = useState<Shown | null>(null);
   useLayoutEffect(() => {
     if (shown === null) return;

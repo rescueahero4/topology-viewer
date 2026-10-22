@@ -16,7 +16,8 @@ import {
 
 const DATA = path.join(import.meta.dirname, "../data");
 
-// SA §6 Fixture row; `s-custom-*` is two keys and `s-designed*` is three
+// SA §6 Fixture row (30 scenarios, then the five new scenarios of STORY-005-02); `s-custom-*` is two
+// keys and `s-designed*` is three
 const SCENARIO_KEYS = [
   "s-access",
   "s-lineage",
@@ -48,8 +49,17 @@ const SCENARIO_KEYS = [
   "s-noid-all",
   "s-edges-only",
   "s-not-graph",
+  "s-constraint-violation",
+  "s-unsafe-glyph",
+  "s-merge-namesakes",
+  "s-fields-vs-edge",
+  "s-cjk-labels",
 ];
-const QDIC_KEYS = ["q-spec-scenarios", "q-full-vocabulary"];
+const QDIC_KEYS = [
+  "q-spec-scenarios",
+  "q-full-vocabulary",
+  "q-semantic-layer-steward",
+];
 const DATASET_KEYS = ["access", "catalog", "governance", "extend", "stress"];
 const SKIP_CODES = ["no-id", "duplicate-id", "dangling-edge"] as const;
 
@@ -73,8 +83,8 @@ function corpusOf(...scenarios: unknown[]) {
 }
 
 describe("S1 the corpus loads", () => {
-  it("has the 30 scenario keys of SA §6, the two QDIC keys and 5 datasets", () => {
-    expect(Object.keys(fixtures)).toHaveLength(32);
+  it("has the 35 scenario keys of SA §6, the three QDIC keys and 5 datasets", () => {
+    expect(Object.keys(fixtures)).toHaveLength(38);
     expect(Object.keys(fixtures).sort()).toEqual(
       [...SCENARIO_KEYS, ...QDIC_KEYS].sort(),
     );
@@ -207,7 +217,7 @@ describe("STORY-002-09 T5 warning counts", () => {
     });
   });
 
-  it("S48 declares constraint-violation per relationship on exactly 12 fixtures", () => {
+  it("S48 declares constraint-violation per relationship on exactly 13 fixtures", () => {
     expect(declared("constraint-violation", constraintViolationCount)).toEqual({
       "s-access": 2,
       "s-badroot": 6,
@@ -221,6 +231,7 @@ describe("STORY-002-09 T5 warning counts", () => {
       "s-mixed-designed": 6,
       "s-undeclared": 6,
       "s-vocab-meta": 1,
+      "s-constraint-violation": 2,
     });
   });
 
@@ -232,7 +243,7 @@ describe("STORY-002-09 T5 warning counts", () => {
     }
   });
 
-  it("S41 names exactly 10 of the 23 SA §4.2 codes", () => {
+  it("S41 names exactly 11 of the 23 SA §4.2 codes", () => {
     const issueCodes = notices.codes.filter(
       (code) =>
         notices.severity[code] === "warning" ||
@@ -254,6 +265,7 @@ describe("STORY-002-09 T5 warning counts", () => {
         "root-not-found",
         "unknown-type",
         "constraint-violation",
+        "glyph-rejected",
         "no-valid-nodes",
         "not-object",
         "nodes-not-array",

@@ -4,13 +4,8 @@ import type {
   Normalized,
   warningEntries,
 } from "@qdic-topology/engine";
-import {
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "preact/hooks";
+import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useElementId } from "./ids";
 import type { ComponentChildren, RefObject } from "preact";
 import { actionsOf, type Actions } from "./actions";
 import type { CanvasModel } from "./canvas/index";
@@ -38,6 +33,7 @@ import { canvasState, frontier, lastNotice, takeLanguage } from "./state";
 import { UndoToast, useUndo } from "./UndoToast";
 import { useRenderer } from "./useRenderer";
 import { SplitHandle } from "./SplitHandle";
+import { useStackPlace } from "./stackPlace";
 import { Workbench } from "./Workbench";
 import "./tokens.css";
 import "./shell-frame.css";
@@ -72,6 +68,7 @@ export type AppProps = {
   locale: string;
   theme: "light" | "dark";
   host: ShellHost;
+  workbenchStart?: ComponentChildren;
 };
 
 type SplitProps = {
@@ -79,12 +76,14 @@ type SplitProps = {
   host: ShellHost;
   actions: Actions | null;
   workbench: string;
+  start: ComponentChildren;
   children: ComponentChildren;
 };
 
 // why: STORY-004-07 rules 9-11 — the canvas and the Workbench share the split, with the handle
 // between them; the keys of the split work while the App has the focus
-function Split({ input, host, actions, workbench, children }: SplitProps) {
+function Split(props: SplitProps) {
+  const { input, host, actions, workbench, start, children } = props;
   const split = useRef<HTMLDivElement>(null);
   useSplitKeys(split, input.ok);
   useSplitHeight(split);
@@ -97,7 +96,9 @@ function Split({ input, host, actions, workbench, children }: SplitProps) {
     >
       {children}
       {input.ok && <SplitHandle controls={workbench} />}
-      {input.ok && <Workbench id={workbench} actions={actions} host={host} />}
+      {input.ok && (
+        <Workbench id={workbench} actions={actions} host={host} start={start} />
+      )}
     </div>
   );
 }
@@ -233,7 +234,8 @@ function LoneToast(props: {
 // STORY-004-08 rules 1, 6 — the Undo snapshot is taken before the new input reaches the signals.
 // STORY-004-09 rule 6 (SA §5) — the DOM order is the visual order: category bar, search card,
 // canvas, control bar, status stack, inspector, Hidden card, then the handle and the Workbench
-export function App({ input, lang, locale, theme, host }: AppProps) {
+export function App(props: AppProps) {
+  const { input, lang, locale, theme, host, workbenchStart } = props;
   useLayoutEffect(() => takeLanguage(lang, locale), [lang, locale]);
   useState(startSplit);
   const undo = useUndo(input);
@@ -241,7 +243,7 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
   const { host: graph, canvas, shown } = shell;
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLElement>(null);
-  const workbench = useId();
+  const workbench = useElementId();
   const [open, setOpen] = useState(true);
   const [hiddenOpen, setHiddenOpen] = useState(false);
   useNarrow(root, () => setOpen(false));
@@ -260,9 +262,13 @@ export function App({ input, lang, locale, theme, host }: AppProps) {
   // why: ISSUE-012 C6 — the Inspector mounts a new card element when the floating controls come or
   // go and when it changes between its empty and its filled card
   useDock(frame, [actions === null, card === "empty"]);
+  useStackPlace(root, frame, actions, `${card} ${anyHidden} ${hiddenOpen}`);
   return (
     <div ref={root} class="shell" data-theme={theme}>
-      <Split {...{ input: shown, host, actions, workbench }}>
+      <Split
+        {...{ input: shown, host, actions, workbench }}
+        start={workbenchStart}
+      >
         <CanvasFrame
           frame={frame}
           table={input.ok}

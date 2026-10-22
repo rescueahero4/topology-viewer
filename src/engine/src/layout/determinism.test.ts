@@ -51,9 +51,9 @@ function fresh(key: string, name: LayoutName): string {
 }
 
 describe("S1 same input, same positions", () => {
-  it("covers the 26 fixtures that draw", () => {
-    expect(Object.keys(fixtures)).toHaveLength(32);
-    expect(DRAWING).toHaveLength(26);
+  it("covers the 32 fixtures that draw", () => {
+    expect(Object.keys(fixtures)).toHaveLength(38);
+    expect(DRAWING).toHaveLength(32);
   });
 
   it.each(DRAWING)("%s gives byte-equal results in the 5 layouts", (key) => {

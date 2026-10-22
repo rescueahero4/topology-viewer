@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
@@ -13,8 +14,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import type { Designed, Hex } from "@qdic-topology/engine";
 import { afterAll, describe, expect, it } from "vitest";
-import { iconMetrics, spriteColours } from "./sprite";
+import type { SceneNode, SceneVisual } from "./scene";
+import { drawSymbols, iconMetrics, spriteColours, symbolOf } from "./sprite";
 
 const REPO = path.resolve(import.meta.dirname, "../../..");
 const RAW = path.join(REPO, "assets", "figma-raw");
@@ -203,5 +206,62 @@ describe("S4 allow-list", () => {
     expect(result.stderr).toContain(name);
     const out = path.join(root, "packages", "renderer", "src", "sprite.json");
     expect(existsSync(out)).toBe(false);
+  });
+});
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const designed = (shape: Designed["shape"]): Designed => ({
+  rank: 3,
+  shape,
+  size: 38,
+  color: "#2f6f8f" as Hex,
+  ink: "#ffffff" as Hex,
+  adjusted: false,
+  letters: "AB",
+});
+
+// why: `drawSymbols` reads only the visual of a scene node
+const scene = (visuals: SceneVisual[]) =>
+  visuals.map((visual) => ({ visual }) as SceneNode);
+
+function frame() {
+  const doc = document.implementation.createHTMLDocument("t");
+  const svg = doc.body.appendChild(doc.createElementNS(SVG_NS, "svg"));
+  return { doc, defs: svg.appendChild(doc.createElementNS(SVG_NS, "defs")) };
+}
+
+// why: STORY-005-09 rule 2 (b) — the first node changes type and keeps the id `-s-0`, the second
+// keeps its visual, and two visuals of A are not in B
+describe("S9 the symbols of a second paint", () => {
+  const A: SceneVisual[] = [
+    { icon: "table" },
+    { icon: "column" },
+    designed("circle"),
+  ];
+  const B: SceneVisual[] = [designed("square"), { icon: "column" }];
+
+  it("keeps an equal symbol, draws a changed one again and removes the rest", () => {
+    const { doc, defs } = frame();
+    drawSymbols(defs, scene(A), "qt1");
+    const column = doc.getElementById("qt1-s-1");
+    const marker = defs.appendChild(doc.createElementNS(SVG_NS, "marker"));
+    const hrefOf = drawSymbols(defs, scene(B), "qt1");
+    const first = frame();
+    drawSymbols(first.defs, scene(B), "qt1");
+    const zero = doc.getElementById("qt1-s-0");
+    expect(zero?.isEqualNode(first.doc.getElementById("qt1-s-0"))).toBe(true);
+    expect([...defs.children].map((c) => c.localName)).toEqual([
+      "symbol",
+      "symbol",
+    ]);
+    const ids = scene(B).map((n) => hrefOf(n).slice(1));
+    expect(new Set([...defs.children].map((c) => c.id))).toEqual(new Set(ids));
+    B.forEach((visual, i) => {
+      const fresh = symbolOf(doc, ids[i], visual);
+      expect(doc.getElementById(ids[i])?.isEqualNode(fresh), ids[i]).toBe(true);
+    });
+    expect(doc.getElementById("qt1-s-1")).toBe(column);
+    expect(marker.isConnected).toBe(false);
   });
 });
