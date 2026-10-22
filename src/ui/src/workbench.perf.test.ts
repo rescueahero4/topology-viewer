@@ -38,8 +38,8 @@ const { generate } = await import("@qdic-topology/fixtures");
 const state = await import("./state");
 
 // why: S15, LEARNINGS 24 — the limit is at least 2 times the time of the runs under full-suite
-// load (build memo 2026-10-21); the median of the rounds is read, so one slow round does not fail
-const LIMIT_MS = 60;
+// load with parallel agents (ISSUE-018: up to 75 ms); the median of the rounds is read
+const LIMIT_MS = 150;
 const ROUNDS = 21;
 
 type Settle = CanvasEvent["settle"];

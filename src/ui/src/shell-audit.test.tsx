@@ -110,16 +110,20 @@ describe("S14 the ja text audit", () => {
     expect(EN_ONLY.length).toBeGreaterThan(50);
   });
 
-  it.each(DRAWING)("%s shows no en table text in ja", async (key) => {
-    const input = fixtureModel(key);
-    const model = modelTexts(input);
-    const frame = await mountApp(input, { lang: "ja" });
-    const found = new Set<string>();
-    everyPanel(frame.root, () => {
-      for (const item of enTexts(frame.root, model)) found.add(item);
-    });
-    expect([...found]).toEqual([]);
-  });
+  it.each(DRAWING)(
+    "%s shows no en table text in ja",
+    async (key) => {
+      const input = fixtureModel(key);
+      const model = modelTexts(input);
+      const frame = await mountApp(input, { lang: "ja" });
+      const found = new Set<string>();
+      everyPanel(frame.root, () => {
+        for (const item of enTexts(frame.root, model)) found.add(item);
+      });
+      expect([...found]).toEqual([]);
+    },
+    11_000, // why: ISSUE-018, LEARNINGS 24 — 2 times the 5.5 s under parallel-agent load
+  );
 
   // why: ISSUE-012 C5 (STORY-004-03 QA memo item 4) — no fixture has more than ten families, so
   // this payload with eleven makes the Families picker for the audit
