@@ -298,6 +298,11 @@ kbd {
 .status-stack > * {
   pointer-events: auto;
 }
+/* STORY-005-11 rule 1 (H17): when the stack would meet the control bar, it moves up in the form of
+   the mockup narrow rule `.tools { bottom: 48px }`: 6 px + the 30.8 px control bar + 6 px. */
+.canvas[data-stack="raised"] > .status-stack {
+  bottom: 42.8px;
+}
 .focus-pill {
   position: relative;
   display: inline-flex;

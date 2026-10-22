@@ -35,7 +35,10 @@ export function memoryStorage(start: Record<string, string> = {}): Storage {
   };
 }
 
-let frame: Size = { width: 800, height: 600 };
+// why: STORY-005-11 rule 3 — above the 900 px of rule 4, so a test starts with the open inspector
+const DEFAULT_FRAME: Size = { width: 1000, height: 600 };
+
+let frame: Size = DEFAULT_FRAME;
 let sized = new WeakMap<Element, Size>();
 const observers = new Set<Observer>();
 const mounted: HTMLElement[] = [];
@@ -126,7 +129,7 @@ type FrameOptions = Pick<Options, "size" | "reducedMotion" | "storage">;
 // why: STORY-005-03 rule 11 — the frame part of `mountApp`, for a test that renders `<App>` itself
 // (the `startWidget` tests of `apps/widget`)
 export function mountFrame(options: FrameOptions = {}) {
-  frame = options.size ?? { width: 800, height: 600 };
+  frame = options.size ?? DEFAULT_FRAME;
   const scrolls: Element[] = [];
   install(options.reducedMotion === true, scrolls);
   vi.stubGlobal("localStorage", options.storage ?? memoryStorage());
@@ -149,6 +152,8 @@ export function mountFrame(options: FrameOptions = {}) {
       });
     },
     observerRuns: () => [...observers].map((observer) => observer.runs),
+    // why: STORY-005-11 rule 3 (ii), S5b — the targets of each stub observer, read only
+    observed: () => [...observers].map((observer) => [...observer.targets]),
     sizeOf(el: Element, size: Size) {
       sized.set(el, size);
     },
