@@ -1,8 +1,19 @@
+import { computed } from "@preact/signals";
 import type { RefObject } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
+import { canvasState, frontier, model } from "./state";
 
 // why: STORY-005-11 rules 1, 5 — the gap of a floating part (mockup styles.css line 304)
 const GAP_PX = 6;
+
+// why: ControlBar.tsx renders `.controls` only with a model, a state and a frontier, so the bar
+// comes after the first `settle` of each canvas, and a new input makes a new bar
+const barShown = computed(
+  () =>
+    model.value !== null &&
+    canvasState.value !== null &&
+    frontier.value !== null,
+);
 
 type Parts = {
   shell: HTMLElement;
@@ -11,8 +22,6 @@ type Parts = {
   stack: Element;
   tools: Element | null;
 };
-
-type Watch = { observer: ResizeObserver; head: Element | null; measure: () => void };
 
 const apart = (a: DOMRect, b: DOMRect) =>
   a.right <= b.left || b.right <= a.left;
@@ -57,52 +66,67 @@ function liftHead(parts: Parts): void {
   else card.style.removeProperty("--insp-lift");
 }
 
+function partsOf(
+  root: RefObject<HTMLElement>,
+  frame: RefObject<HTMLElement>,
+): Parts | null {
+  const shell = root.current;
+  const canvas = frame.current;
+  const controls = canvas?.querySelector(":scope > .controls");
+  const stack = canvas?.querySelector(":scope > .status-stack");
+  if (!shell || !canvas || !controls || !stack) return null;
+  const tools = canvas.querySelector(":scope > .tools");
+  return { shell, canvas, controls, stack, tools };
+}
+
+function measure(parts: Parts): void {
+  placeStack(parts);
+  liftHead(parts);
+}
+
+type Watch = { observer: ResizeObserver; parts: Parts | null; on: Element[] };
+
 // why: STORY-005-11 rules 1, 2, 5 — the status stack and the collapsed inspector head move up
-// above the bottom controls when they would meet them. One observer per set of floating controls
+// above the bottom controls when they would meet them. One observer for the life of the App
 // watches the App root, the control bar, the stack, the search card and the inspector head; a new
-// card state measures again and watches the head of the new card
+// set of floating controls, a new control bar or a new card state changes its targets and
+// measures again
 export function useStackPlace(
   root: RefObject<HTMLElement>,
   frame: RefObject<HTMLElement>,
   actions: object | null,
   card: string,
 ): void {
+  const shown = barShown.value;
   const watch = useRef<Watch | null>(null);
   useLayoutEffect(() => {
-    const shell = root.current;
-    const canvas = frame.current;
-    if (shell === null || canvas === null) return;
-    const controls = canvas.querySelector(":scope > .controls");
-    const stack = canvas.querySelector(":scope > .status-stack");
-    if (actions === null || controls === null || stack === null) {
-      canvas.removeAttribute("data-stack");
-      return;
-    }
-    const tools = canvas.querySelector(":scope > .tools");
-    const parts: Parts = { shell, canvas, controls, stack, tools };
-    const measure = () => {
-      placeStack(parts);
-      liftHead(parts);
+    const now: Watch = {
+      parts: null,
+      on: [],
+      observer: new ResizeObserver(() => {
+        if (now.parts !== null) measure(now.parts);
+      }),
     };
-    const observer = new ResizeObserver(measure);
-    for (const el of [shell, controls, stack, tools])
-      if (el !== null) observer.observe(el);
-    watch.current = { observer, head: null, measure };
-    return () => {
-      observer.disconnect();
-      watch.current = null;
-    };
-  }, [actions]);
+    watch.current = now;
+    return () => now.observer.disconnect();
+  }, []);
   useLayoutEffect(() => {
     const now = watch.current;
     if (now === null) return;
-    const head =
-      frame.current?.querySelector(":scope > .inspector > .insp-head") ?? null;
-    if (head !== now.head) {
-      if (now.head !== null) now.observer.unobserve(now.head);
-      if (head !== null) now.observer.observe(head);
-      now.head = head;
-    }
-    now.measure();
-  }, [actions, card]);
+    const parts = actions !== null && shown ? partsOf(root, frame) : null;
+    const head = frame.current?.querySelector(
+      ":scope > .inspector > .insp-head",
+    );
+    const on =
+      parts === null
+        ? []
+        : [parts.shell, parts.controls, parts.stack, parts.tools, head];
+    const next = on.filter((el): el is Element => el != null);
+    for (const el of now.on) if (!next.includes(el)) now.observer.unobserve(el);
+    for (const el of next) if (!now.on.includes(el)) now.observer.observe(el);
+    now.on = next;
+    now.parts = parts;
+    if (parts !== null) measure(parts);
+    else frame.current?.removeAttribute("data-stack");
+  }, [actions, shown, card]);
 }

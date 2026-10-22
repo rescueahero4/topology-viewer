@@ -109,6 +109,42 @@ describe("S4 below 760 px the Workbench closes, then the inspector collapses", (
   });
 });
 
+describe("S10 the inspector is its chip from 900 px down (STORY-005-11 rule 4)", () => {
+  const narrow = (root: Element) =>
+    root.querySelector(".shell")?.hasAttribute("data-narrow");
+  const row = (root: Element) => [
+    card(root),
+    layout(root),
+    inert(root),
+    narrow(root),
+  ];
+
+  it("collapses at 900 px and closes the Workbench only below 760 px", async () => {
+    const frame = await mountApp(fixtureModel("s-access"), {
+      size: { width: 901, height: 600 },
+    });
+    const { root } = frame;
+    expect(state.selection.value).toEqual({ node: "e:t_FCT_REVENUE" });
+    run(() => button(root, "Dataset").click());
+    expect(row(root)).toEqual(["expanded", "split", false, false]);
+    frame.resize({ width: 900, height: 600 });
+    expect(row(root)).toEqual(["collapsed", "split", false, false]);
+    frame.resize({ width: 761, height: 600 });
+    expect(row(root)).toEqual(["collapsed", "split", false, false]);
+    frame.resize({ width: 760, height: 600 });
+    expect(row(root)).toEqual(["collapsed", "split", false, false]);
+    frame.resize({ width: 759, height: 600 });
+    expect(row(root)).toEqual(["collapsed", "canvas-only", true, true]);
+  });
+
+  it("starts collapsed in a first render at 900 px", async () => {
+    const { root } = await mountApp(fixtureModel("s-access"), {
+      size: { width: 900, height: 600 },
+    });
+    expect(row(root)).toEqual(["collapsed", "canvas-only", true, false]);
+  });
+});
+
 describe("S15 a first render below 760 px", () => {
   it("starts with the Workbench closed and the inspector as its header chip", async () => {
     const frame = await mountApp(fixtureModel("s-access"), {
