@@ -20,7 +20,8 @@ describe("S28 the package entry", () => {
     });
   });
 
-  it("gives the values App, langOf, t, formatted, Menu, MenuItem and UiIcon", () => {
+  // why: STORY-006-04 rule 2 — the widget host applies the link check `linkOf` again
+  it("gives the values App, langOf, linkOf, t, formatted, Menu, MenuItem and UiIcon", () => {
     expect(Object.keys(entry).sort()).toEqual([
       "App",
       "Menu",
@@ -28,6 +29,7 @@ describe("S28 the package entry", () => {
       "UiIcon",
       "formatted",
       "langOf",
+      "linkOf",
       "t",
     ]);
     expect(typeof entry.App).toBe("function");
