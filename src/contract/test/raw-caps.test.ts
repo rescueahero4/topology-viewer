@@ -94,6 +94,7 @@ describe("raw forms are counted after expansion (ISSUE-003)", () => {
       edges: 4000,
       bytes: 262144,
       pasteBytes: 1048576,
+      depth: 256,
     });
     expect(Object.isFrozen(CAPS)).toBe(true);
   });

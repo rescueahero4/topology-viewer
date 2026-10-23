@@ -1,4 +1,10 @@
-export { CAPS, checkCounts, checkSize } from "./caps";
+export {
+  CAPS,
+  checkCounts,
+  checkDepth,
+  checkSize,
+  type DepthFatal,
+} from "./caps";
 export { copyBytes } from "./copyBytes";
 export {
   inferredField,
