@@ -1,5 +1,6 @@
 import {
   CAPS,
+  checkDepth,
   copyBytes,
   parseRenderInput,
   profile,
@@ -262,6 +263,8 @@ function noValidNodes(
 }
 
 function run(input: unknown, now: string): Normalized {
+  const deep = checkDepth(input);
+  if (deep) return { ok: false, fatal: deep };
   const parsed = parseRenderInput(input);
   if (!parsed.ok) {
     const info = fatalInfo(input, parsed.fatal);

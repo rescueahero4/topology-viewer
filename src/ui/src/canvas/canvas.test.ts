@@ -298,11 +298,11 @@ describe("S15 the controller reads only payload.view (hand-off item 4)", () => {
   it("does not walk, copy or serialise a 10,000-level payload", async () => {
     let deep: object = {};
     for (let i = 0; i < 10000; i++) deep = { a: deep };
-    const input = {
-      ...(loadFixture("s-access").input as object),
-      vocabulary: deep,
-    };
-    const model = modelOf(input);
+    // why: SA §4.1 v0.16 — `normalize` refuses a value deeper than 256 levels, so the deep value
+    // goes into the payload after `normalize`
+    const base = fixture("s-access");
+    const vocabulary = deep as Payload["vocabulary"];
+    const model = { ...base, payload: { ...base.payload, vocabulary } };
     expect(() => JSON.stringify(model.payload)).toThrow(RangeError);
     const reads: string[] = [];
     const note = (what: string, key: string | symbol) =>

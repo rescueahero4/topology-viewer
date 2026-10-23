@@ -1,4 +1,5 @@
 import type {
+  CanvasState,
   Fatal,
   Lang,
   Normalized,
@@ -8,7 +9,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useElementId } from "./ids";
 import type { ComponentChildren, RefObject } from "preact";
 import { actionsOf, type Actions } from "./actions";
-import type { CanvasModel } from "./canvas/index";
+import type { Camera, CanvasModel } from "./canvas/index";
 import { CanvasNotice } from "./CanvasNotice";
 import { CategoryBar } from "./CategoryBar";
 import { ControlBar } from "./ControlBar";
@@ -69,6 +70,10 @@ export type AppProps = {
   theme: "light" | "dark";
   host: ShellHost;
   workbenchStart?: ComponentChildren;
+  // why: STORY-006-03 rule 4 (EPIC-004 P6-3) — the widget keeps the state and the camera of each
+  // `settle` and gives them back with the input of a theme or locale change
+  onSettle?: (state: CanvasState, camera: Camera) => void;
+  start?: { state: CanvasState; camera: Camera };
 };
 
 type SplitProps = {
@@ -239,7 +244,7 @@ export function App(props: AppProps) {
   useLayoutEffect(() => takeLanguage(lang, locale), [lang, locale]);
   useState(startSplit);
   const undo = useUndo(input);
-  const shell = useRenderer(input, lang);
+  const shell = useRenderer(input, lang, props);
   const { host: graph, canvas, shown } = shell;
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLElement>(null);

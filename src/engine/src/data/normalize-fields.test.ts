@@ -55,9 +55,9 @@ describe("S42 the depth guard", () => {
 
   it.each([
     ["objects", 65, deepObjects],
-    ["objects", 10000, deepObjects],
+    ["objects", 200, deepObjects],
     ["arrays", 65, deepArrays],
-    ["arrays", 10000, deepArrays],
+    ["arrays", 200, deepArrays],
   ])(
     "drops nested %s of %i levels with field-rejected",
     (_kind, depth, build) => {
@@ -76,7 +76,7 @@ describe("S42 the depth guard", () => {
   it("drops it from a compact node at the tuple path", () => {
     const result = run({
       types: TYPES,
-      nodes: [["n0", "t0", "L0", deepObjects(10000)]],
+      nodes: [["n0", "t0", "L0", deepObjects(200)]],
     });
     expect(Object.keys(result.graph.records[0].attrs)).toEqual(["b"]);
     expect(result.issues).toEqual([
@@ -85,7 +85,7 @@ describe("S42 the depth guard", () => {
   });
 
   it("drops an unknown edge key that moves into the triple attrs", () => {
-    const deep = deepObjects(10000).a;
+    const deep = deepObjects(200).a;
     const result = run({
       types: TYPES,
       nodes: [
@@ -104,7 +104,7 @@ describe("S42 the depth guard", () => {
   });
 
   it("does not measure a node with no id", () => {
-    const result = normalize({ nodes: [{ attrs: deepObjects(10000) }] }, NOW);
+    const result = normalize({ nodes: [{ attrs: deepObjects(200) }] }, NOW);
     expect(result).toStrictEqual({
       ok: false,
       fatal: {
