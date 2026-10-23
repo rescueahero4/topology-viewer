@@ -106,7 +106,7 @@ function stubHost(calls: Call[]): ShellHost {
   return {
     copyForAi: (arg) => {
       calls.push({ name: "copyForAi", arg });
-      return Promise.resolve("copied");
+      return Promise.resolve("sent");
     },
     openLink: (arg) => {
       calls.push({ name: "openLink", arg });

@@ -11,7 +11,6 @@ type Said = { result: Result };
 const FEEDBACK_MS = 2200;
 
 const FEEDBACK = {
-  copied: "copy.copied",
   failed: "copy.failed",
   sent: "copy.sent",
 } as const;

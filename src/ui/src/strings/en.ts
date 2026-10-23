@@ -360,7 +360,6 @@ export const en = {
   "notice.user": "What you can do",
   "notice.ai": "For the AI client",
   "notice.details": "Technical details",
-  "copy.copied": "Copied. Paste it into the chat",
   "copy.failed": "Couldn't copy. Select the details text instead",
   "copy.sent": "Sent to the AI client",
   "chip.skipped": {

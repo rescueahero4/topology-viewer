@@ -97,7 +97,7 @@ describe("S7 the copy feedback", () => {
     const frame = await mountApp(fixtureModel("s-access"));
     const input = fixtureModel("s-invalid");
     await frame.update({ input });
-    const results = ["copied", "failed", "sent"] as const;
+    const results = ["failed", "sent"] as const;
     const calls: string[] = [];
     let next = 0;
     await frame.update({

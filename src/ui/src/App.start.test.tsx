@@ -39,7 +39,7 @@ const { fixtureModel } = await import("./fixtureModel");
 const { App } = await import("./App");
 
 const host = {
-  copyForAi: () => Promise.resolve("copied" as const),
+  copyForAi: () => Promise.resolve("sent" as const),
   openLink: () => Promise.resolve(),
   requestDisplayMode: () => Promise.resolve(),
 };

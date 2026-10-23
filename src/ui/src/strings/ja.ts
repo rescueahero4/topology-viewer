@@ -337,7 +337,6 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "notice.user": "できること",
   "notice.ai": "AI クライアント向け",
   "notice.details": "技術的な詳細",
-  "copy.copied": "コピーしました。チャットに貼り付けてください",
   "copy.failed": "コピーできませんでした。詳細のテキストを選択してください",
   "copy.sent": "AI クライアントに送信しました",
   "chip.skipped": "{count} 件のレコードをこのチャートから除外しました",

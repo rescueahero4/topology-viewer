@@ -26,7 +26,7 @@ function note(line: string): void {
 const host: ShellHost = {
   copyForAi: (text) => {
     note(`copyForAi: ${text}`);
-    return Promise.resolve("copied");
+    return Promise.resolve("sent");
   },
   openLink: (url) => {
     note(`openLink: ${url}`);
