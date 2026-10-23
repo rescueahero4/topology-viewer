@@ -61,9 +61,11 @@ function listen(made: Canvas, onSettle: { current: AppProps["onSettle"] }) {
     made.on("select", feed.select),
     made.on("explore", feed.explore),
     made.on("drag-end", feed["drag-end"]),
-    made.on("settle", feed.settle),
+    made.on("settle", (e) => {
+      feed.settle(e);
+      onSettle.current?.(e.state, e.camera);
+    }),
     made.on("notice", feed.notice),
-    made.on("settle", (e) => onSettle.current?.(e.state, e.camera)),
   ];
 }
 
