@@ -253,6 +253,7 @@ export const jaValues = {
     nodes: "{count} ノード",
     edges: "{count} エッジ",
     kb: "{count} KB",
+    levels: "{count} 階層のネスト",
   },
   kind: {
     rows: "フラットな行のリスト",

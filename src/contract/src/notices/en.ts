@@ -254,6 +254,7 @@ export const enValues = {
     nodes: "{count} nodes",
     edges: "{count} edges",
     kb: "{count} KB",
+    levels: "{count} levels of nesting",
   },
   kind: {
     rows: "a list of flat rows",

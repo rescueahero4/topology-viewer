@@ -15,7 +15,7 @@ export const gotTokenSchema = z.enum([
 ]);
 
 export const measureSchema = z.strictObject({
-  unit: z.enum(["nodes", "edges", "kb"]),
+  unit: z.enum(["nodes", "edges", "kb", "levels"]),
   count,
 });
 

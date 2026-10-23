@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CAPS, checkCounts, checkSize, parseRenderInput } from "../src/index";
+import {
+  CAPS,
+  checkCounts,
+  checkDepth,
+  checkSize,
+  notices,
+  parseRenderInput,
+} from "../src/index";
 import { edgeSchema, nodeSchema } from "../src/input";
 
 const LABEL = "顧客マスタ";
@@ -78,7 +85,69 @@ describe("caps", () => {
       edges: 4000,
       bytes: 262144,
       pasteBytes: 1048576,
+      depth: 256,
     });
     expect(Object.isFrozen(CAPS)).toBe(true);
+  });
+});
+
+// why: SA §4.1 — level 0 is the value itself, so a value of level N has N + 1 objects or arrays
+const objectText = (levels: number) =>
+  `${'{"a":'.repeat(levels + 1)}1${"}".repeat(levels + 1)}`;
+const deepObject = (levels: number) =>
+  JSON.parse(objectText(levels)) as unknown;
+const arrayText = (levels: number) =>
+  `${"[".repeat(levels + 1)}${"]".repeat(levels + 1)}`;
+const deepArray = (levels: number) => JSON.parse(arrayText(levels)) as unknown;
+const DEEPEST = {
+  object: Math.floor((CAPS.bytes - 1) / 6) - 1,
+  array: CAPS.bytes / 2 - 1,
+};
+const FATAL = {
+  code: "too-large",
+  path: [],
+  info: {
+    code: "too-large",
+    got: { unit: "levels", count: 257 },
+    limit: { unit: "levels", count: 256 },
+  },
+};
+
+describe("S20 checkDepth", () => {
+  it.each([
+    ["object", deepObject],
+    ["array", deepArray],
+  ] as const)("keeps a deep %s at level 256", (_kind, build) => {
+    expect(checkDepth(build(256))).toBeNull();
+    expect(checkDepth({ nodes: [], x: build(255) })).toBeNull();
+  });
+
+  it("keeps a flat value", () => {
+    expect(checkDepth({ nodes: [{ id: "a" }], edges: [] })).toBeNull();
+    expect(checkDepth("text")).toBeNull();
+    expect(checkDepth(null)).toBeNull();
+  });
+
+  it.each([
+    ["object", deepObject, 257],
+    ["array", deepArray, 257],
+    ["object", deepObject, DEEPEST.object],
+    ["array", deepArray, DEEPEST.array],
+  ] as const)("stops a deep %s at %i levels", (_kind, build, levels) => {
+    expect(checkDepth(build(levels))).toEqual(FATAL);
+    expect(checkDepth({ nodes: [], x: build(levels) })).toEqual(FATAL);
+  });
+
+  it("builds the deepest forms at or below CAPS.bytes", () => {
+    expect(arrayText(DEEPEST.array).length).toBe(CAPS.bytes);
+    expect(objectText(DEEPEST.object).length).toBeLessThanOrEqual(CAPS.bytes);
+    expect(objectText(DEEPEST.object + 1).length).toBeGreaterThan(CAPS.bytes);
+  });
+
+  it("names 257 and 256 levels in the ja measure text", () => {
+    const measure = (count: number) =>
+      notices.measure.ja.levels.replace("{count}", String(count));
+    expect(measure(257)).toBe("257 階層のネスト");
+    expect(measure(256)).toBe("256 階層のネスト");
   });
 });

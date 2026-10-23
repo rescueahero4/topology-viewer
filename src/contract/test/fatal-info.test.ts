@@ -54,16 +54,18 @@ describe("fatal-notice values", () => {
       expect(kindOfLine, value).toContain(`"${value}"`);
   });
 
-  it("S2 has the 3 measure templates, each with the one placeholder count", () => {
+  it("S2 has the 4 measure templates, each with the one placeholder count", () => {
     expect(notices.measure.en).toEqual({
       nodes: "{count} nodes",
       edges: "{count} edges",
       kb: "{count} KB",
+      levels: "{count} levels of nesting",
     });
     expect(notices.measure.ja).toEqual({
       nodes: "{count} ノード",
       edges: "{count} エッジ",
       kb: "{count} KB",
+      levels: "{count} 階層のネスト",
     });
     for (const language of LANGUAGES)
       for (const template of Object.values(notices.measure[language]))
