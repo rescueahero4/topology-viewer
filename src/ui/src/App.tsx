@@ -14,6 +14,7 @@ import { CanvasNotice } from "./CanvasNotice";
 import { CategoryBar } from "./CategoryBar";
 import { ControlBar } from "./ControlBar";
 import { DataNotice } from "./DataNotice";
+import { DisplayToggle } from "./DisplayToggle";
 import { FocusPill } from "./FocusPill";
 import { hiddenItems, HiddenPanel, useDock } from "./HiddenPanel";
 import type { ShellHost } from "./host";
@@ -76,9 +77,11 @@ export type AppProps = {
   onSettle?: (state: CanvasState, camera: Camera) => void;
   start?: { state: CanvasState; camera: Camera };
   // why: STORY-007-03 rules 1, 2 (SA §3, §4.3 addendum) — only the MCP widget entry gives
-  // `embedded`; the widget gives the checked host display mode
+  // `embedded`; the widget gives the checked host display mode. STORY-007-04 rule 2 — and the
+  // checked display modes that the host lists
   embedded?: boolean;
   displayMode?: "inline" | "fullscreen";
+  availableDisplayModes?: readonly string[];
 };
 
 type SplitProps = {
@@ -310,7 +313,11 @@ export function App(props: AppProps) {
           hidden={hidden.any && hidden.open ? "expanded" : undefined}
         >
           {actions !== null && <CategoryBar actions={actions} />}
-          {actions !== null && <Search actions={actions} embedded={embedded} />}
+          {actions !== null && (
+            <Search actions={actions} embedded={embedded}>
+              <DisplayToggle {...props} />
+            </Search>
+          )}
           {shown.ok && <div class="graph" ref={graph} />}
           <Notice shell={shell} host={host} actions={actions} />
           {actions !== null && (

@@ -83,6 +83,8 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "canvas.pillRetired": "{label}（廃止）",
   default: "既定",
   "controls.scope": "キャンバスの範囲",
+  "display.fullscreen": "全画面表示",
+  "display.exit": "全画面表示を終了",
   "scope.label": "{shown} / {total}",
   "scope.labelAll": "{total} 件のノード",
   "scope.name": "{total} 件中 {shown} 件のノードを描画",
