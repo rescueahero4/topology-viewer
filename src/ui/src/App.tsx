@@ -46,6 +46,7 @@ import "./shell-panels.css";
 import "./shell-workbench.css";
 import "./shell-notices.css";
 import "./shell-narrow.css";
+import "./shell-embedded.css";
 
 type NormalizedOk = Extract<Normalized, { ok: true }>;
 
@@ -74,6 +75,10 @@ export type AppProps = {
   // `settle` and gives them back with the input of a theme or locale change
   onSettle?: (state: CanvasState, camera: Camera) => void;
   start?: { state: CanvasState; camera: Camera };
+  // why: STORY-007-03 rules 1, 2 (SA §3, §4.3 addendum) — only the MCP widget entry gives
+  // `embedded`; the widget gives the checked host display mode
+  embedded?: boolean;
+  displayMode?: "inline" | "fullscreen";
 };
 
 type SplitProps = {
@@ -174,6 +179,7 @@ type Toggle = {
 
 type FloatingProps = {
   actions: Actions;
+  embedded: boolean;
   workbench: string;
   host: ShellHost;
   undo: ReturnType<typeof useUndo>;
@@ -189,7 +195,11 @@ function Floating(props: FloatingProps) {
   const { actions, workbench, host, undo, remake, card, hidden } = props;
   return (
     <>
-      <ControlBar actions={actions} workbench={workbench} />
+      <ControlBar
+        actions={actions}
+        workbench={workbench}
+        embedded={props.embedded}
+      />
       <div class="status-stack">
         <DataNotice host={host} />
         <FocusPill actions={actions} />
@@ -231,6 +241,27 @@ function LoneToast(props: {
   );
 }
 
+// why: STORY-004-06 rule 1 — the Hidden card closes when the list becomes empty
+function useHiddenCard(): Toggle & { any: boolean } {
+  const [open, setOpen] = useState(false);
+  const any = hiddenItems.value.length > 0;
+  useLayoutEffect(() => {
+    if (!any) setOpen(false);
+  }, [any]);
+  return { open, setOpen, any };
+}
+
+// why: STORY-007-03 rules 1, 3 — the `.shell` attributes of the embedded host (embed-frame.html
+// line 10); the narrow rule is off in the embedded inline mode
+function hostOf({ embedded, displayMode }: AppProps) {
+  if (embedded !== true) return { narrow: true, attributes: {} };
+  const display = displayMode ?? "inline";
+  return {
+    narrow: display === "fullscreen",
+    attributes: { "data-host": "embedded", "data-display": display },
+  };
+}
+
 // why: P22, rule 11 — the canvas takes the whole frame; the controls float on it. STORY-004-04
 // rule 1 — the user's collapse choice of the inspector stays across selections (mockup
 // `inspectorOpen`, app.js line 14), and the category bar makes room for the open card (line 138).
@@ -250,26 +281,24 @@ export function App(props: AppProps) {
   const frame = useRef<HTMLElement>(null);
   const workbench = useElementId();
   const [open, setOpen] = useState(true);
-  const [hiddenOpen, setHiddenOpen] = useState(false);
-  useNarrow(root, () => setOpen(false));
+  const hidden = useHiddenCard();
+  const embed = hostOf(props);
+  useNarrow(root, () => setOpen(false), embed.narrow);
   const { keep } = undo;
   const actions = useMemo(
     () => (canvas === null ? null : actionsOf(canvas, keep)),
     [canvas, keep],
   );
-  const anyHidden = hiddenItems.value.length > 0;
-  useLayoutEffect(() => {
-    if (!anyHidden) setHiddenOpen(false);
-  }, [anyHidden]);
   useEscapeKey(root, actions);
   const card =
     inspected.value === null ? "empty" : open ? "expanded" : "collapsed";
   // why: ISSUE-012 C6 — the Inspector mounts a new card element when the floating controls come or
   // go and when it changes between its empty and its filled card
   useDock(frame, [actions === null, card === "empty"]);
-  useStackPlace(root, frame, actions, `${card} ${anyHidden} ${hiddenOpen}`);
+  useStackPlace(root, frame, actions, `${card} ${hidden.any} ${hidden.open}`);
+  const embedded = props.embedded === true;
   return (
-    <div ref={root} class="shell" data-theme={theme}>
+    <div ref={root} class="shell" data-theme={theme} {...embed.attributes}>
       <Split
         {...{ input: shown, host, actions, workbench }}
         start={workbenchStart}
@@ -278,18 +307,17 @@ export function App(props: AppProps) {
           frame={frame}
           table={input.ok}
           inspector={shown.ok ? card : undefined}
-          hidden={anyHidden && hiddenOpen ? "expanded" : undefined}
+          hidden={hidden.any && hidden.open ? "expanded" : undefined}
         >
           {actions !== null && <CategoryBar actions={actions} />}
-          {actions !== null && <Search actions={actions} />}
+          {actions !== null && <Search actions={actions} embedded={embedded} />}
           {shown.ok && <div class="graph" ref={graph} />}
           <Notice shell={shell} host={host} actions={actions} />
           {actions !== null && (
             <Floating
-              {...{ actions, workbench, host, undo }}
+              {...{ actions, workbench, host, undo, embedded, hidden }}
               remake={shell.remake}
               card={{ open, setOpen }}
-              hidden={{ open: hiddenOpen, setOpen: setHiddenOpen }}
             />
           )}
           {actions === null && <LoneToast undo={undo} remake={shell.remake} />}

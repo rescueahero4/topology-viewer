@@ -179,6 +179,9 @@ export async function mountApp(input: AppInput, options: Options = {}) {
     locale: options.locale ?? "en-US",
     theme: options.theme ?? "light",
     host: stubHost(calls),
+    // why: STORY-007-03 rule 1 — a test of the MCP widget look gives `embedded`
+    embedded: options.embedded,
+    displayMode: options.displayMode,
   };
   const draw = async (next: Partial<AppProps>) => {
     props = { ...props, ...next };

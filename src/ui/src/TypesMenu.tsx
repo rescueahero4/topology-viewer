@@ -10,6 +10,7 @@ import { Checkbox } from "./Checkbox";
 import { Menu } from "./Menu";
 import { groupName, provenanceName, typeName } from "./names";
 import { formatted, t } from "./strings/index";
+import type { Tip } from "./Tooltip";
 import { TypeGlyph } from "./TypeGlyph";
 import { UiIcon } from "./UiIcon";
 
@@ -18,6 +19,8 @@ type Props = {
   lang: Lang;
   vocab: Vocab;
   types: readonly TypeRow[];
+  tip: Tip;
+  embedded: boolean;
 };
 
 function TypeLine({
@@ -53,9 +56,10 @@ function TypeLine({
 }
 
 // why: FR-FILTER-3, FR-VOC-3, P20 (ddr-0047 "Types") — one block for each group of the Types menu
-// in the order of `typeGroups()`, so `ui` reads no profile; the rows keep the `stats` order
+// in the order of `typeGroups()`, so `ui` reads no profile; the rows keep the `stats` order.
+// STORY-007-03 rules 4, 5 — embedded, the name is "Node types" and the tip above is the label
 export function TypesMenu(props: Props) {
-  const { lang, types } = props;
+  const { lang, types, tip, embedded } = props;
   const blocks = typeGroups()
     .map((group) => ({
       group,
@@ -74,7 +78,14 @@ export function TypesMenu(props: Props) {
     </>
   );
   return (
-    <Menu label={label} buttonClass="ctl-btn">
+    <Menu
+      label={label}
+      name={embedded ? t(lang, "types.heading") : undefined}
+      buttonClass="ctl-btn"
+      anchor={
+        embedded ? tip.above("types", t(lang, "types.button")) : undefined
+      }
+    >
       <p class="menu-label">{t(lang, "types.heading")}</p>
       {blocks.map(({ group, rows }) => (
         <Fragment key={group}>

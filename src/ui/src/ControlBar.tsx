@@ -1,4 +1,5 @@
 import { stats } from "@qdic-topology/engine";
+import type { JSX } from "preact";
 import type { Actions } from "./actions";
 import { GroupingMenu } from "./GroupingMenu";
 import { LayoutMenu } from "./LayoutMenu";
@@ -10,22 +11,29 @@ import { useTip, type Tip } from "./Tooltip";
 import { TypesMenu } from "./TypesMenu";
 import { UiIcon } from "./UiIcon";
 
+type DatasetProps = { tip: Tip; controls: string; embedded: boolean };
+
 // why: FR-HOST-2, rule 9 (mockup index.html line 136, app.js lines 1265-1266) — the tip names the
-// macOS key when `navigator.platform` says so; the key works with Ctrl or Cmd on every platform
-function DatasetButton({ tip, controls }: { tip: Tip; controls: string }) {
+// macOS key when `navigator.platform` says so; the key works with Ctrl or Cmd on every platform.
+// STORY-007-03 rules 4, 5 — embedded, the name is "Dataset table" and the tip above is the label
+function DatasetButton({ tip, controls, embedded }: DatasetProps) {
   const ui = lang.value;
   const mac = /mac/i.test(navigator.platform);
+  const anchor: JSX.HTMLAttributes<HTMLButtonElement> = embedded
+    ? tip.above("dataset", t(ui, "wb.dataset"))
+    : tip.anchor("dataset", t(ui, mac ? "wb.toggleTipMac" : "wb.toggleTip"));
   return (
     <button
       type="button"
       class="ctl-btn"
       aria-controls={controls}
       aria-expanded={isOpen()}
-      onClick={toggleWorkbench}
-      {...tip.anchor(
-        "dataset",
-        t(ui, mac ? "wb.toggleTipMac" : "wb.toggleTip"),
-      )}
+      aria-label={embedded ? t(ui, "datasetTable") : undefined}
+      {...anchor}
+      onClick={(event) => {
+        anchor.onClick?.(event);
+        toggleWorkbench();
+      }}
     >
       <span class="ic">
         <UiIcon name="table" />
@@ -40,9 +48,11 @@ function DatasetButton({ tip, controls }: { tip: Tip; controls: string }) {
 export function ControlBar({
   actions,
   workbench,
+  embedded,
 }: {
   actions: Actions;
   workbench: string;
+  embedded: boolean;
 }) {
   const tip = useTip();
   const now = model.value;
@@ -60,6 +70,7 @@ export function ControlBar({
           state={state}
           drawn={drawn}
           tip={tip}
+          embedded={embedded}
         />
         <span class="sep" aria-hidden="true" />
         <TypesMenu
@@ -67,6 +78,8 @@ export function ControlBar({
           lang={ui}
           vocab={now.vocab}
           types={stats(now.vocab, state).types}
+          tip={tip}
+          embedded={embedded}
         />
         <span class="sep" aria-hidden="true" />
         <LayoutMenu
@@ -74,6 +87,7 @@ export function ControlBar({
           lang={ui}
           layout={state.layout}
           tip={tip}
+          embedded={embedded}
         />
         <span class="sep" aria-hidden="true" />
         <GroupingMenu
@@ -81,9 +95,10 @@ export function ControlBar({
           lang={ui}
           grouping={state.grouping}
           tip={tip}
+          embedded={embedded}
         />
         <span class="sep" aria-hidden="true" />
-        <DatasetButton tip={tip} controls={workbench} />
+        <DatasetButton tip={tip} controls={workbench} embedded={embedded} />
       </div>
       {tip.node}
     </>
