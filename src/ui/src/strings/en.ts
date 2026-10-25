@@ -83,6 +83,8 @@ export const en = {
   "canvas.pillRetired": "{label} (retired)",
   default: "Default",
   "controls.scope": "Canvas scope",
+  "display.fullscreen": "Full screen",
+  "display.exit": "Exit full screen",
   "scope.label": "{shown} / {total}",
   "scope.labelAll": "{total} nodes",
   "scope.name": "{shown} of {total} nodes drawn",

@@ -1,5 +1,5 @@
 import type { RefObject } from "preact";
-import { useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useLayoutEffect, useState } from "preact/hooks";
 import { closeWorkbench } from "./split";
 
 // why: FR-CANVAS-17, FR-HOST-2 (PRD 0.10.7) — the width below which the shell makes room
@@ -18,21 +18,21 @@ const isChip = (width: number) => width > 0 && width <= CHIP_PX;
 // root changes nothing, so a user choice stays. The root carries `data-narrow` for the narrow
 // placement of shell-narrow.css. STORY-007-03 rule 3 (FR-HOST-2 addendum 0.18) — while `on` is
 // false (the embedded inline mode) there is no `data-narrow` and no crossing action; a change of
-// `on` applies the rule of the new mode at the current width
+// `on` applies the rule of the new mode at the current width. STORY-007-04 (QA memo
+// 2026-10-25-qa-story-03-mode-change-close) — as at the first render, a mode change alone does not
+// close the Workbench: a host can report full screen before it makes the frame wider, and
+// "Expand table" asked for that full screen
 export function useNarrow(
   root: RefObject<HTMLElement>,
   collapse: () => void,
   on = true,
 ): void {
   const [crossings, setCrossings] = useState(0);
-  const first = useRef(true);
   useLayoutEffect(() => {
     if (crossings > 0) collapse();
   }, [crossings]);
   useLayoutEffect(() => {
     const el = root.current;
-    const changed = !first.current;
-    first.current = false;
     if (el === null) return;
     el.toggleAttribute("data-narrow", false);
     if (!on) return;
@@ -40,7 +40,6 @@ export function useNarrow(
     let below = isNarrow(start);
     let chip = isChip(start);
     el.toggleAttribute("data-narrow", below);
-    if (below && changed) closeWorkbench();
     if (chip) collapse();
     const observer = new ResizeObserver((entries) => {
       const entry = entries.find((one) => one.target === el);

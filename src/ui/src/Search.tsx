@@ -1,5 +1,5 @@
 import { canvasLookup, matchEntities } from "@qdic-topology/engine";
-import type { RefObject } from "preact";
+import type { ComponentChildren, RefObject } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useElementId } from "./ids";
 import type { Actions } from "./actions";
@@ -73,10 +73,17 @@ function useLookup(open: boolean) {
   );
 }
 
+type SearchProps = {
+  actions: Actions;
+  embedded: boolean;
+  children?: ComponentChildren;
+};
+
 // why: FR-CANVAS-4, FR-DATA-5, rule 3 (mockup index.html lines 73-82, app.js lines 951-985) — the
 // hits of `matchEntities` with their canvas state. STORY-007-03 rule 6 (embed-frame.html lines
-// 25-26) — embedded, the search is its own card and the tools are no card
-export function Search(props: { actions: Actions; embedded: boolean }) {
+// 25-26) — embedded, the search is its own card and the tools are no card. STORY-007-04 rule 1
+// (line 34) — the children (the full-screen button) come after the search in the tools
+export function Search(props: SearchProps) {
   const { actions, embedded } = props;
   const ui = lang.value;
   const now = model.value;
@@ -129,6 +136,7 @@ export function Search(props: { actions: Actions; embedded: boolean }) {
           />
         )}
       </div>
+      {props.children}
     </div>
   );
 }

@@ -182,6 +182,8 @@ export async function mountApp(input: AppInput, options: Options = {}) {
     // why: STORY-007-03 rule 1 — a test of the MCP widget look gives `embedded`
     embedded: options.embedded,
     displayMode: options.displayMode,
+    // why: STORY-007-04 rule 2 — the display modes that the host lists
+    availableDisplayModes: options.availableDisplayModes,
   };
   const draw = async (next: Partial<AppProps>) => {
     props = { ...props, ...next };
