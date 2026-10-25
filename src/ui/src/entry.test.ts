@@ -20,13 +20,16 @@ describe("S28 the package entry", () => {
     });
   });
 
-  // why: STORY-006-04 rule 2 — the widget host applies the link check `linkOf` again
-  it("gives the values App, langOf, linkOf, t, formatted, Menu, MenuItem and UiIcon", () => {
+  // why: STORY-006-04 rule 2 — the widget host applies the link check `linkOf` again;
+  // STORY-007-01 rule 1 — the widget takes the dark-mode switch from the entry
+  it("gives the values App, DARK_MODE, effectiveTheme, langOf, linkOf, t, formatted, Menu, MenuItem and UiIcon", () => {
     expect(Object.keys(entry).sort()).toEqual([
       "App",
+      "DARK_MODE",
       "Menu",
       "MenuItem",
       "UiIcon",
+      "effectiveTheme",
       "formatted",
       "langOf",
       "linkOf",
