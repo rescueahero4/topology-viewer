@@ -61,6 +61,7 @@ type Props = {
   lang: Lang;
   layout: LayoutName;
   tip: Tip;
+  embedded: boolean;
 };
 
 // why: P18, P21 — one line per layout; the description is in the tooltip of the info icon, and a
@@ -100,9 +101,10 @@ function LayoutItem({
 }
 
 // why: FR-CANVAS-2, FR-CANVAS-8 — a pick of the current layout runs it again, so every pick calls
-// the canvas; the checked item follows the canvas state
+// the canvas; the checked item follows the canvas state. STORY-007-03 rules 4, 5 — embedded, the
+// name is "Layout" and the tip above is the button text of the current layout
 export function LayoutMenu(props: Props) {
-  const { lang, layout } = props;
+  const { lang, layout, tip, embedded } = props;
   const current = LAYOUTS.find((item) => item.name === layout) ?? LAYOUTS[0];
   const items = (trees: boolean) =>
     LAYOUTS.filter((item) => TREES.includes(item.name) === trees).map(
@@ -120,7 +122,15 @@ export function LayoutMenu(props: Props) {
     </>
   );
   return (
-    <Menu label={label} buttonClass="ctl-btn" closeOnPick>
+    <Menu
+      label={label}
+      name={embedded ? t(lang, "layout.heading") : undefined}
+      buttonClass="ctl-btn"
+      closeOnPick
+      anchor={
+        embedded ? tip.above("layout", t(lang, current.button)) : undefined
+      }
+    >
       <p class="menu-label">{t(lang, "layout.heading")}</p>
       {items(false)}
       <hr />

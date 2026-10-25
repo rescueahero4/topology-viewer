@@ -1,5 +1,5 @@
 import type { RefObject } from "preact";
-import { useLayoutEffect, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { closeWorkbench } from "./split";
 
 // why: FR-CANVAS-17, FR-HOST-2 (PRD 0.10.7) — the width below which the shell makes room
@@ -16,22 +16,31 @@ const isChip = (width: number) => width > 0 && width <= CHIP_PX;
 // rule 4 — when the width goes to 900 px or less, the inspector collapses in the next update of
 // the same crossing; a first render at 900 px or less starts with the inspector collapsed. A wider
 // root changes nothing, so a user choice stays. The root carries `data-narrow` for the narrow
-// placement of shell-narrow.css
+// placement of shell-narrow.css. STORY-007-03 rule 3 (FR-HOST-2 addendum 0.18) — while `on` is
+// false (the embedded inline mode) there is no `data-narrow` and no crossing action; a change of
+// `on` applies the rule of the new mode at the current width
 export function useNarrow(
   root: RefObject<HTMLElement>,
   collapse: () => void,
+  on = true,
 ): void {
   const [crossings, setCrossings] = useState(0);
+  const first = useRef(true);
   useLayoutEffect(() => {
     if (crossings > 0) collapse();
   }, [crossings]);
   useLayoutEffect(() => {
     const el = root.current;
+    const changed = !first.current;
+    first.current = false;
     if (el === null) return;
+    el.toggleAttribute("data-narrow", false);
+    if (!on) return;
     const start = el.getBoundingClientRect().width;
     let below = isNarrow(start);
     let chip = isChip(start);
     el.toggleAttribute("data-narrow", below);
+    if (below && changed) closeWorkbench();
     if (chip) collapse();
     const observer = new ResizeObserver((entries) => {
       const entry = entries.find((one) => one.target === el);
@@ -45,5 +54,5 @@ export function useNarrow(
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [root]);
+  }, [root, on]);
 }

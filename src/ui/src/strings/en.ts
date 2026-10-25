@@ -82,6 +82,7 @@ export const en = {
   "canvas.lost": "lost",
   "canvas.pillRetired": "{label} (retired)",
   default: "Default",
+  "controls.scope": "Canvas scope",
   "scope.label": "{shown} / {total}",
   "scope.labelAll": "{total} nodes",
   "scope.name": "{shown} of {total} nodes drawn",

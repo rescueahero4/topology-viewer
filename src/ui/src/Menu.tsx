@@ -77,7 +77,11 @@ export function Menu(props: MenuProps) {
         aria-label={name}
         aria-haspopup="true"
         aria-expanded={open}
-        onClick={() => (openMenu.value = open ? null : me)}
+        onClick={(event) => {
+          // why: STORY-007-03 rule 5 — a press of the button also hides the shown tip of its anchor
+          props.anchor?.onClick?.(event);
+          openMenu.value = open ? null : me;
+        }}
       >
         {label}
       </button>

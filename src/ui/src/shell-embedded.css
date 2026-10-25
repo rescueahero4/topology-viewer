@@ -1,0 +1,64 @@
+/* The MCP widget in a host chat: the v60 mockup embed.css lines 6-28 (STORY-007-03 rules 4-8;
+   FR-HOST-2 addendum 0.18). App.tsx sets data-host and data-display on the .shell root of the
+   widget only, so the standalone page keeps the v56 look. A rule with no display mode applies in
+   both modes. */
+
+/* Icons only; the label is in the tip above each button (embed.css lines 7-9). */
+.shell[data-host="embedded"] .ctl-btn {
+  font-size: 0;
+  gap: 0;
+  padding: 6px;
+}
+.shell[data-host="embedded"] .ctl-btn > :not(.ic),
+.shell[data-host="embedded"] .ctl-btn .chev {
+  display: none;
+}
+/* The tip above a control: Tooltip.tsx places its top edge, so it has no vertical shift
+   (shell-frame.css .tip). */
+.shell[data-host="embedded"] .tip[data-place="top"] {
+  transform: none;
+}
+
+/* Search is its own card, as tall as the family tabs (embed.css lines 16-20). */
+.shell[data-host="embedded"] .tools {
+  gap: 4px;
+  padding: 0;
+}
+.shell[data-host="embedded"] .tools .search {
+  height: 26px;
+}
+.shell[data-host="embedded"] .tools .search input {
+  padding: 0;
+}
+.shell[data-host="embedded"][data-display="inline"] .tools {
+  top: 6px;
+  bottom: auto;
+  right: 6px;
+  transform: none;
+}
+.shell[data-host="embedded"][data-display="inline"] .search input {
+  width: 130px;
+}
+
+/* The family tabs stop left of the tools; the basic pills stay on one line and scroll sideways
+   (embed.css lines 24-28). The advanced row keeps overflow visible, so the menu of its picker is
+   not clipped (FR-FILTER-7). */
+.shell[data-host="embedded"][data-display="inline"] .catbar {
+  right: 6px;
+}
+.shell[data-host="embedded"][data-display="inline"] .fam-tabs {
+  max-width: calc(100% - 230px);
+}
+.shell[data-host="embedded"][data-display="inline"]
+  .pill-row[data-mode="basic"] {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.shell[data-host="embedded"][data-display="inline"]
+  .pill-row[data-mode="basic"]::-webkit-scrollbar {
+  display: none;
+}
+.shell[data-host="embedded"][data-display="inline"] .pill {
+  flex: none;
+}

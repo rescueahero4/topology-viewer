@@ -20,6 +20,7 @@ type Props = {
   state: CanvasState;
   drawn: Frontier;
   tip: Tip;
+  embedded: boolean;
 };
 
 type Option = { budget: Budget; note?: Key };
@@ -115,22 +116,22 @@ function ResetItem({ actions, lang, state }: Props) {
 
 // why: FR-CANVAS-5, FR-CANVAS-13 — the scope button names the drawn count; a budget or a reset
 // is one canvas call, and the engine re-selects under Active. STORY-004-08 rule 5 (FR-HOST-9,
-// H4 (b)) — one last item reopens a dismissed DataNotice
+// H4 (b)) — one last item reopens a dismissed DataNotice. STORY-007-03 rules 4, 5 — embedded, the
+// name is "Canvas scope" and the tip above is the label
 export function ScopeMenu(props: Props) {
-  const { actions, lang, model, state, drawn, tip } = props;
+  const { actions, lang, model, state, drawn, tip, embedded } = props;
   const all = state.scope.mode === "all";
   const values = {
     shown: drawn.nodes.length,
     total: model.graph.entities.length,
   };
+  const text = t(lang, all ? "scope.labelAll" : "scope.label", values);
   const label = (
     <>
       <span class="ic">
         <UiIcon name="scan" />
       </span>
-      <span class="mono">
-        {t(lang, all ? "scope.labelAll" : "scope.label", values)}
-      </span>
+      <span class="mono">{text}</span>
       <span class="ic chev">
         <UiIcon name="chevron-up" />
       </span>
@@ -139,11 +140,19 @@ export function ScopeMenu(props: Props) {
   return (
     <Menu
       label={label}
-      name={t(lang, all ? "scope.nameAll" : "scope.name", values)}
+      name={
+        embedded
+          ? t(lang, "controls.scope")
+          : t(lang, all ? "scope.nameAll" : "scope.name", values)
+      }
       buttonClass="ctl-btn"
       menuClass="scope-menu"
       closeOnPick
-      anchor={tip.anchor("scope", t(lang, "scope.tip"))}
+      anchor={
+        embedded
+          ? tip.above("scope", text)
+          : tip.anchor("scope", t(lang, "scope.tip"))
+      }
     >
       <Summary {...props} />
       <hr />

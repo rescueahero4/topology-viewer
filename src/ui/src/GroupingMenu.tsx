@@ -5,7 +5,13 @@ import { t, type Key } from "./strings/index";
 import type { Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 
-type Props = { actions: Actions; lang: Lang; grouping: Grouping; tip: Tip };
+type Props = {
+  actions: Actions;
+  lang: Lang;
+  grouping: Grouping;
+  tip: Tip;
+  embedded: boolean;
+};
 
 // why: mockup grouping menu (index.html lines 124-130) — 2 or more is the default
 const OPTIONS: readonly { grouping: Grouping; note?: Key }[] = [
@@ -21,16 +27,20 @@ function optionText(lang: Lang, grouping: Grouping): string {
     : t(lang, "grouping.atLeast", { count: grouping });
 }
 
-// why: FR-CANVAS-2 and the mockup button label (app.js line 485) — "Group 2+" … "Group off"
-export function GroupingMenu({ actions, lang, grouping, tip }: Props) {
+// why: FR-CANVAS-2 and the mockup button label (app.js line 485) — "Group 2+" … "Group off".
+// STORY-007-03 rules 4, 5 — embedded, the name is the menu heading and the tip above is the label
+export function GroupingMenu(props: Props) {
+  const { actions, lang, grouping, tip, embedded } = props;
+  const text =
+    grouping === "off"
+      ? t(lang, "grouping.buttonOff")
+      : t(lang, "grouping.button", { count: grouping });
   const label = (
     <>
       <span class="ic">
         <UiIcon name="layers" />
       </span>
-      {grouping === "off"
-        ? t(lang, "grouping.buttonOff")
-        : t(lang, "grouping.button", { count: grouping })}
+      {text}
       <span class="ic chev">
         <UiIcon name="chevron-up" />
       </span>
@@ -39,9 +49,14 @@ export function GroupingMenu({ actions, lang, grouping, tip }: Props) {
   return (
     <Menu
       label={label}
+      name={embedded ? t(lang, "grouping.heading") : undefined}
       buttonClass="ctl-btn"
       closeOnPick
-      anchor={tip.anchor("grouping", t(lang, "grouping.tip"))}
+      anchor={
+        embedded
+          ? tip.above("grouping", text)
+          : tip.anchor("grouping", t(lang, "grouping.tip"))
+      }
     >
       <p class="menu-label">{t(lang, "grouping.heading")}</p>
       {OPTIONS.map((option) => (
