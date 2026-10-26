@@ -5,7 +5,7 @@ import type { Camera } from "./fit";
 import { cullLabels } from "./cull";
 import { select } from "d3-selection";
 import { drawEdges, pathsOf, setLabelZoom, type Ends } from "./edges";
-import { drawFade, fadeHits } from "./fade";
+import { drawFade, fadeHits, fadePills } from "./fade";
 import { drawHalo } from "./halo";
 import { selectionLights, showLights, showSelection } from "./highlight";
 import { drawHits, hitEdges, keptHits } from "./hits";
@@ -86,6 +86,18 @@ export function mount(container: HTMLElement, text: RendererText): Parts {
 
 export const restore = ({ root, layers }: Parts, { scene }: Current) =>
   showLights(root, layers, selectionLights(scene));
+
+// why: the pills follow the lights — on hover, the pills of the lit edges; when the pointer
+// leaves, the pills of the selection again
+export function showPills(
+  { layers, text }: Parts,
+  { scene, ends }: Current,
+  edges: readonly SceneEdge[],
+  k: number,
+): void {
+  drawPills(layers.edgeLabels, edges, ends, k, text);
+  fadePills(layers.edgeLabels, scene);
+}
 
 export function paint(
   parts: Parts,

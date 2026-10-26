@@ -34,12 +34,13 @@ import {
   mount,
   paint,
   restore,
+  showPills,
   type Current,
   type Handlers,
   type Parts,
   type Report,
 } from "./paint";
-import { scalePills } from "./pills";
+import { nodePills, pillEdges, scalePills } from "./pills";
 import type { Scene } from "./scene";
 import type { RendererText } from "./text";
 
@@ -71,7 +72,12 @@ const EMPTY: Scene = {
   types: [],
 };
 
-function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
+function pointerOf(
+  parts: Parts,
+  now: Current,
+  live: () => boolean,
+  k: () => number,
+): Pointer {
   const { root, layers, tip } = parts;
   return {
     live,
@@ -79,16 +85,19 @@ function pointerOf(parts: Parts, now: Current, live: () => boolean): Pointer {
     emit: (intent) => now.on.intent?.(intent),
     hoverNode(node, event) {
       showLights(root, layers, nodeLights(now.scene.edges, node.id));
+      showPills(parts, now, nodePills(now.scene.edges, node.id), k());
       tip.showNode(node, event);
     },
     hoverEdge(edge, event) {
       showLights(root, layers, edgeLights(edge));
+      showPills(parts, now, [edge], k());
       const subject = endOf(now.ends, edge.subject);
       tip.showEdge(edge, subject, endOf(now.ends, edge.object), event);
     },
     leave() {
       tip.hide();
       restore(parts, now);
+      showPills(parts, now, pillEdges(now.scene), k());
     },
   };
 }
@@ -301,7 +310,7 @@ export function createRenderer(
     }
     return !ended;
   };
-  const pointer = pointerOf(parts, now, live);
+  const pointer = pointerOf(parts, now, live, () => c.cam.transform().k);
   const c: Ctx = {
     parts,
     now,

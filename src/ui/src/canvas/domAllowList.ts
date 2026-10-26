@@ -100,7 +100,20 @@ export const ATTRIBUTES: Readonly<Record<string, readonly string[]>> = {
   line: SHAPE,
   polyline: SHAPE,
   polygon: SHAPE,
-  text: ["class", "id", "x", "y", "dy", "fill", "font-size"],
+  // why: the letters of a designed symbol carry their own centring and weight (mockup
+  // `designIcon`): a CSS rule does not reach text inside a `<symbol>` drawn by `<use>` in each host
+  text: [
+    "class",
+    "id",
+    "x",
+    "y",
+    "dy",
+    "fill",
+    "font-size",
+    "font-weight",
+    "text-anchor",
+    "dominant-baseline",
+  ],
   tspan: ["class"],
   // why: STORY-003-03 — the arrowhead constants of mockup `markerFor` (lib/topology.js lines
   // 446-457)
@@ -162,6 +175,9 @@ export const FORMS: Readonly<Record<string, RegExp>> = {
   "clip-rule": /^(nonzero|evenodd)$/,
   markerUnits: /^userSpaceOnUse$/,
   orient: /^auto$/,
+  "font-weight": /^700$/,
+  "text-anchor": /^middle$/,
+  "dominant-baseline": /^central$/,
 };
 // why: the FORMS entries that allow only a closed list of keywords
 export const KEYWORD_FORMS: ReadonlySet<string> = new Set([
@@ -172,6 +188,9 @@ export const KEYWORD_FORMS: ReadonlySet<string> = new Set([
   "clip-rule",
   "markerUnits",
   "orient",
+  "font-weight",
+  "text-anchor",
+  "dominant-baseline",
 ]);
 export const ONE_NUMBER = new RegExp(`^${NUMBER}$`);
 export const COLOUR = /^#[0-9a-f]{6}$/;

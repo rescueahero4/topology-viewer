@@ -23,6 +23,13 @@ export function fadeHits(layer: SVGGElement, scene: Scene): void {
     .classed(OFF, edgeOff(fadedOf(scene)));
 }
 
+// why: a hover draws the pills again, so they get the class again
+export function fadePills(layer: SVGGElement, scene: Scene): void {
+  select(layer)
+    .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
+    .classed(OFF, edgeOff(fadedOf(scene)));
+}
+
 // why: FR-CANVAS-14 — a faded node, each edge, hit path and pill with a faded end, and the halo
 // of a faded node fade with it (story Context "Fade")
 export function drawFade(layers: Layers, scene: Scene): void {
@@ -35,9 +42,7 @@ export function drawFade(layers: Layers, scene: Scene): void {
     .selectAll<SVGPathElement, SceneEdge>("path.qt-edge")
     .classed(OFF, edgeOff(off));
   fadeHits(layers.hits, scene);
-  select(layers.edgeLabels)
-    .selectAll<SVGGElement, SceneEdge>("g.qt-elabel")
-    .classed(OFF, edgeOff(off));
+  fadePills(layers.edgeLabels, scene);
   select(layers.focus)
     .selectAll<SVGGElement, SceneNode>("g.qt-focus")
     .classed(OFF, node);

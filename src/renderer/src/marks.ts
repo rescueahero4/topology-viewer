@@ -100,12 +100,17 @@ function glyphMark(doc: Document, d: Designed, at: Outline, glyph: string) {
   return group;
 }
 
+// why: mockup `designIcon` (lib/topology.js line 266) — the centring and weight are attributes on
+// the text, because a CSS rule does not reach text inside a `<symbol>` drawn by `<use>` in each host
 function lettersMark(doc: Document, d: Designed, at: Outline, letters: string) {
   const size = Math.max(7, d.size * at.inner * 0.62);
   const text = svgElement(doc, "text", [
     ["x", String(d.size / 2)],
     ["y", String(at.cy + 0.5)],
     ["font-size", size.toFixed(1)],
+    ["font-weight", "700"],
+    ["text-anchor", "middle"],
+    ["dominant-baseline", "central"],
   ]);
   setColour(text, "fill", d.ink);
   text.textContent = letters;

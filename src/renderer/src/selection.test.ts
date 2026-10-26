@@ -166,6 +166,9 @@ function lights(m: Mounted) {
   };
 }
 
+const pillsOf = (m: Mounted) =>
+  [...m.root.querySelectorAll("g.qt-elabel")].map((g) => g.textContent);
+
 function marks(m: Mounted) {
   return {
     selected: [...m.root.querySelectorAll(".qt-selected")],
@@ -248,10 +251,13 @@ describe("S14 hover and leave", () => {
     expect(m.edgeEl("E3").classList.contains("qt-hl")).toBe(true);
     expect(m.edgeEl("E1").classList.contains("qt-hl")).toBe(false);
     expect(m.nodeEl("C").classList.contains("qt-selected")).toBe(false);
-    expect(marks(m)).toEqual(before.marks);
+    // the pills follow the lights: the two lit edges of C
+    expect(marks(m)).toEqual({ ...before.marks, pills: pillsOf(m) });
+    expect(pillsOf(m)).toHaveLength(2);
     expect(m.tip.classList.contains("qt-on")).toBe(true);
     m.fire(m.nodeEl("C"), "mouseleave");
     expect(lights(m)).toEqual(before.lights);
+    expect(marks(m)).toEqual(before.marks);
     expect(m.tip.classList.contains("qt-on")).toBe(false);
 
     m.fire(m.hitEl("E2"), "mouseenter");
@@ -259,10 +265,12 @@ describe("S14 hover and leave", () => {
     expect(lights(m).nodes).toEqual(["B", "C"]);
     expect(m.root.querySelectorAll("path.qt-edge.qt-hl")).toHaveLength(1);
     expect(m.edgeEl("E2").classList.contains("qt-hl")).toBe(true);
-    expect(marks(m)).toEqual(before.marks);
+    expect(marks(m)).toEqual({ ...before.marks, pills: pillsOf(m) });
+    expect(pillsOf(m)).toHaveLength(1);
     expect(m.tip.classList.contains("qt-on")).toBe(true);
     m.fire(m.hitEl("E2"), "mouseleave");
     expect(lights(m)).toEqual(before.lights);
+    expect(marks(m)).toEqual(before.marks);
     expect(m.tip.classList.contains("qt-on")).toBe(false);
     expect(m.intents).toEqual([]);
   });

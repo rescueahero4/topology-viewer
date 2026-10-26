@@ -18,11 +18,13 @@ export function pillEdges(scene: Scene): SceneEdge[] {
   const picked = pickedEdge(scene);
   if (picked !== null) return [picked];
   const { node } = scene.selection;
-  if (node === null) return [];
-  return scene.edges.filter(
-    (e) => !e.muted && (e.subject === node || e.object === node),
-  );
+  return node === null ? [] : nodePills(scene.edges, node);
 }
+
+// why: the pills follow the lights — a lit node shows the pills of its edges that are not muted,
+// on hover as on select
+export const nodePills = (edges: readonly SceneEdge[], node: DrawnId) =>
+  edges.filter((e) => !e.muted && (e.subject === node || e.object === node));
 
 // why: FR-QDIC-5, TL-15 — a retired edge says so in its pill; the width uses the shown text, and
 // the pill is not cut (epic question 23)
