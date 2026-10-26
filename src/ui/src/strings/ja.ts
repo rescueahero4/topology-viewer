@@ -144,6 +144,7 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "pick.noFamilies": "「{query}」に一致するファミリーはありません。",
   "pick.noPredicates": "「{query}」に一致する述語はありません。",
   "inspector.empty": "ノードをクリックすると詳細を表示します",
+  "inspector.emptyEmbedded": "ノードをクリックして詳細を表示",
   "inspector.root": "ルート",
   "inspector.rootTip":
     "選択したノードです。キャンバスはその周辺に注目しています",

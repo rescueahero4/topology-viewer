@@ -108,6 +108,7 @@ export function InspectorHeader(props: Props) {
         <button
           type="button"
           class="icon-btn"
+          data-act="toggle"
           aria-label={t(ui, open ? "inspector.collapse" : "inspector.expand")}
           aria-expanded={open}
           onClick={onToggle}

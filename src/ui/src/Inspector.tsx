@@ -69,16 +69,19 @@ function GroupFacts({ vocab, group }: { vocab: Vocab; group: GroupNode }) {
   );
 }
 
-function EmptyCard({ card }: { card: RefObject<HTMLElement> }) {
+// why: STORY-007-05 rule 3 (ddr-0058, embed-frame.html line 93) — the embedded card has the short
+// hint; the standalone page keeps the v56 hint
+function EmptyCard(props: { card: RefObject<HTMLElement>; embedded: boolean }) {
+  const key = props.embedded ? "inspector.emptyEmbedded" : "inspector.empty";
   return (
     <aside
-      ref={card}
+      ref={props.card}
       class="inspector float-card"
       data-state="empty"
       aria-live="polite"
     >
       <div class="insp-head">
-        <span class="insp-empty">{t(lang.value, "inspector.empty")}</span>
+        <span class="insp-empty">{t(lang.value, key)}</span>
       </div>
     </aside>
   );
@@ -89,12 +92,14 @@ type Props = {
   actions: Actions;
   open: boolean;
   onToggle: () => void;
+  embedded: boolean;
 };
 
 // why: FR-INSPECT-1, FR-CANVAS-13, STORY-004-04 rule 1 (mockup app.js lines 705-790) — empty,
 // expanded, or collapsed to its header; the user's choice stays across selections. The one tip of
 // the card sits outside it, because the blurred card is the containing block of a fixed element
-export function Inspector({ host, actions, open, onToggle }: Props) {
+export function Inspector(props: Props) {
+  const { host, actions, open, onToggle } = props;
   const tip = useTip();
   const card = useRef<HTMLElement>(null);
   const now = model.value;
@@ -108,7 +113,8 @@ export function Inspector({ host, actions, open, onToggle }: Props) {
       el?.style.setProperty("--insp-peek", `${head.offsetHeight + 2}px`);
     else el?.style.removeProperty("--insp-peek");
   });
-  if (now === null || shown === null) return <EmptyCard card={card} />;
+  if (now === null || shown === null)
+    return <EmptyCard card={card} embedded={props.embedded} />;
   const ui = lang.value;
   const drawn = frontier.value;
   const rows = drawn === null ? [] : relationsOf(drawn, shown.drawn);

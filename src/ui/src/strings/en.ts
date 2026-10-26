@@ -149,6 +149,7 @@ export const en = {
   "pick.noFamilies": "No families match “{query}”.",
   "pick.noPredicates": "No predicates match “{query}”.",
   "inspector.empty": "Click a node to inspect it",
+  "inspector.emptyEmbedded": "Click a node to inspect",
   "inspector.root": "ROOT",
   "inspector.rootTip":
     "The selected node; the canvas is focused on its neighbourhood",
