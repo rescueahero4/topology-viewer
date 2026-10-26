@@ -8,12 +8,52 @@ import type { Scene, SceneEdge, SceneNode } from "./scene";
 export type Ends = ReadonlyMap<DrawnId, SceneNode>;
 export type At = (id: DrawnId) => SceneNode;
 
-// why: mockup tree curves (lib/topology.js lines 1068-1078) — an arrow edge ends 3 px before the
-// side of the object; a Structure edge ends at the side
+// why: mockup tree curves (lib/topology.js lines 1068-1078) — an edge ends 3 px before the side
+// of the object; Structure edges (`contains`; `partOf` folds to it) have an arrow too
 const TREE_GAP = 3;
 // why: mockup `edgePath` (lib/topology.js line 1066) — the arrow tip stops 2 px before the
 // object circle
 const ARROW_GAP = 2;
+// why: the name and sub-line under a node are drawn above the edges (tokens.css .qt-name, .qt-sub:
+// 13 px at dy 1.15em, 11 px at dy 2.55em), so an arrow that comes from below stops under them
+const NAME_PX = 13;
+const SUB_PX = 11;
+const LABEL_H = 32;
+const LABEL_H_BIG = 19;
+// why: the on-screen label size is fixed, so in graph units it is the label size divided by the
+// zoom; above 1,200 nodes the labels scale with the geometry (tokens.css .qt-big)
+let labelScale = 1;
+let labelBig = false;
+export function setLabelZoom(k: number, big: boolean): boolean {
+  const scale = big ? 1 : 1 / (k > 0 ? k : 1);
+  const changed = scale !== labelScale || big !== labelBig;
+  labelScale = scale;
+  labelBig = big;
+  return changed;
+}
+
+// why: the half width of the label block, from the character count (an estimate: the text is
+// not measured, so no layout read happens per frame)
+function labelHalfWidth(t: SceneNode): number {
+  const name = t.label.length * NAME_PX * 0.62;
+  const sub = labelBig ? 0 : t.sub.length * SUB_PX * 0.55;
+  return (Math.max(name, sub, t.w) / 2 + 2) * labelScale;
+}
+
+const labelHeight = () => (labelBig ? LABEL_H_BIG : LABEL_H) * labelScale;
+
+// why: the distance from the centre of `t` along (ux, uy) to the point where the ray leaves the
+// label block; 0 when the ray does not cross it
+function labelExit(t: SceneNode, ux: number, uy: number): number {
+  if (uy <= 0 || t.label === "") return 0;
+  const hw = labelHalfWidth(t);
+  const y0 = t.h / 2;
+  const y1 = y0 + labelHeight();
+  const tyMin = y0 / uy;
+  const tyMax = y1 / uy;
+  const txMax = ux === 0 ? Infinity : hw / Math.abs(ux);
+  return txMax >= tyMin ? Math.min(txMax, tyMax) : 0;
+}
 
 export function endsOf(nodes: readonly SceneNode[]): Ends {
   return new Map(nodes.map((n) => [n.id, n]));
@@ -34,7 +74,7 @@ export function edgePath(
   t: SceneNode,
   layout: LayoutName,
 ): string {
-  const gap = edge.structure ? 0 : TREE_GAP;
+  const gap = TREE_GAP;
   if (layout === "tree-h") {
     const dir = t.x >= s.x ? 1 : -1;
     const x1 = s.x + (dir * s.w) / 2;
@@ -45,14 +85,17 @@ export function edgePath(
   if (layout === "tree-v") {
     const dir = t.y >= s.y ? 1 : -1;
     const y1 = s.y + (dir * s.h) / 2;
-    const y2 = t.y - dir * (t.h / 2 + gap);
+    const below = dir < 0 ? labelHeight() : 0;
+    const y2 = t.y - dir * (t.h / 2 + gap + below);
     const my = (y1 + y2) / 2;
     return `M${s.x},${y1}C${s.x},${my} ${t.x},${my} ${t.x},${y2}`;
   }
   const dx = t.x - s.x;
   const dy = t.y - s.y;
   const len = Math.hypot(dx, dy) || 1;
-  const pad = edge.structure ? 0 : t.r + ARROW_GAP;
+  let pad = t.r + ARROW_GAP;
+  const exit = labelExit(t, -dx / len, -dy / len) + ARROW_GAP;
+  if (exit > pad && exit < len - 8) pad = exit;
   return `M${s.x},${s.y}L${t.x - (dx / len) * pad},${t.y - (dy / len) * pad}`;
 }
 
@@ -71,7 +114,7 @@ function styleEdge(el: SVGPathElement, edge: SceneEdge, markers: Markers) {
   el.removeAttribute("marker-end");
   if (edge.muted) return;
   setColour(el, "stroke", edge.colour);
-  const marker = edge.structure ? null : markers(edge.colour);
+  const marker = markers(edge.colour);
   if (marker !== null) el.setAttribute("marker-end", marker);
 }
 

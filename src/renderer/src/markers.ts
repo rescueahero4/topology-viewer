@@ -21,8 +21,8 @@ function addMarker(defs: Element, id: string, colour: string): void {
   setColour(path.node() as SVGPathElement, "fill", colour);
 }
 
-// why: FR-FILTER-6 — a muted edge has no arrowhead, and Structure has none (mockup `edgeStyle`,
-// lib/topology.js line 1052), so their colours make no marker. The symbols of the same draw
+// why: FR-FILTER-6 — a muted edge has no arrowhead, so its colour makes no marker; Structure
+// edges have an arrow to the object (`contains`; `partOf` folds to it). The symbols of the same draw
 // replaced every child of `defs` before this, so no unused marker stays
 export function drawMarkers(
   defs: Element,
@@ -30,8 +30,8 @@ export function drawMarkers(
   prefix: string,
 ): Markers {
   const urls = new Map<string, string>();
-  for (const { colour, muted, structure } of edges) {
-    if (muted || structure || !isHex(colour) || urls.has(colour)) continue;
+  for (const { colour, muted } of edges) {
+    if (muted || !isHex(colour) || urls.has(colour)) continue;
     const id = `${prefix}-a-${colour.slice(1)}`;
     addMarker(defs, id, colour);
     urls.set(colour, `url(#${id})`);

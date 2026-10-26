@@ -30,6 +30,12 @@
 .shell[data-host="embedded"] .tools .search input {
   padding: 0;
 }
+/* Focused, the search card itself takes the focus outline. */
+.shell[data-host="embedded"] .tools .search:focus-within {
+  box-shadow: var(--shadow);
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
 .shell[data-host="embedded"][data-display="inline"] .tools {
   top: 6px;
   bottom: auto;
@@ -85,6 +91,9 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
   padding: 3px 4px 3px 6px;
 }
 .shell[data-host="embedded"] .inspector[data-state="collapsed"] .insp-bar {
@@ -106,6 +115,7 @@
 }
 .shell[data-host="embedded"] .inspector[data-state="collapsed"] .insp-title {
   flex: 1 1 auto;
+  min-width: 0;
   align-items: center;
   padding: 0;
 }
@@ -138,4 +148,19 @@
   top: 0;
   z-index: 1;
   background: var(--surface);
+}
+
+/* The fullscreen button is a solid card, like the other cards on the canvas. */
+.shell[data-host="embedded"] .icon-btn.display-btn {
+  background: var(--surface);
+}
+.shell[data-host="embedded"] .icon-btn.display-btn:hover {
+  background: var(--zinc-100);
+}
+
+/* Inline in the chat, the app frame has round corners (mockup embedded.html .app-frame); full
+   screen has square corners. */
+.shell[data-host="embedded"][data-display="inline"] {
+  border-radius: 10px;
+  overflow: hidden;
 }

@@ -25,7 +25,7 @@ export function DisplayToggle(props: Props) {
   return (
     <button
       type="button"
-      class="icon-btn float-card"
+      class="icon-btn float-card display-btn"
       aria-label={t(lang.value, full ? "display.exit" : "display.fullscreen")}
       aria-pressed={full ? "true" : "false"}
       onClick={() =>

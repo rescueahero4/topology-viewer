@@ -68,7 +68,7 @@ describe("S9 the button exists only when the host lists fullscreen", () => {
     expect(button?.previousElementSibling?.classList.contains("search")).toBe(
       true,
     );
-    expect(button?.className).toBe("icon-btn float-card");
+    expect(button?.className).toBe("icon-btn float-card display-btn");
     expect(button?.getAttribute("aria-label")).toBe("Full screen");
     expect(button?.getAttribute("aria-pressed")).toBe("false");
     expect(button?.hasAttribute("title")).toBe(false);

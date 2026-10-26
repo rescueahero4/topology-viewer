@@ -11,10 +11,8 @@ import type { Actions } from "./actions";
 import {
   familyClass,
   familyIcon,
-  familyTip,
   partialOf,
   predicateColour,
-  predicateTip,
 } from "./familyLook";
 import { FilterPicker } from "./FilterPicker";
 import { familyName } from "./names";
@@ -26,7 +24,7 @@ import { UiIcon } from "./UiIcon";
 type Row = { actions: Actions; lang: Lang; tip: Tip };
 
 function FamilyTab(props: Row & { rows: Stats; row: FamilyRow }) {
-  const { actions, lang: ui, tip, rows, row } = props;
+  const { actions, lang: ui, rows, row } = props;
   const partial = partialOf(rows, row);
   return (
     <button
@@ -35,7 +33,6 @@ function FamilyTab(props: Row & { rows: Stats; row: FamilyRow }) {
       aria-pressed={row.on}
       data-partial={partial ? "" : undefined}
       onClick={() => actions.toggleFamily(row.family, !row.on || partial)}
-      {...tip.anchor(`f${row.family}`, familyTip(ui, row))}
     >
       <span class="ic">
         <UiIcon name={familyIcon(row.family)} />
@@ -46,7 +43,7 @@ function FamilyTab(props: Row & { rows: Stats; row: FamilyRow }) {
 }
 
 function Pill(props: Row & { vocab: Vocab; row: PredicateRow }) {
-  const { actions, lang: ui, tip, vocab, row } = props;
+  const { actions, lang: ui, row } = props;
   return (
     <button
       type="button"
@@ -54,7 +51,6 @@ function Pill(props: Row & { vocab: Vocab; row: PredicateRow }) {
       aria-pressed={row.on}
       style={predicateColour(row.predicate)}
       onClick={() => actions.togglePredicate(row.predicate, !row.on)}
-      {...tip.anchor(`p${row.predicate}`, predicateTip(ui, vocab, row))}
     >
       <span class="dot" aria-hidden="true">
         {t(ui, "catbar.dot")}

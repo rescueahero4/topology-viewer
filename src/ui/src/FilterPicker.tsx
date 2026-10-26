@@ -11,10 +11,8 @@ import type { Actions } from "./actions";
 import {
   familyClass,
   familyIcon,
-  familyTip,
   partialOf,
   predicateColour,
-  predicateTip,
 } from "./familyLook";
 import { Menu, MenuItem } from "./Menu";
 import { familyName } from "./names";
@@ -45,7 +43,7 @@ const TEXTS = {
 } as const;
 
 function familyItems(props: Props, query: string) {
-  const { actions, lang: ui, tip, rows } = props;
+  const { actions, lang: ui, rows } = props;
   const match = (row: FamilyRow) =>
     query === "" || fold(familyName(ui, row.family)).includes(query);
   return rows.families.filter(match).map((row) => {
@@ -58,7 +56,6 @@ function familyItems(props: Props, query: string) {
         partial={partial}
         class={`pick-item ${familyClass(row.family)}`}
         onSelect={() => actions.toggleFamily(row.family, !row.on || partial)}
-        {...tip.anchor(`f${row.family}`, familyTip(ui, row))}
       >
         <span class="ic fam-ic">
           <UiIcon name={familyIcon(row.family)} />
@@ -71,7 +68,7 @@ function familyItems(props: Props, query: string) {
 }
 
 function predicateItem(props: Props, row: PredicateRow) {
-  const { actions, lang: ui, tip, vocab } = props;
+  const { actions, lang: ui } = props;
   return (
     <MenuItem
       key={row.predicate}
@@ -80,7 +77,6 @@ function predicateItem(props: Props, row: PredicateRow) {
       class={`pick-item ${familyClass(row.family)}`}
       style={predicateColour(row.predicate)}
       onSelect={() => actions.togglePredicate(row.predicate, !row.on)}
-      {...tip.anchor(`p${row.predicate}`, predicateTip(ui, vocab, row))}
     >
       <span class="pdot" aria-hidden="true" />
       <span class="nm">{row.predicate}</span>

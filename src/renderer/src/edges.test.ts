@@ -149,9 +149,9 @@ describe("S4 force: straight lines", () => {
     expect(Math.hypot(x - -150, y - 120)).toBeCloseTo(14, 2);
   });
 
-  it("ends the Structure edge at the object centre", () => {
+  it("ends the Structure edge r + 2 before the object centre, like every arrow edge", () => {
     const [, , x, y] = numbers(r.d("structure"), LINE);
-    expect(Math.hypot(x - 200, y - 50)).toBeCloseTo(0, 2);
+    expect(Math.hypot(x - 200, y - 50)).toBeCloseTo(14, 2);
   });
 
   it("gives the self-loop zero length", () => {
@@ -170,7 +170,7 @@ describe("S4 tree layouts: curves out of the side that faces the object", () => 
     expect([x2, y2]).toEqual([-150 + 12 + 3, 120]);
     expect(mx).toBe((x1 + x2) / 2);
     const [, , , , , , sx] = numbers(r.d("structure"), CURVE);
-    expect(sx).toBe(200 - 12);
+    expect(sx).toBe(200 - 12 - 3);
   });
 
   it("tree-h: the self-loop is the mockup side-to-side curve", () => {
@@ -203,17 +203,20 @@ describe("S4 style, markers and hit paths", () => {
     expect(muted.hasAttribute("marker-end")).toBe(false);
   });
 
-  it("gives the Structure edge its stroke and no marker-end", () => {
+  it("gives the Structure edge its stroke and an arrowhead to the object", () => {
     expect(r.path("structure").getAttribute("stroke")).toBe("#25437e");
-    expect(r.path("structure").hasAttribute("marker-end")).toBe(false);
+    expect(r.path("structure").getAttribute("marker-end")).toBe(
+      "url(#qt1-a-25437e)",
+    );
   });
 
   it("makes one marker per distinct colour, each marker-end resolves to its own colour", () => {
-    expect(markers().map((m) => m.getAttribute("id"))).toEqual([
-      "qt1-a-2e9e6a",
-      "qt1-a-71717a",
-    ]);
-    for (const key of ["plain", "dashed", "loop"]) {
+    expect(
+      markers()
+        .map((m) => m.getAttribute("id"))
+        .sort(),
+    ).toEqual(["qt1-a-25437e", "qt1-a-2e9e6a", "qt1-a-71717a"]);
+    for (const key of ["plain", "dashed", "loop", "structure"]) {
       const path = r.path(key);
       const url = path.getAttribute("marker-end") as string;
       const marker = r.doc.getElementById(url.slice(5, -1)) as Element;
@@ -225,7 +228,7 @@ describe("S4 style, markers and hit paths", () => {
   });
 
   it("draws the mockup marker constants", () => {
-    const marker = markers()[0];
+    const marker = r.doc.getElementById("qt1-a-2e9e6a") as Element;
     expect(
       Object.fromEntries(
         [...marker.attributes].map((a) => [a.name, a.value] as const),

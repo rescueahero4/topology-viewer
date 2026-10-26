@@ -36,6 +36,12 @@
   transform: translateY(calc(100% - var(--insp-peek, 32px)));
   transition: transform var(--panel-dur) var(--panel-ease);
 }
+/* The card is opaque: no canvas shows through it. */
+.inspector.float-card {
+  background: var(--surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .inspector[data-state="expanded"] {
   transform: none;
   box-shadow: var(--shadow-pop);
@@ -128,6 +134,13 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+/* Collapsed, the name is one line, cut with an ellipsis, so the head keeps one height. */
+.inspector[data-state="collapsed"] .insp-title strong {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
 }
 .insp-title .sys-badge {
   margin-top: 1px;

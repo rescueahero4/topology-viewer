@@ -3,7 +3,8 @@ import { drawBubbles } from "./bubbles";
 import type { CameraControl } from "./camera";
 import type { Camera } from "./fit";
 import { cullLabels } from "./cull";
-import { drawEdges, pathsOf, type Ends } from "./edges";
+import { select } from "d3-selection";
+import { drawEdges, pathsOf, setLabelZoom, type Ends } from "./edges";
 import { drawFade, fadeHits } from "./fade";
 import { drawHalo } from "./halo";
 import { selectionLights, showLights, showSelection } from "./highlight";
@@ -14,7 +15,7 @@ import type { Lod } from "./lod";
 import { drawMarkers } from "./markers";
 import { drawNodes } from "./nodes";
 import { drawPills, pillEdges } from "./pills";
-import type { Scene } from "./scene";
+import type { Scene, SceneEdge } from "./scene";
 import { drawSymbols } from "./sprite";
 import type { RendererText } from "./text";
 import { createTooltip, type Tooltip } from "./tooltip";
@@ -98,6 +99,7 @@ export function paint(
   const hrefOf = drawSymbols(layers.defs, scene.nodes, prefix);
   drawBubbles(layers, scene, ends, { text, pillId, pointer, k });
   const markers = drawMarkers(layers.defs, scene.edges, prefix);
+  setLabelZoom(k, lod.big());
   drawEdges(layers, scene, ends, markers);
   keptHits(layers.hits, scene.edges, pathsOf(scene, ends));
   drawNodes(layers.nodes, scene.nodes, {
@@ -128,6 +130,11 @@ export function endWork(
   const { scene, ends } = now;
   const camera = cam.transform();
   lod.ended(camera.k);
+  // why: the arrow ends under the node labels, whose size in graph units follows the zoom
+  if (setLabelZoom(camera.k, lod.big()))
+    select(layers.edges)
+      .selectAll<SVGPathElement, SceneEdge>("path.qt-edge")
+      .attr("d", pathsOf(scene, ends));
   cullLabels(layers.nodes, scene, camera.k, lod.level(), lod.big());
   const edges = hitEdges(scene.edges, ends, { camera, ...cam.size() });
   drawHits(layers.hits, edges, pathsOf(scene, ends));

@@ -54,6 +54,10 @@
 .search:focus-within {
   box-shadow: inset 0 -2px 0 var(--focus);
 }
+/* The focus mark is on the search box, not on the input inside it. */
+.shell .search input:focus-visible {
+  outline: none;
+}
 kbd {
   font-family:
     ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;

@@ -181,7 +181,7 @@ describe("S6 Other and custom categories", () => {
     expect(classified.getAttribute("class")).toBe("qt-edge");
     const [contains] = d.byPredicate("contains");
     expect(contains.getAttribute("stroke")).toBe("#25437e");
-    expect(contains.hasAttribute("marker-end")).toBe(false);
+    expect(contains.hasAttribute("marker-end")).toBe(true);
   });
 });
 
