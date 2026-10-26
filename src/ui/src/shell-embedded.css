@@ -62,3 +62,80 @@
 .shell[data-host="embedded"][data-display="inline"] .pill {
   flex: none;
 }
+
+/* The inspector (embed.css lines 31-55; STORY-007-05 rules 2-6). Expanded inline, it docks under
+   the tools and the category bar makes room. The empty and collapsed width rules come after the
+   inline width rule, because the prefixes give them the same specificity. */
+.shell[data-host="embedded"][data-display="inline"] .inspector {
+  top: 42px;
+  width: 320px;
+}
+.shell[data-host="embedded"] .inspector[data-state="empty"] {
+  width: auto;
+}
+.shell[data-host="embedded"] .inspector[data-state="collapsed"] {
+  width: auto;
+  max-width: 260px;
+}
+/* Collapsed, the header is one row: the type mark, the name and the expand button. The namesake
+   line is not shown either (PRD FR-HOST-2 addendum 0.18 (5), "one row"). */
+.shell[data-host="embedded"]
+  .inspector[data-state="collapsed"]
+  .insp-head.is-node {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 6px;
+}
+.shell[data-host="embedded"] .inspector[data-state="collapsed"] .insp-bar {
+  display: contents;
+}
+.shell[data-host="embedded"]
+  .inspector[data-state="collapsed"]
+  .insp-bar
+  > :not([data-act="toggle"]),
+.shell[data-host="embedded"]
+  .inspector[data-state="collapsed"]
+  .insp-title
+  .sys-badge,
+.shell[data-host="embedded"]
+  .inspector[data-state="collapsed"]
+  .insp-head
+  .sub {
+  display: none;
+}
+.shell[data-host="embedded"] .inspector[data-state="collapsed"] .insp-title {
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 0;
+}
+.shell[data-host="embedded"]
+  .inspector[data-state="collapsed"]
+  [data-act="toggle"] {
+  order: 1;
+}
+.shell[data-host="embedded"][data-display="inline"]
+  .canvas[data-inspector="expanded"]
+  .catbar {
+  right: 332px;
+}
+.shell[data-host="embedded"][data-display="inline"] .hidden-panel {
+  top: 42px;
+}
+.shell[data-host="embedded"][data-display="inline"]
+  .canvas[data-hidden="expanded"]
+  .catbar {
+  right: 6px;
+}
+
+/* The body scrolls as one area (shell-inspector.css .insp-body); the In/Out tabs stay on top. */
+.shell[data-host="embedded"] .insp-body .triples {
+  flex: none;
+  overflow: visible;
+}
+.shell[data-host="embedded"] .insp-body .insp-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+}

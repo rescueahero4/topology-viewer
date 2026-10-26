@@ -217,6 +217,7 @@ function Floating(props: FloatingProps) {
         actions={actions}
         open={card.open}
         onToggle={() => card.setOpen((now) => !now)}
+        embedded={props.embedded}
       />
       {hiddenItems.value.length > 0 && (
         <HiddenPanel
@@ -268,6 +269,7 @@ function hostOf({ embedded, displayMode }: AppProps) {
 // why: P22, rule 11 — the canvas takes the whole frame; the controls float on it. STORY-004-04
 // rule 1 — the user's collapse choice of the inspector stays across selections (mockup
 // `inspectorOpen`, app.js line 14), and the category bar makes room for the open card (line 138).
+// STORY-007-05 rule 1 — the embedded card starts collapsed (app.js line 15).
 // STORY-004-06 rule 1 — the next hide after an empty list brings the chip back collapsed (app.js
 // line 850). STORY-004-07 rule 11 — the App starts canvas-only and reads the stored share once.
 // STORY-004-08 rules 1, 6 — the Undo snapshot is taken before the new input reaches the signals.
@@ -283,7 +285,7 @@ export function App(props: AppProps) {
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLElement>(null);
   const workbench = useElementId();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(props.embedded !== true);
   const hidden = useHiddenCard();
   const embed = hostOf(props);
   useNarrow(root, () => setOpen(false), embed.narrow);

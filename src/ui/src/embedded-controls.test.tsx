@@ -128,12 +128,19 @@ describe("rule 3 the narrow rule by display mode", () => {
     expect(shell(root).hasAttribute("data-narrow")).toBe(false);
     run(() => controls(root)[4].click());
     expect(layout(root)).toBe("split");
+    // why: STORY-007-05 rule 1 — the embedded card starts collapsed, so the test opens it first
+    run(() =>
+      root.querySelector<HTMLButtonElement>('[data-act="toggle"]')?.click(),
+    );
+    expect(root.querySelector(".inspector")?.getAttribute("data-state")).toBe(
+      "expanded",
+    );
     run(() => frame.resize({ width: 500, height: 540 }));
     expect(shell(root).hasAttribute("data-narrow")).toBe(false);
     expect(layout(root)).toBe("split");
-    expect(
-      root.querySelector(".inspector")?.getAttribute("data-state"),
-    ).not.toBe("collapsed");
+    expect(root.querySelector(".inspector")?.getAttribute("data-state")).toBe(
+      "expanded",
+    );
   });
 
   it("applies the rule of full screen at the current width on a mode change", async () => {
