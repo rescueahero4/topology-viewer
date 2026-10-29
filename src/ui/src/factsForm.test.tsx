@@ -238,6 +238,7 @@ function hostileFacts(): unknown {
 
 describe("S9 hostile fact keys and values", () => {
   it("keeps markers and keys out of attributes and reads own values", async () => {
+    const shared = Object.getOwnPropertyNames(Object.prototype);
     const input = appInput(hostileFacts());
     if (!input.ok) throw new Error("fatal");
     const triple = input.model.graph.triples.find(
@@ -274,5 +275,6 @@ describe("S9 hostile fact keys and values", () => {
     expect(Object.hasOwn(after?.attrs ?? {}, "__proto__")).toBe(false);
     expect(Object.getPrototypeOf({})).toBe(Object.prototype);
     expect(({} as Record<string, unknown>).constructor).toBe(Object);
+    expect(Object.getOwnPropertyNames(Object.prototype)).toEqual(shared);
   });
 });
