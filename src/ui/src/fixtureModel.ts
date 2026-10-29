@@ -16,8 +16,12 @@ export const DARK = canvasColor("#18181b") as Hex;
 
 // why: rule 13 and Context — the caller makes the full warning list from the `normalize` and the
 // `resolveVocab` issues (`vocab/corpus.test.ts` line 22); the App never gets the `issues`
-export function appInput(raw: unknown, canvas: Hex = LIGHT): AppInput {
-  const result = normalize(raw, { now: NOW });
+export function appInput(
+  raw: unknown,
+  canvas: Hex = LIGHT,
+  now = NOW,
+): AppInput {
+  const result = normalize(raw, { now });
   if (!result.ok) return { ok: false, fatal: result.fatal };
   const { graph, payload, hash, counts, shaped } = result;
   const { vocab, issues } = resolveVocab(graph, payload, profile, canvas);
@@ -28,9 +32,15 @@ export function appInput(raw: unknown, canvas: Hex = LIGHT): AppInput {
     counts,
     ...(shaped === undefined ? {} : { shaped }),
     source: "model",
+    profile,
+    now,
   };
 }
 
-export function fixtureModel(key: string, canvas: Hex = LIGHT): AppInput {
-  return appInput(loadFixture(key).input, canvas);
+export function fixtureModel(
+  key: string,
+  canvas: Hex = LIGHT,
+  now = NOW,
+): AppInput {
+  return appInput(loadFixture(key).input, canvas, now);
 }

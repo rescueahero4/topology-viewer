@@ -5,7 +5,7 @@ import { GroupingMenu } from "./GroupingMenu";
 import { LayoutMenu } from "./LayoutMenu";
 import { ScopeMenu } from "./ScopeMenu";
 import { isOpen, toggleWorkbench } from "./split";
-import { canvasState, frontier, lang, model } from "./state";
+import { canvasState, editedModel, frontier, lang } from "./state";
 import { t } from "./strings/index";
 import { useTip, type Tip } from "./Tooltip";
 import { TypesMenu } from "./TypesMenu";
@@ -55,7 +55,7 @@ export function ControlBar({
   embedded: boolean;
 }) {
   const tip = useTip();
-  const now = model.value;
+  const now = editedModel.value;
   const state = canvasState.value;
   const drawn = frontier.value;
   if (now === null || state === null || drawn === null) return null;

@@ -41,6 +41,8 @@ const PART = " · ";
 
 const built = new WeakMap<Graph, readonly Row[]>();
 
+// why: STORY-008-02 rule 4 (PRD-002 FR-CELL-7) — the Kind of a node row is the type of its record,
+// else the type of its entity, so a "this row only" edit on a merged node shows in its row only
 function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
   const owner = entityOfRecord(graph);
   return graph.records.map((record, index) => {
@@ -50,7 +52,7 @@ function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
       index,
       id: record.id,
       entity,
-      type: vocab.entities.get(entity)?.type ?? null,
+      type: record.type ?? vocab.entities.get(entity)?.type ?? null,
       name: record.label,
       record,
     };

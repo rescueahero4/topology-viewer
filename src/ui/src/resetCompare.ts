@@ -8,7 +8,7 @@ import {
   type Frontier,
 } from "@qdic-topology/engine";
 import type { CanvasModel } from "./canvas/index";
-import { canvasState, frontier, model } from "./state";
+import { canvasState, editedModel, frontier } from "./state";
 
 export type ResetView = { enabled: boolean; budget: Budget };
 
@@ -40,7 +40,7 @@ export function resetOf(
 export const resetView = computed<ResetView | null>(() => {
   const drawn = frontier.value;
   const state = canvasState.peek();
-  const now = model.peek();
+  const now = editedModel.peek();
   if (drawn === null || state === null || now === null) return null;
   return resetOf(state, drawn, now);
 });

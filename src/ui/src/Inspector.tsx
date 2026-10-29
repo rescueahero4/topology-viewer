@@ -24,7 +24,7 @@ import {
   type Nodes,
   type Relation,
 } from "./relations";
-import { frontier, lang, model, selection } from "./state";
+import { editedModel, frontier, lang, selection } from "./state";
 import { t } from "./strings/index";
 import { useTip } from "./Tooltip";
 import type { RelCtx } from "./TripleRow";
@@ -42,7 +42,7 @@ export const drawnNodes = computed<Nodes>(
 // `focus` that draws it; a group node (STORY-004-05 rule 9) is read from the frontier
 export const inspected = computed<Inspected | null>(() => {
   const picked = selection.value;
-  const now = model.value;
+  const now = editedModel.value;
   if (picked === null || now === null) return null;
   const drawn = "edge" in picked ? picked.anchor : picked.node;
   const id = entityOfDrawnId(drawn);
@@ -102,7 +102,7 @@ export function Inspector(props: Props) {
   const { host, actions, open, onToggle } = props;
   const tip = useTip();
   const card = useRef<HTMLElement>(null);
-  const now = model.value;
+  const now = editedModel.value;
   const shown = inspected.value;
   // why: mockup `--insp-peek` (app.js lines 712, 742) — collapsed, the card shows exactly its
   // header; the empty card has the default peek

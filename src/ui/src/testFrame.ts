@@ -1,11 +1,21 @@
+import type { CellChange } from "@qdic-topology/engine";
 import { h, render } from "preact";
 import { act } from "preact/test-utils";
 import { afterEach, vi } from "vitest";
 import { App, type AppInput, type AppProps } from "./App";
 import type { ShellHost } from "./host";
-import { camera } from "./state";
+import { camera, stepEdits } from "./state";
 
 export { enTexts } from "./shellAudit";
+
+// why: STORY-008-02 test plan — no editor exists yet, so a test pushes one save into `editHistory`
+export function pushEdit(...changes: CellChange[]): void {
+  void act(() =>
+    stepEdits((history) =>
+      history.push({ changes, effect: { drew: [], undrew: [] } }),
+    ),
+  );
+}
 
 // why: rule 15, `canvas.test.ts` lines 55-72 — the caller turns on the fake clock and calls
 // `vi.resetModules()` before it imports this module with `await import`, so `d3-timer` loads

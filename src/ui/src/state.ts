@@ -1,12 +1,16 @@
-import { batch, signal } from "@preact/signals";
-import type {
-  CanvasState,
-  Counts,
-  Frontier,
-  Lang,
-  Selection,
-  Shaped,
-  warningEntries,
+import { batch, computed, signal } from "@preact/signals";
+import {
+  applyEdits,
+  EditHistory,
+  resolveVocab,
+  type CanvasState,
+  type Counts,
+  type Frontier,
+  type Graph,
+  type Lang,
+  type Selection,
+  type Shaped,
+  type warningEntries,
 } from "@qdic-topology/engine";
 import type { AppInput } from "./App";
 import type {
@@ -37,10 +41,61 @@ export const settled = signal<{ state: CanvasState; camera: Camera } | null>(
   null,
 );
 
+// why: SA §4.8, STORY-008-02 rule 1 — one history for each base input; the version changes on each
+// push, undo and redo, so the computed values and the kept row order follow it. In memory only
+// (SA §11 addendum 0.28)
+export const editHistory = signal({ history: new EditHistory(), version: 0 });
+
+export function stepEdits(step: (history: EditHistory) => unknown): void {
+  const { history, version } = editHistory.peek();
+  step(history);
+  editHistory.value = { history, version: version + 1 };
+}
+
+// why: SA §4.8 addendum 0.29 (1) — the edited graph uses the date that `normalize` got, never the
+// clock; with no active edit it is the base graph itself
+export const editedGraph = computed<Graph | null>(() => {
+  const input = shownInput.value;
+  if (input === null || !input.ok) return null;
+  const edits = editHistory.value.history.active();
+  const { graph } = input.model;
+  return edits.length === 0 ? graph : applyEdits(graph, edits, input.now);
+});
+
+// why: STORY-008-02 rule 1 — the vocabulary of the edited graph; the payload, the canvas colour and
+// the hash stay those of the base input, so a saved state stays valid (`canvas.ts` hash check)
+export const editedModel = computed<CanvasModel | null>(() => {
+  const input = shownInput.value;
+  const graph = editedGraph.value;
+  if (input === null || !input.ok || graph === null) return null;
+  const base = input.model;
+  if (graph === base.graph) return base;
+  const { payload, canvas } = base;
+  const { vocab } = resolveVocab(graph, payload, input.profile, canvas);
+  return { ...base, graph, vocab };
+});
+
+// why: STORY-008-02 rule 7 (PRD-002 FR-CELL-13) — the edits belong to the base input. `same`: only
+// the same input object keeps them ("Try again", the Undo of a view reset, a new language); the
+// Undo of a paste gives another object. `hash`: a theme or locale change gives a new object from
+// `normalize`, which keeps them when its base hash is the same
+export type EditsKept = "same" | "hash";
+
+function keepsEdits(was: AppInput | null, input: AppInput, kept: EditsKept) {
+  if (was === input) return true;
+  if (kept === "same" || was === null || !was.ok || !input.ok) return false;
+  return was.model.hash === input.model.hash;
+}
+
 // why: owner decision H8 — a new input is a new canvas, so the state of the old canvas goes; the
 // model is kept by reference only and never serialised (EPIC-002 hand-off items 1, 2)
-export function takeInput(input: AppInput): void {
+export function takeInput(input: AppInput, kept: EditsKept): void {
   batch(() => {
+    if (!keepsEdits(shownInput.peek(), input, kept))
+      editHistory.value = {
+        history: new EditHistory(),
+        version: editHistory.peek().version + 1,
+      };
     shownInput.value = input;
     settled.value = null;
     model.value = input.ok ? input.model : null;

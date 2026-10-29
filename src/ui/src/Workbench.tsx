@@ -20,9 +20,17 @@ import type { CanvasModel } from "./canvas/index";
 import type { ShellHost } from "./host";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { closeWorkbench, expandTable, layout } from "./split";
-import { canvasState, frontier, lang, model } from "./state";
+import {
+  canvasState,
+  editedModel,
+  editHistory,
+  frontier,
+  lang,
+  model,
+} from "./state";
 import { t } from "./strings/index";
 import { WorkbenchBar } from "./WorkbenchBar";
+import { useKeptOrder, useLazy } from "./workbenchOrder";
 import {
   attributeKeys,
   NO_CHOICE,
@@ -92,8 +100,15 @@ function useSession(now: CanvasModel | null): [Session, Update] {
 }
 
 // why: rule 3 (Implementer round-2 note 6) — one `canvasLookup` for each `settle` and one
-// constant-time call for each row; the filters, the counts and the bulk bar read these states
-function useTableView(now: CanvasModel, session: Session, ui: Lang) {
+// constant-time call for each row; the filters, the counts and the bulk bar read these states.
+// STORY-008-02 rules 3, 5 — the rows and their cells come from the edited model; the shown list
+// keeps its order through an edit (workbenchOrder.ts)
+function useTableView(
+  base: CanvasModel,
+  now: CanvasModel,
+  session: Session,
+  ui: Lang,
+) {
   const { graph, vocab } = now;
   const rows = rowsOf(graph, vocab);
   const settled = frontier.value;
@@ -114,18 +129,24 @@ function useTableView(now: CanvasModel, session: Session, ui: Lang) {
       graph.entities.filter((e) => lookup?.onCanvas(e.id) === "hidden").length,
     [lookup, graph],
   );
-  const texts = searchTexts(rows, ui, vocab);
   const { sort, filters } = session;
   const byCanvas =
     sort !== null && "core" in sort.column && sort.column.core === "canvas";
-  const sorted = useMemo(
-    () => sortRows(rows, sort, { lang: ui, vocab, states }),
+  const sorted = useLazy(
     [rows, sort, ui, vocab, byCanvas ? states : null],
+    () => sortRows(rows, sort, { lang: ui, vocab, states }),
   );
-  const shown = useMemo(
-    () => sorted.filter((row) => keeps(filters, { states, texts }, row)),
-    [sorted, filters, states, texts],
+  const order = useKeptOrder(
+    [base, sort, filters, ui],
+    { version: editHistory.value.version, settled },
+    () => {
+      const texts = searchTexts(rows, ui, vocab);
+      return sorted()
+        .filter((row) => keeps(filters, { states, texts }, row))
+        .map((row) => row.index);
+    },
   );
+  const shown = useMemo(() => order.map((at) => rows[at]), [order, rows]);
   return {
     rows,
     lookup,
@@ -213,6 +234,7 @@ function useTicks(view: View, session: Session, update: Update) {
 }
 
 type BodyProps = {
+  base: CanvasModel;
   now: CanvasModel;
   actions: Actions;
   host: ShellHost;
@@ -267,10 +289,11 @@ function BodyTable({
 }
 
 function WorkbenchBody(props: BodyProps) {
-  const { now, host, session, update, start } = props;
+  const { base, now, host, session, update, start } = props;
   const ui = lang.value;
-  const view = useTableView(now, session, ui);
-  const keys = attributeKeys(now.graph);
+  const view = useTableView(base, now, session, ui);
+  // why: STORY-008-02 rule 6 (FR-TABLE-1, FR-CELL-10) — an edit adds, removes or moves no column
+  const keys = attributeKeys(base.graph);
   return (
     <>
       <WorkbenchBar
@@ -310,11 +333,13 @@ type Props = {
 };
 
 // why: FR-TABLE-4, FR-HOST-2, rules 4, 9, 12 — the Dataset table under the canvas. It stays mounted
-// for the App, so the session state stays; a closed Workbench is `inert` and draws no rows
+// for the App, so the session state stays; a closed Workbench is `inert` and draws no rows.
+// STORY-008-02 rule 5 — the session belongs to the base input, so an edit does not reset it
 export function Workbench({ id, actions, host, start }: Props) {
   const ui = lang.value;
-  const now = model.value;
-  const [session, update] = useSession(now);
+  const base = model.value;
+  const now = editedModel.value;
+  const [session, update] = useSession(base);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const onText = (value: string) => {
@@ -333,9 +358,9 @@ export function Workbench({ id, actions, host, start }: Props) {
       aria-label={t(ui, "datasetTable")}
       inert={!open}
     >
-      {open && now !== null && actions !== null && (
+      {open && base !== null && now !== null && actions !== null && (
         <WorkbenchBody
-          {...{ now, actions, host, session, update, onText, start }}
+          {...{ base, now, actions, host, session, update, onText, start }}
         />
       )}
     </section>

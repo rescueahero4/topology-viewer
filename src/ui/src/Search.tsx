@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useElementId } from "./ids";
 import type { Actions } from "./actions";
 import { pickHit, SearchResults, SHOWN } from "./SearchResults";
-import { canvasState, lang, model } from "./state";
+import { canvasState, editedModel, lang } from "./state";
 import { t } from "./strings/index";
 import { UiIcon } from "./UiIcon";
 
@@ -62,7 +62,7 @@ function useQuery(input: RefObject<HTMLInputElement>) {
 
 // why: rule 3 — one `canvasLookup` for each result list, made only while the list is open
 function useLookup(open: boolean) {
-  const now = model.value;
+  const now = editedModel.value;
   const state = canvasState.value;
   return useMemo(
     () =>
@@ -86,7 +86,7 @@ type SearchProps = {
 export function Search(props: SearchProps) {
   const { actions, embedded } = props;
   const ui = lang.value;
-  const now = model.value;
+  const now = editedModel.value;
   const id = useElementId();
   const input = useRef<HTMLInputElement>(null);
   const q = useQuery(input);

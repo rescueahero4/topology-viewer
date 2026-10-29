@@ -10,7 +10,7 @@ import {
 import { edgeStyles, type EdgeStyle } from "./canvas/index";
 import type { IconName } from "./icons";
 import { familyName } from "./names";
-import { model } from "./state";
+import { editedModel } from "./state";
 import { t } from "./strings/index";
 
 // why: rule 7 — the six token sets of tokens.css go by the place of a family in `familyOrder()`
@@ -38,7 +38,7 @@ export const familyIcon = (family: string) => ICONS[placeOf(family)];
 
 // why: gap G5 — the predicate colours of the canvas, made once for each input
 const styles = computed<ReadonlyMap<string, EdgeStyle>>(() => {
-  const now = model.value;
+  const now = editedModel.value;
   return now === null ? new Map() : edgeStyles(now.vocab, now.canvas);
 });
 const HEX = /^#[0-9A-Fa-f]{6}$/;
