@@ -27,7 +27,7 @@ export type EditorProps = {
   holder: { current: (() => boolean) | null };
 };
 
-const TYPES: Readonly<Record<FieldKind, string>> = {
+export const TYPES: Readonly<Record<FieldKind, string>> = {
   text: "text",
   datetime: "text",
   number: "number",
@@ -45,25 +45,38 @@ type Shared = {
   code: EditCode | null;
 };
 
+type ChoiceProps = {
+  ui: Lang;
+  label: string;
+  choice: unknown;
+  onPick: (v: unknown) => void;
+  focusFirst?: boolean;
+};
+
 // why: STORY-008-04 rule 5 (owner 2026-10-29) — the true/false choice is the `.seg` radio group of
-// the Workbench bar with "Yes", "No" and "No value"; the arrow keys move the choice
-function Choice({
+// the Workbench bar with "Yes", "No" and "No value"; the arrow keys move the choice. STORY-008-06 —
+// a line of the facts form takes no focus at the start (`focusFirst` false)
+export function Choice({
   ui,
-  ids,
+  label,
   choice,
   onPick,
-}: Shared & { ui: Lang; choice: unknown; onPick: (v: unknown) => void }) {
+  focusFirst = true,
+}: ChoiceProps) {
   const box = useRef<HTMLDivElement>(null);
+  const moved = useRef(focusFirst);
   const at = CHOICES.findIndex((c) => c.value === choice);
   useLayoutEffect(() => {
-    box.current?.querySelectorAll("button")[Math.max(0, at)]?.focus();
+    if (moved.current)
+      box.current?.querySelectorAll("button")[Math.max(0, at)]?.focus();
+    moved.current = true;
   }, [at]);
   return (
     <div
       ref={box}
       class="seg"
       role="radiogroup"
-      aria-labelledby={ids.name}
+      aria-labelledby={label}
       onKeyDown={(event) => {
         const step =
           event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
@@ -200,7 +213,7 @@ export function CellEditor(props: EditorProps) {
         {after}
       </span>
       {kind === "boolean" ? (
-        <Choice {...{ ui, ids, code }} choice={choice} onPick={setChoice} />
+        <Choice ui={ui} label={ids.name} choice={choice} onPick={setChoice} />
       ) : kind === "kind" || kind === "predicate" ? (
         <PickList {...pick} kind={kind} onPick={onPick} />
       ) : kind === "node" ? (

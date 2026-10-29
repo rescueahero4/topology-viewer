@@ -346,6 +346,7 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "edit.predicates": "述語",
   "edit.nodes": "ノード",
   "edit.noMatch": "一致なし",
+  "edit.facts": "属性を編集",
   "action.show-types": "すべてのタイプを表示",
   "action.reset-view": "最初の表示に戻す",
   "action.retry": "再試行",

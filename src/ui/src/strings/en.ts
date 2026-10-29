@@ -369,6 +369,7 @@ export const en = {
   "edit.predicates": "Predicates",
   "edit.nodes": "Nodes",
   "edit.noMatch": "No match",
+  "edit.facts": "Edit attributes",
   "action.show-types": "Show all types",
   "action.reset-view": "Reset to first view",
   "action.retry": "Try again",

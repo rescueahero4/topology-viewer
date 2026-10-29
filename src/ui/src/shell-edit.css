@@ -61,3 +61,19 @@
 .pick-list .pick-item[aria-selected="true"] {
   background: var(--zinc-100);
 }
+
+/* STORY-008-06 look: the edge facts form is a `.float-card` (styles.css:85) with the inspector fact
+   grid `.facts dl` (styles.css:230-234); it opens under the cell, as the lists of STORY-008-05. */
+.facts-form {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 2;
+}
+/* why: STORY-008-06 rule 1 — the cell keeps its text, cut as the other cells (`.wb-table td`) */
+.facts-edit > .cell-text {
+  display: block;
+  max-width: 256px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

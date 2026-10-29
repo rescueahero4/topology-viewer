@@ -6,10 +6,9 @@ import {
 } from "@qdic-topology/engine";
 import type { Actions } from "./actions";
 import { endsToDraw } from "./canvas/index";
-import { changeOf, sameValue, type Read } from "./cellEdit";
+import { changeOf, sameValue, type Read, type Target } from "./cellEdit";
 import { localVocab } from "./names";
 import { editedModel, lang, model, shownInput, stepEdits } from "./state";
-import type { Column } from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
 // why: SA §4.8, STORY-008-04 rule 6 — one save is one history step: the edit goes into the
@@ -30,7 +29,7 @@ type Checked = { code: EditCode | null; change: CellChange | null };
 
 // why: STORY-008-04 rule 4 (PRD-002 FR-CELL-5) — the code of a bad value, or the change; an
 // unchanged value gives no change, so the editor closes with no history step
-function checked(row: Row, column: Column, read: Read): Checked {
+function checked(row: Row, column: Target, read: Read): Checked {
   if ("code" in read) return { code: read.code, change: null };
   const base = model.peek();
   const now = editedModel.peek();
@@ -43,14 +42,14 @@ function checked(row: Row, column: Column, read: Read): Checked {
   return { code: checkEdit(now.graph, input.profile, change), change };
 }
 
-export const checkCell = (row: Row, column: Column, read: Read) =>
+export const checkCell = (row: Row, column: Target, read: Read) =>
   checked(row, column, read).code;
 
 // why: STORY-008-04 rule 4 — a save runs `checkEdit` first; with a code the save does not occur
 export function trySave(
   actions: Actions,
   row: Row,
-  column: Column,
+  column: Target,
   read: Read,
 ): EditCode | null {
   const { code, change } = checked(row, column, read);

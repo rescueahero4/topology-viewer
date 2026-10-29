@@ -9,7 +9,7 @@ import {
 } from "@qdic-topology/engine";
 import type { ComponentChildren, RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
-import type { Read } from "./cellEdit";
+import type { Read, Target } from "./cellEdit";
 import { partsOf, useCells, type Nav } from "./cellFocus";
 import { Checkbox } from "./Checkbox";
 import { EyeIcon } from "./EyeIcon";
@@ -284,7 +284,7 @@ function Spacer({ height, span }: { height: number; span: number }) {
 
 export type CellCheck = (
   row: Row,
-  column: Column,
+  column: Target,
   read: Read,
 ) => EditCode | null;
 
