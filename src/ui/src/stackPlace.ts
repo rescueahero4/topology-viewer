@@ -1,7 +1,7 @@
 import { computed } from "@preact/signals";
 import type { RefObject } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
-import { canvasState, frontier, model } from "./state";
+import { canvasState, editedModel, frontier } from "./state";
 
 // why: STORY-005-11 rules 1, 5 — the gap of a floating part (mockup styles.css line 304)
 const GAP_PX = 6;
@@ -18,7 +18,7 @@ const CARDS = [
 // comes after the first `settle` of each canvas, and a new input makes a new bar
 const barShown = computed(
   () =>
-    model.value !== null &&
+    editedModel.value !== null &&
     canvasState.value !== null &&
     frontier.value !== null,
 );

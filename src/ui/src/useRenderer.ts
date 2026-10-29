@@ -10,7 +10,7 @@ import type { AppInput, AppProps } from "./App";
 import { createCanvas, type Camera, type Canvas } from "./canvas/index";
 import { localVocab } from "./names";
 import { rendererText } from "./rendererText";
-import { feed, takeInput } from "./state";
+import { editedModel, feed, takeInput } from "./state";
 
 // why: STORY-004-08 rules 3 and 6 — what a new canvas starts from: the prop input, or the input,
 // state and camera of an Undo, or the same input again for "Try again"
@@ -33,17 +33,18 @@ function whenSized(el: Element, go: () => void): () => void {
   return () => observer.disconnect();
 }
 
-// why: SA §5 Errors, STORY-004-08 rule 1 (b) — a throw of the factory goes to the fallback notice
+// why: SA §5 Errors, STORY-004-08 rule 1 (b) — a throw of the factory goes to the fallback notice.
+// STORY-008-02 rule 8 (PRD-002 FR-CELL-14) — the canvas gets the edited model of the input
 function make(parent: HTMLElement, start: Start, lang: Lang) {
-  if (!start.input.ok) return null;
+  const model = editedModel.peek();
+  if (!start.input.ok || model === null) return null;
   const container = parent.ownerDocument.createElement("div");
   container.className = "graph-canvas";
   parent.appendChild(container);
-  const { vocab } = start.input.model;
   try {
     const made = createCanvas(container, {
       text: rendererText(lang),
-      model: { ...start.input.model, vocab: localVocab(lang, vocab) },
+      model: { ...model, vocab: localVocab(lang, model.vocab) },
       ...(start.state === undefined ? {} : { state: start.state }),
       ...(start.camera === undefined ? {} : { camera: start.camera }),
     });
@@ -94,7 +95,10 @@ export function useRenderer(
   };
   useLayoutEffect(() => stopWaiting, [prop]);
   useLayoutEffect(() => {
-    takeInput(start.input);
+    // why: STORY-008-02 rule 7 — only a prop input with a saved start (a theme or locale change)
+    // keeps the edits by the base hash; a remake keeps them only for the same input
+    const saved = start === prop && start.state !== undefined;
+    takeInput(start.input, saved ? "hash" : "same");
     const parent = host.current;
     if (parent !== null && start.camera !== undefined && !hasSize(parent))
       return whenSized(parent, () => setSized((n) => n + 1));

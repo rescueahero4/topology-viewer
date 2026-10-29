@@ -16,7 +16,7 @@ import {
 } from "./familyLook";
 import { FilterPicker } from "./FilterPicker";
 import { familyName } from "./names";
-import { canvasState, lang, model } from "./state";
+import { canvasState, editedModel, lang } from "./state";
 import { formatted, t } from "./strings/index";
 import { useTip, type Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
@@ -73,7 +73,7 @@ const pillsOn = (rows: Stats) =>
 // picker, by the dataset totals, so a toggle never changes the mode (SA §6 row 17)
 export function CategoryBar({ actions }: { actions: Actions }) {
   const tip = useTip();
-  const now = model.value;
+  const now = editedModel.value;
   const state = canvasState.value;
   if (now === null || state === null) return null;
   const ui = lang.value;

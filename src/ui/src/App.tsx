@@ -3,6 +3,7 @@ import type {
   Fatal,
   Lang,
   Normalized,
+  Profile,
   warningEntries,
 } from "@qdic-topology/engine";
 import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -53,7 +54,9 @@ type NormalizedOk = Extract<Normalized, { ok: true }>;
 
 // why: rule 2, epic question 18 (ISSUE-005) — the caller gives the full warning list, never the
 // `issues`; the shell never shows, copies or stores `fatal.path`. SA §10 guardrail 6 (ISSUE-012
-// C12) — a fatal input can say that it was pasted, so its Undo gives the previous chart back
+// C12) — a fatal input can say that it was pasted, so its Undo gives the previous chart back.
+// STORY-008-02 rule 2 (SA §3, §4.8 addendum 0.29) — the profile and the date of `normalize`, for
+// the vocabulary and the retired look of the edited graph
 export type AppInput =
   | {
       ok: true;
@@ -62,6 +65,8 @@ export type AppInput =
       counts: NormalizedOk["counts"];
       shaped?: NormalizedOk["shaped"];
       source: "model" | "paste";
+      profile: Profile;
+      now: string;
     }
   | { ok: false; fatal: Fatal; source?: "model" | "paste" };
 
