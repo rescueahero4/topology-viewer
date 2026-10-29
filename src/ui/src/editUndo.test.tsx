@@ -40,9 +40,7 @@ function rename(root: Element, value: string) {
   f.key(f.input(root), "Enter");
 }
 
-// why: S4 — the Then "the value of the first save stays" waits for a decision: SA §4.8 gives the
-// edited graph from `active()` = `done`, so the dropped edit is not applied (memo
-// 2026-10-30-implementer-group-b-build item 1); this test holds the other parts of S4
+// why: S4 — the first save leaves the history and its value stays (SA addendum 0.32)
 describe("S1 S4 twenty steps", () => {
   it(
     "keeps the last 20 of 21 saves; Undo goes off after 20 presses",
@@ -60,6 +58,7 @@ describe("S1 S4 twenty steps", () => {
       expect(presses).toBe(20);
       expect(history().done).toHaveLength(0);
       expect(history().undone).toHaveLength(20);
+      expect(nameOf("t_SF_ACCOUNT")).toBe("N1");
       expect([off(undo(root)), off(redo(root))]).toEqual([true, false]);
     },
     TIME_OUT,
