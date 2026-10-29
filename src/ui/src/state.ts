@@ -47,6 +47,11 @@ export const settled = signal<Settled | null>(null);
 // (SA §11 addendum 0.28)
 export const editHistory = signal({ history: new EditHistory(), version: 0 });
 
+// why: STORY-008-08 rule 5 (PRD-002 FR-CELL-12) — the last save, Undo or Redo with its change
+// count, for the toast; a new object each time, so the toast shows again for the same kind
+export type EditStep = { kind: "save" | "undo" | "redo"; count: number };
+export const editStep = signal<EditStep | null>(null);
+
 export function stepEdits(step: (history: EditHistory) => unknown): void {
   const { history, version } = editHistory.peek();
   step(history);
@@ -92,11 +97,13 @@ function keepsEdits(was: AppInput | null, input: AppInput, kept: EditsKept) {
 // model is kept by reference only and never serialised (EPIC-002 hand-off items 1, 2)
 export function takeInput(input: AppInput, kept: EditsKept): void {
   batch(() => {
-    if (!keepsEdits(shownInput.peek(), input, kept))
+    if (!keepsEdits(shownInput.peek(), input, kept)) {
       editHistory.value = {
         history: new EditHistory(),
         version: editHistory.peek().version + 1,
       };
+      editStep.value = null;
+    }
     shownInput.value = input;
     settled.value = null;
     model.value = input.ok ? input.model : null;

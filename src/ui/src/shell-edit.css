@@ -77,3 +77,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* STORY-008-08 look: the off Undo and Redo buttons take the mockup disabled button
+   `.wb-bulk-in .btn:disabled` (styles.css:482). */
+.wb-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #fff;
+}

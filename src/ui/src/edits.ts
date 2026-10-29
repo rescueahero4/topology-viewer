@@ -17,7 +17,15 @@ import {
   type Target,
 } from "./cellEdit";
 import { localVocab } from "./names";
-import { editedModel, lang, model, shownInput, stepEdits } from "./state";
+import {
+  editedModel,
+  editHistory,
+  editStep,
+  lang,
+  model,
+  shownInput,
+  stepEdits,
+} from "./state";
 import type { Row } from "./workbenchRows";
 
 // why: SA §4.8, STORY-008-04 rule 6 — one save is one history step: the edit goes into the
@@ -30,8 +38,43 @@ export function saveEdit(actions: Actions, changes: CellChange[]): void {
   const now = editedModel.peek();
   if (now === null) return;
   const draw = endsToDraw(edit, now.graph, (id) => actions.onCanvas(id));
+  draws.set(edit, draw);
   const vocab = localVocab(lang.peek(), now.vocab);
   edit.effect = actions.applyEdit(now.graph, vocab, { draw, undraw: [] });
+  editStep.value = { kind: "save", count: changes.length };
+}
+
+// why: STORY-008-08 rule 3 (memo 2026-10-29-implementer-group-a-build item 7) — the `draw` list of
+// the first save stays with its edit, so Redo draws the same ends; in memory only
+const draws = new WeakMap<Edit, string[]>();
+
+// why: SA §4.8 addendum 0.29 (2), STORY-008-08 rule 2 (FR-CELL-11) — Undo applies the edited graph
+// without the newest edit, with `draw` = its `undrew` (back at the old place) and `undraw` = its
+// `drew` (back to not drawn)
+export function undoEdit(actions: Actions): void {
+  const edit = editHistory.peek().history.done.at(-1);
+  if (edit === undefined) return;
+  stepEdits((history) => history.undo());
+  const now = editedModel.peek();
+  if (now === null) return;
+  const vocab = localVocab(lang.peek(), now.vocab);
+  const { drew, undrew } = edit.effect;
+  actions.applyEdit(now.graph, vocab, { draw: undrew, undraw: drew });
+  editStep.value = { kind: "undo", count: edit.changes.length };
+}
+
+// why: STORY-008-08 rule 3 (FR-CELL-11) — Redo applies the edit again with the same `draw` list as
+// the first save and keeps the new effect for the next Undo
+export function redoEdit(actions: Actions): void {
+  const edit = editHistory.peek().history.undone.at(-1);
+  if (edit === undefined) return;
+  stepEdits((history) => history.redo());
+  const now = editedModel.peek();
+  if (now === null) return;
+  const vocab = localVocab(lang.peek(), now.vocab);
+  const draw = draws.get(edit) ?? [];
+  edit.effect = actions.applyEdit(now.graph, vocab, { draw, undraw: [] });
+  editStep.value = { kind: "redo", count: edit.changes.length };
 }
 
 type Checked = {
