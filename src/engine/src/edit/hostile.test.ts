@@ -124,3 +124,40 @@ describe("S16 prototype names and hostile values as typed values", () => {
     clean();
   });
 });
+
+// why: QA memo 2026-10-29-qa-story-01-null-prototype — an edited row keeps the null prototype of
+// the data layer, so a prototype name gives no inherited value
+describe("edited `attrs` and `inferred` keep the null prototype", () => {
+  it("gives no inherited value for a prototype name", () => {
+    const result = normalize(
+      {
+        nodes: [
+          { id: "A", attrs: { note: "x" }, _inferred: { note: "why" } },
+          { id: "B" },
+        ],
+        edges: [{ subject: "A", predicate: "p", object: "B", weight: 1 }],
+      },
+      { now: NOW },
+    );
+    if (!result.ok) throw new Error(`fatal ${result.fatal.code}`);
+    const base = result.graph;
+    const changes = [
+      change({ record: "A" }, { attr: "note" }, "y"),
+      change({ record: "A" }, { attr: "toString" }, "t"),
+      change({ triple: base.triples[0].key }, { fact: "weight" }, 2),
+    ];
+    const graph = applyEdits(
+      base,
+      [{ changes, effect: { drew: [], undrew: [] } }],
+      NOW,
+    );
+    const [record] = graph.records;
+    const maps = [record.attrs, record.inferred, graph.triples[0].attrs];
+    for (const map of maps) {
+      expect(Object.getPrototypeOf(map)).toBeNull();
+      expect((map as Record<string, unknown>).constructor).toBeUndefined();
+    }
+    expect(Object.keys(record.attrs)).toEqual(["note", "toString"]);
+    expect(Object.hasOwn(record.inferred, "note")).toBe(false);
+  });
+});

@@ -79,6 +79,24 @@ function withKey<T extends object>(target: T, key: string, value: unknown): T {
   ) as T;
 }
 
+// why: QA memo 2026-10-29-qa-story-01-null-prototype — `attrs` and `inferred` keep the null
+// prototype of the data layer (`data/hash.ts` `guardDepth`, `data/tally.ts` `nullRecord`), so a
+// prototype name is never an inherited value; the key keeps its place in the key order
+function mapWith<T>(
+  map: Readonly<Record<string, T>>,
+  key: string,
+  value: NoInfer<T> | undefined,
+): Record<string, T> {
+  const entries = Object.entries(map).filter(([name]) => name !== key);
+  const at = Object.keys(map).indexOf(key);
+  if (value !== undefined)
+    entries.splice(at < 0 ? entries.length : at, 0, [key, value]);
+  return Object.setPrototypeOf(Object.fromEntries(entries), null) as Record<
+    string,
+    T
+  >;
+}
+
 function fits(work: Work, field: Field, after: unknown): boolean {
   if (field.attr) return true;
   switch (field.key) {
@@ -115,10 +133,10 @@ function nodeChange(work: Work, index: number, field: Field, after: unknown) {
   if (!field.attr && SHAPED_FIELDS.has(field.key))
     work.unshaped.records.add(record.id);
   const inferred = Object.hasOwn(record.inferred, field.key)
-    ? withKey(record.inferred, field.key, undefined)
+    ? mapWith(record.inferred, field.key, undefined)
     : record.inferred;
   const next = field.attr
-    ? { ...record, attrs: withKey(record.attrs, field.key, after) }
+    ? { ...record, attrs: mapWith(record.attrs, field.key, after) }
     : withKey(record, field.key, after);
   work.records[index] = { ...next, inferred };
   if (field.attr) return;
@@ -131,7 +149,7 @@ function edgeChange(work: Work, index: number, field: Field, after: unknown) {
   if (!field.attr && SHAPED_FIELDS.has(field.key))
     work.unshaped.triples.add(triple.key);
   const next = field.attr
-    ? { ...triple, attrs: withKey(triple.attrs, field.key, after) }
+    ? { ...triple, attrs: mapWith(triple.attrs, field.key, after) }
     : withKey(triple, field.key, after);
   const predicate = !field.attr && field.key === "predicate";
   work.triples[index] = predicate ? withKey(next, "inferred", undefined) : next;
