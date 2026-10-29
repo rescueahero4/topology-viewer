@@ -144,3 +144,18 @@ export {
   type ExitResult,
   type Placed,
 } from "./view/exit";
+export type { Profile } from "@qdic-topology/contract";
+export { applyEdits } from "./edit/apply";
+export { checkEdit, valueKind } from "./edit/check";
+export { EditHistory } from "./edit/history";
+export { sameValueRows } from "./edit/same";
+export type {
+  CellChange,
+  CoreColumn,
+  Edit,
+  EditCode,
+  EditColumn,
+  EditEffect,
+  RowRef,
+  ValueKind,
+} from "./edit/types";

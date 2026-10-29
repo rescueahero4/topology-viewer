@@ -183,6 +183,12 @@ function identity(edge: Omit<EdgeRecord, "id">): string {
   ]);
 }
 
+// why: PRD FR-QDIC-5 — a second triple on the same ends and predicate (other attributes) gets its
+// number in the key, so every key stays unique; `edit/apply` uses the same rule (SA §4.8)
+export function tripleKey(triad: readonly string[], variant: number): string {
+  return JSON.stringify(variant === 0 ? triad : [...triad, variant]);
+}
+
 function triplesOf(edges: EdgeRecord[], map: Map<string, string>): Triple[] {
   const triples = new Map<string, Triple>();
   const variants = new Map<string, number>();
@@ -199,12 +205,10 @@ function triplesOf(edges: EdgeRecord[], map: Map<string, string>): Triple[] {
       triple.records.push(id);
       continue;
     }
-    // why: PRD FR-QDIC-5 — a second triple on the same ends and predicate (other attributes)
-    // gets its number in the key, so every key stays unique
     const triad = [ends.subject, edge.predicate, ends.object];
-    const variant = variants.get(JSON.stringify(triad)) ?? 0;
-    variants.set(JSON.stringify(triad), variant + 1);
-    const key = JSON.stringify(variant === 0 ? triad : [...triad, variant]);
+    const variant = variants.get(tripleKey(triad, 0)) ?? 0;
+    variants.set(tripleKey(triad, 0), variant + 1);
+    const key = tripleKey(triad, variant);
     triples.set(known, { key, ...remapped, records: [id] });
   }
   return [...triples.values()];

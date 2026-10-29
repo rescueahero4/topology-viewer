@@ -238,6 +238,14 @@ function before(date: string | undefined, now: string): boolean {
   return date.slice(0, 10) < now.slice(0, 10);
 }
 
+// why: PRD FR-QDIC-5 — one retired rule for `normalize` and `edit/apply` (SA §4.8)
+export function isRetired(
+  edge: Pick<EdgeRecord, "isActive" | "validTo">,
+  now: string,
+): boolean {
+  return edge.isActive === false || before(edge.validTo, now);
+}
+
 // why: PRD FR-QDIC-3 — an inverse name folds to its canonical predicate with the ends swapped
 function folded(subject: string, predicate: string, object: string) {
   if (!Object.hasOwn(profile.inverses, predicate))
@@ -280,14 +288,13 @@ export function readEdges(
       }
       const predicate =
         ends.predicate ?? defaults?.predicate ?? DEFAULT_PREDICATE;
-      const { isActive, validTo } = ends.rest;
       edges.push(
         present({
           id,
           ...folded(ends.subject as string, predicate, ends.object as string),
           attrs: guarded(ends.attrs, ends.attrsPath, issues),
           ...ends.rest,
-          retired: isActive === false || before(validTo, now),
+          retired: isRetired(ends.rest, now),
           inferred: inferredOf(item),
         }),
       );
