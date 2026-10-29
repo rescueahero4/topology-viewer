@@ -1,13 +1,17 @@
 import type { EditCode, Lang } from "@qdic-topology/engine";
 import type { ComponentChildren } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { ApplyChoice } from "./ApplyChoice";
 import {
+  isAsk,
   MESSAGES,
   readField,
   startText,
+  type Ask,
   type FieldKind,
   type InputKind,
   type Read,
+  type Saved,
 } from "./cellEdit";
 import { useElementId } from "./ids";
 import { NodePick } from "./NodePick";
@@ -22,7 +26,7 @@ export type EditorProps = {
   value: unknown;
   name: string;
   check: (read: Read) => EditCode | null;
-  save: (read: Read) => EditCode | null;
+  save: (read: Read) => Saved;
   onClose: (how: Close) => void;
   holder: { current: (() => boolean) | null };
 };
@@ -163,29 +167,85 @@ function readOf(
   return field === null ? null : readField(kind, field);
 }
 
-// why: STORY-008-04 rules 4, 5, 7, 8 — the editor of one cell: Enter and a press outside save,
-// Escape cancels; a bad value keeps the editor open with its message; the input takes the name
-// "Edit <column>" from a text node. With nothing to save (a node search with no active item),
-// Enter does nothing and a press outside closes the editor with no save
-export function CellEditor(props: EditorProps) {
-  const { ui, kind, value, name, check, save, onClose, holder } = props;
-  const box = useRef<HTMLDivElement>(null);
-  const field = useField(kind, value);
-  const reader = useRef<(() => Read | null) | null>(null);
-  const [choice, setChoice] = useState<unknown>(value ?? undefined);
+// why: the control of the editor (its input or the checked choice button) after the choice closes
+const CONTROL = 'input, .seg [tabindex="0"]';
+
+type Asking = { ask: Ask; how: Close };
+
+// why: STORY-008-04 rules 4, 7 — a save with a code keeps the editor open with its message.
+// STORY-008-07 rules 1, 3, 5 — a save that asks opens the choice and keeps the typed value; while
+// it is open nothing else saves; a pick saves one or all rows, and a code of "all N rows" keeps the
+// editor open with its message; Escape or a press outside closes only the choice
+function useSave(
+  props: EditorProps,
+  box: { current: HTMLDivElement | null },
+  read: () => Read | null,
+) {
+  const { save, onClose } = props;
   const [code, setCode] = useState<EditCode | null>(null);
-  const ids = { name: useElementId(), message: useElementId() };
-  const read = () => readOf({ kind, reader }, choice, field.current);
+  const [asking, setAsking] = useState<Asking | null>(null);
+  const refocus = () =>
+    box.current?.querySelector<HTMLElement>(CONTROL)?.focus();
   const done = (how: Close, given: Read | null = read()) => {
+    if (asking !== null) return false;
     if (given === null) {
       if (how !== "key") onClose(how);
       return how !== "key";
     }
     const found = save(given);
+    if (isAsk(found)) {
+      setCode(null);
+      setAsking({ ask: found, how });
+      return false;
+    }
     setCode(found);
     if (found === null) onClose(how);
     return found === null;
   };
+  const pick = (all: boolean) => {
+    const found = asking?.ask.apply(all) ?? null;
+    setAsking(null);
+    if (found === null) onClose("key");
+    else {
+      setCode(found);
+      refocus();
+    }
+  };
+  const cancel = () => {
+    setAsking(null);
+    refocus();
+  };
+  return { code, setCode, asking, done, pick, cancel };
+}
+
+// why: STORY-008-04 rule 4 — Enter saves and Escape cancels; the event stops at the editor
+const keysOf =
+  (onClose: (how: Close) => void, done: (how: Close) => boolean) =>
+  (event: KeyboardEvent) => {
+    if (event.key !== "Enter" && event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === "Escape") onClose("key");
+    else done("key");
+  };
+
+// why: STORY-008-04 rules 4, 5, 7, 8 — the editor of one cell: Enter and a press outside save,
+// Escape cancels; a bad value keeps the editor open with its message; the input takes the name
+// "Edit <column>" from a text node. With nothing to save (a node search with no active item),
+// Enter does nothing and a press outside closes the editor with no save
+export function CellEditor(props: EditorProps) {
+  const { ui, kind, value, name, check, onClose, holder } = props;
+  const box = useRef<HTMLDivElement>(null);
+  const field = useField(kind, value);
+  const reader = useRef<(() => Read | null) | null>(null);
+  const [choice, setChoice] = useState<unknown>(value ?? undefined);
+  const ids = { name: useElementId(), message: useElementId() };
+  const read = () => readOf({ kind, reader }, choice, field.current);
+  const { code, setCode, asking, done, pick, cancel } = useSave(
+    props,
+    box,
+    read,
+  );
   holder.current = () => done("start");
   usePressOutside(box, () => done("press"));
   const [before, after] = tAround(ui, "edit.name", "column");
@@ -193,20 +253,10 @@ export function CellEditor(props: EditorProps) {
     const now = read();
     if (code !== null && now !== null) setCode(check(now));
   };
-  const pick = { ui, value, ids, code, reader, onInput };
+  const picks = { ui, value, ids, code, reader, onInput };
   const onPick = (given: Read) => void done("key", given);
   return (
-    <div
-      ref={box}
-      class="cell-edit"
-      onKeyDown={(event) => {
-        if (event.key !== "Enter" && event.key !== "Escape") return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.key === "Escape") onClose("key");
-        else done("key");
-      }}
-    >
+    <div ref={box} class="cell-edit" onKeyDown={keysOf(onClose, done)}>
       <span id={ids.name} class="sr-only">
         {before}
         {name}
@@ -215,13 +265,24 @@ export function CellEditor(props: EditorProps) {
       {kind === "boolean" ? (
         <Choice ui={ui} label={ids.name} choice={choice} onPick={setChoice} />
       ) : kind === "kind" || kind === "predicate" ? (
-        <PickList {...pick} kind={kind} onPick={onPick} />
+        <PickList {...picks} kind={kind} onPick={onPick} />
       ) : kind === "node" ? (
-        <NodePick {...pick} onPick={onPick} />
+        <NodePick {...picks} onPick={onPick} />
       ) : (
         <Field {...{ ids, code, kind, field, onInput }} />
       )}
       <Message {...{ ui, ids, code }} />
+      {asking !== null && (
+        <ApplyChoice
+          {...{
+            ui,
+            ask: asking.ask,
+            label: ids.name,
+            onPick: pick,
+            onCancel: cancel,
+          }}
+        />
+      )}
     </div>
   );
 }

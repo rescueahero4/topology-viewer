@@ -6,6 +6,7 @@ import {
   factsOf,
   inputOf,
   type Read,
+  type Saved,
   type Target,
 } from "./cellEdit";
 import { CellEditor, type Close } from "./CellEditor";
@@ -117,6 +118,7 @@ export function scrollTo(el: HTMLElement, row: number, rowH: number): void {
 }
 
 type Check = (row: Row, column: Target, read: Read) => EditCode | null;
+type Save = (row: Row, column: Target, read: Read) => Saved;
 
 export type Nav = {
   tab: boolean;
@@ -135,7 +137,7 @@ type Table = {
   measure: (force: boolean) => void;
   press: (row: Row) => void;
   onCheck: Check;
-  onSave: Check;
+  onSave: Save;
 };
 
 const nameOf = (ui: Lang, column: Column) =>

@@ -114,6 +114,7 @@ describe("S9 a Subject save to a not-drawn node", () => {
     f.type(combo(root), "STRIPE_CUSTOMERS");
     f.key(combo(root), "ArrowDown");
     f.key(combo(root), "Enter");
+    f.thisRow(root);
     const after = new Map(state.canvasState.value?.positions);
     expect(after.has("e:t_STRIPE_CUSTOMERS")).toBe(true);
     for (const [id, point] of before) expect(after.get(id), id).toEqual(point);

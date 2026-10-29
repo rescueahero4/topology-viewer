@@ -347,6 +347,10 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "edit.nodes": "ノード",
   "edit.noMatch": "一致なし",
   "edit.facts": "属性を編集",
+  "edit.thisRow": "この行だけに適用",
+  "edit.allRows": "{count} 行すべてに適用",
+  "edit.allRowsHidden":
+    "{count} 行すべてに適用 (うち {hidden} 行は表に表示されていません)",
   "action.show-types": "すべてのタイプを表示",
   "action.reset-view": "最初の表示に戻す",
   "action.retry": "再試行",

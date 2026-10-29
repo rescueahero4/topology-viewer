@@ -161,6 +161,9 @@ function useTableView(
 
 type View = ReturnType<typeof useTableView>;
 
+// why: STORY-008-07 rule 2 — the rows that the shown list of the Workbench holds, by row index
+const shownSet = (view: View) => new Set(view.shown.map((row) => row.index));
+
 // why: rule 4 (mockup app.js lines 1063-1065) — "N rows" or "N of M rows", the canvas part only
 // when the scope mode is not `all`, and the hidden part only when something is hidden
 function countText(ui: Lang, now: CanvasModel, view: View): string {
@@ -287,7 +290,9 @@ function BodyTable({
       onTick={tick}
       onPress={pressOf(actions, lookup)}
       onCheck={checkCell}
-      onSave={(row, column, read) => trySave(actions, row, column, read)}
+      onSave={(row, column, read) =>
+        trySave(actions, row, column, read, shownSet(view))
+      }
     />
   );
 }

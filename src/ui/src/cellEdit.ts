@@ -158,6 +158,19 @@ export function startText(value: unknown): string {
 
 export type Read = { code: EditCode } | { after: unknown };
 
+// why: STORY-008-07 rules 1-3 — a valid save of a value that 2 or more rows share asks first: the
+// count, the rows of them that the Workbench does not show, and the save of one or all rows
+export type Ask = {
+  count: number;
+  hidden: number;
+  apply: (all: boolean) => EditCode | null;
+};
+
+export type Saved = EditCode | null | Ask;
+
+export const isAsk = (saved: Saved): saved is Ask =>
+  typeof saved === "object" && saved !== null;
+
 type Field = { value: string; validity: { badInput: boolean } };
 
 // why: STORY-008-04 rule 5 — the browser gives an empty `value` for a bad number or a bad date, so

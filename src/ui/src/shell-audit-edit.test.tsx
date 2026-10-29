@@ -59,6 +59,9 @@ describe("S15 typed hostile values reach text nodes and input values only", () =
         expect(shellAudit(root)).toEqual([]);
         f.key(f.input(root), "Enter");
         expect(shellAudit(root)).toEqual([]);
+        // why: STORY-008-07 — an old Name that a hostile record shares (`value(10)`, `value(13)`)
+        // asks; the open choice is audited too, then this row only is saved
+        if (f.choice(root).length > 0) f.thisRow(root);
       });
       expect(state.editHistory.value.history.done).toHaveLength(20);
       expect(f.text(f.cellOf(root, ROW, "Name"))).toBe(`${MARKERS[27]}${TAIL}`);

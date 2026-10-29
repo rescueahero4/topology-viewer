@@ -47,6 +47,8 @@ const edgeRow = (subject: string, predicate: string, object: string) =>
       r.object === object,
   ) as Row;
 const active = () => editHistory.value.history.active();
+// why: STORY-008-07 — these saves name values of one row, so no save asks
+const SHOWN = new Set<number>();
 
 beforeEach(() => {
   takeLanguage("ja", "ja-JP");
@@ -61,6 +63,7 @@ describe("rule 6 saveEdit", () => {
       nodeRow("db_RAW"),
       { core: "name" },
       { after: "RAW_EU" },
+      SHOWN,
     );
     expect(code).toBeNull();
     expect(active()).toHaveLength(1);
@@ -100,7 +103,13 @@ describe("rule 6 saveEdit", () => {
       "t_STRIPE_CUSTOMERS",
     );
     expect(
-      trySave(actions, moved, { core: "object" }, { after: "t_FCT_PIPELINE" }),
+      trySave(
+        actions,
+        moved,
+        { core: "object" },
+        { after: "t_FCT_PIPELINE" },
+        SHOWN,
+      ),
     ).toBe("self-edge");
     expect(active()).toHaveLength(1);
   });
@@ -115,6 +124,7 @@ describe("rule 4 the check before the save", () => {
         nodeRow("db_RAW"),
         { core: "name" },
         { after: undefined },
+        SHOWN,
       ),
     ).toBe("empty");
     expect(
@@ -123,6 +133,7 @@ describe("rule 4 the check before the save", () => {
         nodeRow("db_RAW"),
         { core: "name" },
         { code: "not-a-number" },
+        SHOWN,
       ),
     ).toBe("not-a-number");
     expect(checkCell(nodeRow("db_RAW"), { core: "name" }, { after: " " })).toBe(
@@ -135,7 +146,13 @@ describe("rule 4 the check before the save", () => {
   it("saves nothing for an unchanged value or an empty cell that stays empty", () => {
     const { actions, applied } = fakeActions();
     expect(
-      trySave(actions, nodeRow("db_RAW"), { core: "name" }, { after: "RAW" }),
+      trySave(
+        actions,
+        nodeRow("db_RAW"),
+        { core: "name" },
+        { after: "RAW" },
+        SHOWN,
+      ),
     ).toBeNull();
     expect(
       trySave(
@@ -143,6 +160,7 @@ describe("rule 4 the check before the save", () => {
         nodeRow("db_RAW"),
         { attr: "row_count" },
         { after: undefined },
+        SHOWN,
       ),
     ).toBeNull();
     expect(active()).toHaveLength(0);

@@ -1,13 +1,17 @@
 import type { EditCode, Lang } from "@qdic-topology/engine";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { ApplyChoice } from "./ApplyChoice";
 import {
+  isAsk,
   MESSAGES,
   readField,
   startText,
   valueInput,
+  type Ask,
   type Fact,
   type LineKind,
   type Read,
+  type Saved,
 } from "./cellEdit";
 import { Choice, TYPES, type Close } from "./CellEditor";
 import { valueText } from "./formatValue";
@@ -19,7 +23,7 @@ export type FactsProps = {
   text: string;
   facts: readonly Fact[];
   check: (key: string, read: Read) => EditCode | null;
-  save: (key: string, read: Read) => EditCode | null;
+  save: (key: string, read: Read) => Saved;
   onClose: (how: Close) => void;
   holder: { current: (() => boolean) | null };
 };
@@ -73,6 +77,46 @@ function usePress(
   }, [box]);
 }
 
+// why: STORY-008-07 rule 4 — a line save that asks opens the choice; `then` runs when the line
+// saves, at once or after the pick; nothing else saves while the choice is open
+function useAsk(
+  parts: Parts,
+  setCode: (at: number, code: Code) => void,
+  save: (at: number) => Saved,
+) {
+  const { lines } = parts;
+  const [asking, setAsking] = useState<Asking | null>(null);
+  const saveAt = (at: number, then: () => void = () => undefined) => {
+    if (asking !== null) return false;
+    if (lines[at] === undefined || lines[at].kind === null) {
+      then();
+      return true;
+    }
+    const found = save(at);
+    if (isAsk(found)) {
+      setCode(at, null);
+      setAsking({ at, ask: found, then });
+      return false;
+    }
+    setCode(at, found);
+    if (found === null) then();
+    return found === null;
+  };
+  const choose = (all: boolean) => {
+    if (asking === null) return;
+    const found = asking.ask.apply(all);
+    setAsking(null);
+    setCode(asking.at, found);
+    if (found === null) asking.then();
+    else focusLine(parts, asking.at);
+  };
+  const cancel = () => {
+    setAsking(null);
+    focusLine(parts, asking?.at);
+  };
+  return { asking, saveAt, choose, cancel };
+}
+
 // why: STORY-008-06 rule 3 (PRD-002 FR-CELL-4 addendum 0.3) — each line saves on its own as one
 // edit; a line with no change saves nothing (the save path gives no change for the same value)
 function useLines(props: FactsProps) {
@@ -98,22 +142,21 @@ function useLines(props: FactsProps) {
     const el = parts.fields.current[at];
     return kind === null || !el ? { after: value } : readField(kind, el);
   };
-  const saveAt = (at: number): boolean => {
-    if (lines[at]?.kind === null || lines[at] === undefined) return true;
-    const code = latest.current.save(lines[at].key, readAt(at));
-    setCode(at, code);
-    return code === null;
-  };
+  const { asking, saveAt, choose, cancel } = useAsk(parts, setCode, (at) =>
+    latest.current.save(lines[at].key, readAt(at)),
+  );
   const recheck = (at: number) => {
     if (codes[at] !== null)
       setCode(at, latest.current.check(lines[at].key, readAt(at)));
   };
   const pick = (at: number, value: unknown) =>
     setChoices((now) => now.map((c, i) => (i === at ? value : c)));
-  return { parts, open, choices, codes, active, saveAt, recheck, pick };
+  const ask = { asking, choose, cancel };
+  return { parts, open, choices, codes, active, saveAt, recheck, pick, ask };
 }
 
 type Code = EditCode | null;
+type Asking = { at: number; ask: Ask; then: () => void };
 
 // why: STORY-008-06 rules 3, 5 — Enter and Tab save the line and move to the next line (Shift+Tab
 // to the one before, both in a loop); a bad value keeps the focus; Escape closes the form
@@ -132,10 +175,32 @@ function keysOf(
     if (event.key !== "Enter" && event.key !== "Tab") return;
     event.preventDefault();
     event.stopPropagation();
-    if (!saveAt(active.current)) return;
     const step = event.key === "Tab" && event.shiftKey ? -1 : 1;
     const pos = open.indexOf(active.current);
-    focusLine(parts, open[(pos + step + open.length) % open.length]);
+    const next = open[(pos + step + open.length) % open.length];
+    saveAt(active.current, () => focusLine(parts, next));
+  };
+}
+
+// why: STORY-008-06 rule 3 — a press on another line saves the line; a press outside the form
+// also closes the form when the line saves
+function pressOf(
+  lines: ReturnType<typeof useLines>,
+  onClose: (how: Close) => void,
+) {
+  const { parts, active, saveAt } = lines;
+  return (target: EventTarget | null) => {
+    if (!(target instanceof Node && parts.box.current?.contains(target))) {
+      saveAt(active.current, () => onClose("press"));
+      return;
+    }
+    const line =
+      target instanceof Element ? target.closest("[data-line]") : null;
+    if (
+      line instanceof HTMLElement &&
+      Number(line.dataset.line) !== active.current
+    )
+      saveAt(active.current);
   };
 }
 
@@ -148,25 +213,10 @@ export function FactsForm(props: FactsProps) {
   const { ui, onClose, holder } = props;
   const lines = useLines(props);
   const { parts, open, choices, codes, active, saveAt } = lines;
+  const { asking } = lines.ask;
   const base = useElementId();
-  holder.current = () => {
-    if (!saveAt(active.current)) return false;
-    onClose("start");
-    return true;
-  };
-  usePress(parts.box, (target) => {
-    if (!(target instanceof Node && parts.box.current?.contains(target))) {
-      if (saveAt(active.current)) onClose("press");
-      return;
-    }
-    const line =
-      target instanceof Element ? target.closest("[data-line]") : null;
-    if (
-      line instanceof HTMLElement &&
-      Number(line.dataset.line) !== active.current
-    )
-      saveAt(active.current);
-  });
+  holder.current = () => saveAt(active.current, () => onClose("start"));
+  usePress(parts.box, pressOf(lines, onClose));
   useLayoutEffect(() => {
     parts.lines.forEach((line, at) => {
       const el = parts.fields.current[at];
@@ -199,6 +249,13 @@ export function FactsForm(props: FactsProps) {
             />
           ))}
         </dl>
+        {asking !== null && (
+          <ApplyChoice
+            {...{ ui, ask: asking.ask, label: `${base}-k${asking.at}` }}
+            onPick={lines.ask.choose}
+            onCancel={lines.ask.cancel}
+          />
+        )}
       </div>
     </div>
   );
