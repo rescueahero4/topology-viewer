@@ -49,6 +49,7 @@ type Work = {
   entityAt: ReadonlyMap<string, number>;
   entityIds: ReadonlySet<string>;
   touched: Set<number>;
+  unshaped: { records: Set<string>; triples: Set<string> };
 };
 
 function workOf(base: Graph, keys: readonly string[]): Work {
@@ -65,6 +66,7 @@ function workOf(base: Graph, keys: readonly string[]): Work {
     entityAt,
     entityIds: new Set(base.entities.map((entity) => entity.id)),
     touched: new Set(),
+    unshaped: { records: new Set(), triples: new Set() },
   };
 }
 
@@ -102,10 +104,16 @@ function guard(work: Work, field: Field, current: unknown, after: unknown) {
     throw new Error("The value does not fit the field.");
 }
 
+// why: PRD-002 FR-CELL-8 rules over STORY-008-01 rule 4 (lead 2026-10-29) — a typed kind, predicate
+// or end is the user's value, so its record or triple leaves the shaped set and resolves `custom`
+const SHAPED_FIELDS = new Set(["type", "predicate", "subject", "object"]);
+
 // why: PRD-002 FR-CELL-7, FR-CELL-8 addendum 0.3 — the merge never runs again; the entity takes
 // the newest saved name or kind; the edit removes the AI reason of the field
 function nodeChange(work: Work, index: number, field: Field, after: unknown) {
   const record = work.records[index];
+  if (!field.attr && SHAPED_FIELDS.has(field.key))
+    work.unshaped.records.add(record.id);
   const inferred = Object.hasOwn(record.inferred, field.key)
     ? withKey(record.inferred, field.key, undefined)
     : record.inferred;
@@ -120,6 +128,8 @@ function nodeChange(work: Work, index: number, field: Field, after: unknown) {
 
 function edgeChange(work: Work, index: number, field: Field, after: unknown) {
   const triple = work.triples[index];
+  if (!field.attr && SHAPED_FIELDS.has(field.key))
+    work.unshaped.triples.add(triple.key);
   const next = field.attr
     ? { ...triple, attrs: withKey(triple.attrs, field.key, after) }
     : withKey(triple, field.key, after);
@@ -154,7 +164,6 @@ function rekey(base: readonly Triple[], triples: Triple[]) {
   const used = new Set(
     triples.filter((triple, i) => !moved(base[i], triple)).map((t) => t.key),
   );
-  const renamed = new Map<string, string>();
   triples.forEach((triple, index) => {
     if (!moved(base[index], triple)) return;
     const triad = [triple.subject, triple.predicate, triple.object];
@@ -162,10 +171,8 @@ function rekey(base: readonly Triple[], triples: Triple[]) {
     while (used.has(tripleKey(triad, variant))) variant++;
     const key = tripleKey(triad, variant);
     used.add(key);
-    renamed.set(triple.key, key);
     triples[index] = { ...triple, key };
   });
-  return renamed;
 }
 
 // why: SA §4.8 and addendum 0.29, D18 — the edits are an overlay over the base graph: the base never
@@ -184,14 +191,17 @@ export function applyEdits(
     const triple = work.triples[index];
     work.triples[index] = { ...triple, retired: isRetired(triple, now) };
   }
-  const renamed = rekey(base.triples, work.triples);
+  rekey(base.triples, work.triples);
+  const { unshaped } = work;
   const graph: Graph = {
     records: work.records,
     entities: work.entities,
     triples: work.triples,
     shapedSet: {
-      records: base.shapedSet.records,
-      triples: base.shapedSet.triples.map((key) => renamed.get(key) ?? key),
+      records: base.shapedSet.records.filter((id) => !unshaped.records.has(id)),
+      triples: base.shapedSet.triples.filter(
+        (key) => !unshaped.triples.has(key),
+      ),
     },
   };
   baseKeys.set(graph, keys);

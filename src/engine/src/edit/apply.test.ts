@@ -327,7 +327,7 @@ describe("S10 the row order and count stay", () => {
 });
 
 describe("S19 a base variant pair", () => {
-  it("re-keys only the edited triple, also in `shapedSet.triples`", () => {
+  it("re-keys only the edited triple; its key leaves `shapedSet.triples`", () => {
     const plain = graphOf({
       nodes: [{ id: "A" }, { id: "B" }],
       edges: [
@@ -347,7 +347,32 @@ describe("S19 a base variant pair", () => {
     );
     const edited = [keyOf("A", "q", "B"), keyOf("A", "p", "B", 1)];
     expect(result.triples.map((t) => t.key)).toEqual(edited);
-    expect(result.shapedSet.triples).toEqual(edited);
+    expect(result.shapedSet.triples).toEqual([keys[1]]);
+  });
+});
+
+// why: PRD-002 FR-CELL-8 rules over rule 4 (lead 2026-10-29) — a typed value resolves `custom`
+describe("S5 and S4 on a shaped dataset", () => {
+  it("gives an edited Predicate and Kind `custom` provenance", () => {
+    const base = graphOf({
+      nodes: [
+        { from: "a", to: "b", kind: "svc" },
+        { from: "c", to: "d", kind: "db" },
+      ],
+      shape: { kind: "rows", subject: "from", object: "to", type: "kind" },
+    });
+    expect(base.shapedSet.records).toEqual(["b", "d"]);
+    const [first, second] = base.triples.map((t) => t.key);
+    expect(base.shapedSet.triples).toEqual([first, second]);
+    const result = apply(
+      base,
+      edit(change({ triple: first }, "predicate", "feedsInto")),
+      edit(change({ record: "b" }, "kind", "warehouse")),
+    );
+    const vocab = vocabOf(result);
+    expect(vocab.predicates.get("feedsInto")?.provenance).toBe("custom");
+    expect(vocab.types.get("warehouse")?.provenance).toBe("custom");
+    expect(result.shapedSet).toEqual({ records: ["d"], triples: [second] });
   });
 });
 
