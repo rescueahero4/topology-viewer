@@ -283,7 +283,7 @@ describe("S14 an edit removes the AI mark of its field", () => {
       before: "One row per paying customer",
       after: "New text",
     });
-    expect(text(value()?.querySelector(".val"))).toBe("New text");
     expect(value()?.querySelector(".ai-mark")).toBeNull();
+    expect(text(value()?.querySelector(".val"))).toBe("New text");
   });
 });
