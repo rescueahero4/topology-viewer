@@ -30,7 +30,9 @@ const EDGE_CORE = new Set([
 // why: STORY-008-04 rule 1 — the value of a cell as the record or the triple holds it
 export function cellValue(row: Row, column: Column): unknown {
   if ("attr" in column)
-    return row.rtype === "node" ? own(row.record.attrs, column.attr) : undefined;
+    return row.rtype === "node"
+      ? own(row.record.attrs, column.attr)
+      : undefined;
   const key = column.core;
   if (row.rtype === "node") {
     if (key === "kind") return row.record.type;

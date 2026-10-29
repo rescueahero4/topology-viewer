@@ -17,6 +17,7 @@ import type { ComponentChildren } from "preact";
 import type { Actions } from "./actions";
 import { TableHead } from "./BulkBar";
 import type { CanvasModel } from "./canvas/index";
+import { checkCell, trySave } from "./edits";
 import type { ShellHost } from "./host";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { closeWorkbench, expandTable, layout } from "./split";
@@ -27,6 +28,7 @@ import {
   frontier,
   lang,
   model,
+  settled as stamped,
 } from "./state";
 import { t } from "./strings/index";
 import { WorkbenchBar } from "./WorkbenchBar";
@@ -138,7 +140,7 @@ function useTableView(
   );
   const order = useKeptOrder(
     [base, sort, filters, ui],
-    { version: editHistory.value.version, settled },
+    { version: editHistory.value.version, settled: stamped.value },
     () => {
       const texts = searchTexts(rows, ui, vocab);
       return sorted()
@@ -284,6 +286,8 @@ function BodyTable({
       ticked={kept.ticked}
       onTick={tick}
       onPress={pressOf(actions, lookup)}
+      onCheck={checkCell}
+      onSave={(row, column, read) => trySave(actions, row, column, read)}
     />
   );
 }

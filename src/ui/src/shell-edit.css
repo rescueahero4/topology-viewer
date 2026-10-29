@@ -1,0 +1,50 @@
+/* STORY-008-04 look (PRD-002 FR-CELL-15): each rule borrows an existing mockup style. */
+
+/* The cell input: the mockup `.wb-search` (styles.css:428-429), all its declarations. */
+.cell-input {
+  width: 224px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--zinc-200);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  color: var(--zinc-900);
+}
+.cell-input:focus {
+  outline: none;
+  border-color: var(--zinc-500);
+}
+
+/* The message text: the mockup `.form-error` (styles.css:381), all its declarations; the shell had
+   it only in the standalone CSS (LEARNINGS 57). */
+.form-error {
+  color: var(--danger) !important;
+  margin-top: 8px !important;
+}
+
+/* The focused cell: the `:focus-visible` outline of the mockup table head (styles.css:442). */
+.wb-table td:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* why: rule 7 — the message card (`.float-card`) sits under the cell in edit, so the cell shows it */
+.wb-table td.editing {
+  overflow: visible;
+}
+.cell-edit {
+  position: relative;
+}
+.cell-msg {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 2;
+}
+.cell-msg .form-error {
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}

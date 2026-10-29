@@ -1,4 +1,9 @@
-import { columnKey, type Column } from "./workbenchColumns";
+import type { EditCode, Lang } from "@qdic-topology/engine";
+import { h, type ComponentChildren, type RefObject } from "preact";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { cellValue, inputOf, type Read } from "./cellEdit";
+import { CellEditor, type Close } from "./CellEditor";
+import { coreName, columnKey, type Column } from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
 // why: STORY-008-04 rule 3 — a cell is named by its row index and its column key, so the focus and
@@ -97,4 +102,124 @@ export function scrollTo(el: HTMLElement, row: number, rowH: number): void {
   if (top < el.scrollTop + head) el.scrollTop = row * rowH;
   else if (top + rowH > el.scrollTop + el.clientHeight)
     el.scrollTop = top + rowH - el.clientHeight;
+}
+
+type Check = (row: Row, column: Column, read: Read) => EditCode | null;
+
+export type Nav = {
+  tab: boolean;
+  focus?: RefObject<HTMLTableCellElement>;
+  onFocus: () => void;
+  onDblClick: () => void;
+  editor: ComponentChildren | null;
+};
+
+type Table = {
+  rows: readonly Row[];
+  columns: readonly Column[];
+  ui: Lang;
+  rowH: number;
+  scroll: RefObject<HTMLDivElement>;
+  measure: (force: boolean) => void;
+  press: (row: Row) => void;
+  onCheck: Check;
+  onSave: Check;
+};
+
+const nameOf = (ui: Lang, column: Column) =>
+  "attr" in column ? column.attr : coreName(ui, column.core);
+
+// why: STORY-008-04 rule 4 — after a save by a press outside, the focus goes back to the cell when
+// the press gave the focus to no other element (the browser moves the focus after `pointerdown`)
+function useLater(cell: RefObject<HTMLTableCellElement>) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return () => {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      const doc = cell.current?.ownerDocument;
+      const now = doc?.activeElement ?? null;
+      if (now === null || now === doc?.body)
+        cell.current?.focus({ preventScroll: true });
+    }, 0);
+  };
+}
+
+// why: STORY-008-04 rules 2, 3, 4, 9 — the focused cell (the one tab stop), the cell in edit, the
+// start by double-click and F2 (it first saves an open editor), the arrow keys, Enter on a cell,
+// and the focus back to the cell after a save or a cancel
+export function useCells(table: Table) {
+  const { rows, columns, ui } = table;
+  const [active, setActive] = useState<At | null>(null);
+  const [editing, setEditing] = useState<At | null>(null);
+  const cell = useRef<HTMLTableCellElement>(null);
+  const want = useRef(false);
+  const holder = useRef<(() => boolean) | null>(null);
+  const later = useLater(cell);
+  const stop = tabStop(rows, columns, active);
+  const posOf = (at: At | null) =>
+    at === null ? -1 : rows.findIndex((r) => r.index === at.index);
+  const open = posOf(editing) >= 0 ? editing : null;
+  useLayoutEffect(() => {
+    if (!want.current) return;
+    want.current = false;
+    cell.current?.focus({ preventScroll: true });
+  });
+  const close = (how: Close) => {
+    holder.current = null;
+    setEditing(null);
+    if (how === "key") want.current = true;
+    if (how === "press") later();
+  };
+  const start = (row: Row, column: Column) => {
+    if (inputOf(row, column, cellValue(row, column)) === null) return;
+    if (open !== null && holder.current !== null && !holder.current()) return;
+    const at = atOf(row, column);
+    setActive(at);
+    setEditing(at);
+  };
+  const editorOf = (row: Row, column: Column) => {
+    const value = cellValue(row, column);
+    const kind = inputOf(row, column, value);
+    if (kind === null) return null;
+    return h(CellEditor, {
+      ...{ ui, kind, value, name: nameOf(ui, column), holder },
+      check: (read: Read) => table.onCheck(row, column, read),
+      save: (read: Read) => table.onSave(row, column, read),
+      onClose: close,
+    });
+  };
+  const nav = (row: Row, column: Column): Nav => {
+    const at = atOf(row, column);
+    const tab = sameAt(at, stop);
+    return {
+      tab,
+      ...(tab ? { focus: cell } : {}),
+      onFocus: () => {
+        if (!sameAt(at, active)) setActive(at);
+      },
+      onDblClick: () => start(row, column),
+      editor: sameAt(at, open) ? editorOf(row, column) : null,
+    };
+  };
+  const onKey = (event: KeyboardEvent) => {
+    const target = event.target as Element;
+    if (stop === null || target.tagName !== "TD") return;
+    const row = rows[posOf(stop)];
+    const column = columns.find((c) => columnKey(c) === stop.key);
+    if (row === undefined || column === undefined) return;
+    if (event.key === "F2") start(row, column);
+    else if (event.key === "Enter") table.press(row);
+    else if (isArrow(event.key)) {
+      const next = moved(rows, columns, stop, event.key);
+      const el = table.scroll.current;
+      if (next === null || el === null) return;
+      scrollTo(el, next.row, table.rowH);
+      table.measure(true);
+      want.current = true;
+      setActive(next.at);
+    } else return;
+    event.preventDefault();
+  };
+  return { nav, onKey, keep: [posOf(open), posOf(stop)] };
 }

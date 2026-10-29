@@ -26,24 +26,34 @@ export function saveEdit(actions: Actions, changes: CellChange[]): void {
   edit.effect = actions.applyEdit(now.graph, vocab, { draw, undraw: [] });
 }
 
-// why: STORY-008-04 rule 4 (PRD-002 FR-CELL-5) — a bad value gives its code and no save; an
-// unchanged value closes the editor with no history step
+type Checked = { code: EditCode | null; change: CellChange | null };
+
+// why: STORY-008-04 rule 4 (PRD-002 FR-CELL-5) — the code of a bad value, or the change; an
+// unchanged value gives no change, so the editor closes with no history step
+function checked(row: Row, column: Column, read: Read): Checked {
+  if ("code" in read) return { code: read.code, change: null };
+  const base = model.peek();
+  const now = editedModel.peek();
+  const input = shownInput.peek();
+  if (base === null || now === null || input === null || !input.ok)
+    return { code: null, change: null };
+  const change = changeOf(base.graph, row, column, read.after);
+  if (sameValue(change.before, change.after))
+    return { code: null, change: null };
+  return { code: checkEdit(now.graph, input.profile, change), change };
+}
+
+export const checkCell = (row: Row, column: Column, read: Read) =>
+  checked(row, column, read).code;
+
+// why: STORY-008-04 rule 4 — a save runs `checkEdit` first; with a code the save does not occur
 export function trySave(
   actions: Actions,
   row: Row,
   column: Column,
   read: Read,
 ): EditCode | null {
-  if ("code" in read) return read.code;
-  const base = model.peek();
-  const now = editedModel.peek();
-  const input = shownInput.peek();
-  if (base === null || now === null || input === null || !input.ok)
-    return null;
-  const change = changeOf(base.graph, row, column, read.after);
-  if (sameValue(change.before, change.after)) return null;
-  const code = checkEdit(now.graph, input.profile, change);
-  if (code !== null) return code;
-  saveEdit(actions, [change]);
-  return null;
+  const { code, change } = checked(row, column, read);
+  if (code === null && change !== null) saveEdit(actions, [change]);
+  return code;
 }
