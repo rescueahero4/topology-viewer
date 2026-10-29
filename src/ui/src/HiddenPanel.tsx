@@ -16,7 +16,7 @@ import { HiddenRow, type Row } from "./HiddenRow";
 import { typeName } from "./names";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { groupText } from "./relations";
-import { canvasState, lang, model } from "./state";
+import { canvasState, editedModel, lang } from "./state";
 import { formatted, MISSING, t } from "./strings/index";
 import { useTip, type Tip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
@@ -118,7 +118,7 @@ type Props = Toggle & { actions: Actions };
 export function HiddenPanel({ actions, open, onToggle }: Props) {
   const tip = useTip();
   const ui = lang.value;
-  const now = model.value;
+  const now = editedModel.value;
   if (now === null) return null;
   const items = hiddenItems.value;
   return (
