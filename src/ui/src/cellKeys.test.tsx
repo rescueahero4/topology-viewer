@@ -84,6 +84,17 @@ describe("S5 Escape cancels and keeps the selection", () => {
     expect(state.selection.value).toBe(picked);
     expect(focused(root)).toBe(f.cellOf(root, "db_RAW", "Name"));
   });
+
+  // why: the choice buttons are no text field, so only the editor keeps Escape from the App
+  it("keeps the selection after Escape on the true/false choice", async () => {
+    const { root } = await f.opened(mountApp, appInput(f.KINDS));
+    f.dblclick(f.cellOf(root, "a", "bool"));
+    const picked = state.selection.value;
+    expect(picked).not.toBeNull();
+    f.key(root.querySelector(".cell-edit button"), "Escape");
+    expect(f.editors(root)).toHaveLength(0);
+    expect(state.selection.value).toBe(picked);
+  });
 });
 
 describe("S12 a start on another cell", () => {
