@@ -17,6 +17,7 @@ vi.useFakeTimers({
 });
 vi.resetModules();
 const f = await import("./cellEditFrame");
+const { mountApp } = await import("./testFrame");
 const { appInput } = await import("./fixtureModel");
 const { datasets } = await import("@qdic-topology/fixtures");
 const { rowsOf } = await import("./workbenchRows");
@@ -83,7 +84,7 @@ describe("S1 editable", () => {
 
 describe("S9 the input of each attribute cell", () => {
   it("opens a number, a date, a choice and text inputs; no editor on a list", async () => {
-    const { root } = await f.opened(kinds());
+    const { root } = await f.opened(mountApp, kinds());
     const open = (id: string, column: string) => {
       f.dblclick(f.cellOf(root, id, column));
       const found = f.editors(root);
@@ -104,7 +105,7 @@ describe("S9 the input of each attribute cell", () => {
   });
 
   it("keeps the time of a date-time and removes the key with No value", async () => {
-    const { root } = await f.opened(kinds());
+    const { root } = await f.opened(mountApp, kinds());
     f.dblclick(f.cellOf(root, "a", "dt"));
     f.type(f.input(root), "2027-05-06T07:08:09+02:00");
     f.key(f.input(root), "Enter");
@@ -117,7 +118,7 @@ describe("S9 the input of each attribute cell", () => {
   });
 
   it("saves No for a true/false cell and gives a null cell a text value", async () => {
-    const { root } = await f.opened(kinds());
+    const { root } = await f.opened(mountApp, kinds());
     f.dblclick(f.cellOf(root, "a", "bool"));
     f.click(f.button(root, "No"));
     f.key(root.querySelector(".cell-edit button"), "Enter");
@@ -136,7 +137,7 @@ describe("S10 a bad value stays in edit with its message", () => {
     column: string,
     bad: (field: HTMLInputElement | null) => void,
   ) => {
-    const frame = await f.opened(kinds());
+    const frame = await f.opened(mountApp, kinds());
     f.dblclick(f.cellOf(frame.root, id, column));
     bad(f.input(frame.root));
     f.key(f.input(frame.root), "Enter");
@@ -173,7 +174,7 @@ describe("S10 a bad value stays in edit with its message", () => {
 
 describe("S11 an empty input clears the value", () => {
   it("removes service_name, description and a text attribute", async () => {
-    const { root } = await f.opened(kinds());
+    const { root } = await f.opened(mountApp, kinds());
     for (const column of ["System", "Description", "s"]) {
       f.dblclick(f.cellOf(root, "a", column));
       f.type(f.input(root), "");
@@ -188,18 +189,19 @@ describe("S11 an empty input clears the value", () => {
   });
 });
 
-describe("S14 no editor for the cells of STORY-008-05", () => {
-  it("presses the row only on Kind, Predicate, edge Name, Subject and Object", async () => {
-    const { root } = await f.opened(appInput(datasets.catalog.graph));
+// why: S14 ran before STORY-008-05 on this branch (commit fee11c1); STORY-008-05 rule 1 gives the
+// Kind, Predicate, edge Name, Subject and Object cells their lists, so the cell that keeps no
+// editor until STORY-008-06 is the edge Attributes cell
+describe("S14 no editor for a cell whose editor comes later", () => {
+  it("presses the row only on the edge Attributes cell", async () => {
+    const { root } = await f.opened(mountApp, appInput(datasets.catalog.graph));
     f.search(root, "t_FCT_REVENUE");
     const edge = f.rows(root).find((tr) => f.text(tr).includes("contains"));
-    const at = (name: string) =>
-      edge?.children[f.heads(root).indexOf(name)] as Element;
-    f.dblclick(f.cellOf(root, "t_FCT_REVENUE", "Kind"));
+    f.dblclick(edge?.children[f.heads(root).indexOf("Attributes")]);
     expect(state.selection.value).not.toBeNull();
-    for (const name of ["Predicate", "Name", "Subject", "Object"])
-      f.dblclick(at(name));
     expect(f.editors(root)).toHaveLength(0);
     expect(active()).toHaveLength(0);
+    f.dblclick(f.cellOf(root, "t_FCT_REVENUE", "Kind"));
+    expect(f.editors(root)).toHaveLength(1);
   });
 });

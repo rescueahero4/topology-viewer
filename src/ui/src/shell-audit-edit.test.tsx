@@ -17,6 +17,7 @@ vi.useFakeTimers({
 });
 vi.resetModules();
 const f = await import("./cellEditFrame");
+const { mountApp } = await import("./testFrame");
 const { appInput } = await import("./fixtureModel");
 const { hostilePayload, shellAudit, MARKERS } = await import("./shellAudit");
 const { domAudit } = await import("./canvas/domAudit");
@@ -44,7 +45,7 @@ function canvasAudit(root: Element): string[] {
 
 describe("S15 typed hostile values reach text nodes and input values only", () => {
   it("saves each marker into Name, System and a text attribute with no attribute finding", async () => {
-    const { root } = await f.opened(appInput(payload()));
+    const { root } = await f.opened(mountApp, appInput(payload()));
     f.search(root, MARKERS[0]);
     const columns = ["Name", "System", `${MARKERS[3]}${TAIL}`];
     MARKERS.forEach((marker, i) => {
@@ -61,7 +62,7 @@ describe("S15 typed hostile values reach text nodes and input values only", () =
   });
 
   it("keeps the ids of the editor and the message free of a column name", async () => {
-    const { root } = await f.opened(appInput(payload()));
+    const { root } = await f.opened(mountApp, appInput(payload()));
     f.search(root, MARKERS[0]);
     f.dblclick(f.cellOf(root, ROW, NUMBER_KEY));
     f.markBad(f.input(root));

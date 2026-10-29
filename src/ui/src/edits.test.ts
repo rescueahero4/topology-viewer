@@ -1,10 +1,4 @@
-import type {
-  DrawnId,
-  EditEffect,
-  Graph,
-  OnCanvas,
-  Vocab,
-} from "@qdic-topology/engine";
+import type { EditEffect, Graph, OnCanvas, Vocab } from "@qdic-topology/engine";
 import { datasets } from "@qdic-topology/fixtures";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Actions } from "./actions";
@@ -22,7 +16,7 @@ import { rowsOf, type Row } from "./workbenchRows";
 
 type Applied = { graph: Graph; vocab: Vocab; ends: EditEnds };
 
-const EFFECT: EditEffect = { drew: ["e:x" as DrawnId], undrew: [] };
+const EFFECT: EditEffect = { drew: ["e:x"], undrew: [] };
 
 // why: rule 6 — the save path reaches the canvas only through `Actions`; this fake records it
 function fakeActions(states: Record<string, OnCanvas> = {}) {

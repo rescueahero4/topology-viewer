@@ -5,10 +5,13 @@ import {
   MESSAGES,
   readField,
   startText,
+  type FieldKind,
   type InputKind,
   type Read,
 } from "./cellEdit";
 import { useElementId } from "./ids";
+import { NodePick } from "./NodePick";
+import { PickList } from "./PickList";
 import { t, tAround } from "./strings/index";
 
 export type Close = "key" | "press" | "start";
@@ -24,7 +27,7 @@ export type EditorProps = {
   holder: { current: (() => boolean) | null };
 };
 
-const TYPES: Readonly<Record<Exclude<InputKind, "boolean">, string>> = {
+const TYPES: Readonly<Record<FieldKind, string>> = {
   text: "text",
   datetime: "text",
   number: "number",
@@ -129,22 +132,43 @@ function useField(kind: InputKind, value: unknown) {
   return field;
 }
 
+type Picks = {
+  kind: InputKind;
+  reader: { current: (() => Read | null) | null };
+};
+
+// why: STORY-008-04 rule 5, STORY-008-05 rules 2-4 — the value that a save reads: the choice, the
+// input, or the item or free text of a list (`null`: a node search with no active item)
+function readOf(
+  { kind, reader }: Picks,
+  choice: unknown,
+  field: HTMLInputElement | null,
+): Read | null {
+  if (kind === "boolean") return { after: choice };
+  if (kind === "kind" || kind === "predicate" || kind === "node")
+    return reader.current?.() ?? null;
+  return field === null ? null : readField(kind, field);
+}
+
 // why: STORY-008-04 rules 4, 5, 7, 8 — the editor of one cell: Enter and a press outside save,
 // Escape cancels; a bad value keeps the editor open with its message; the input takes the name
-// "Edit <column>" from a text node
+// "Edit <column>" from a text node. With nothing to save (a node search with no active item),
+// Enter does nothing and a press outside closes the editor with no save
 export function CellEditor(props: EditorProps) {
   const { ui, kind, value, name, check, save, onClose, holder } = props;
   const box = useRef<HTMLDivElement>(null);
   const field = useField(kind, value);
+  const reader = useRef<(() => Read | null) | null>(null);
   const [choice, setChoice] = useState<unknown>(value ?? undefined);
   const [code, setCode] = useState<EditCode | null>(null);
   const ids = { name: useElementId(), message: useElementId() };
-  const read = (): Read =>
-    kind === "boolean" || field.current === null
-      ? { after: choice }
-      : readField(kind, field.current);
-  const done = (how: Close) => {
-    const found = save(read());
+  const read = () => readOf({ kind, reader }, choice, field.current);
+  const done = (how: Close, given: Read | null = read()) => {
+    if (given === null) {
+      if (how !== "key") onClose(how);
+      return how !== "key";
+    }
+    const found = save(given);
     setCode(found);
     if (found === null) onClose(how);
     return found === null;
@@ -153,8 +177,11 @@ export function CellEditor(props: EditorProps) {
   usePressOutside(box, () => done("press"));
   const [before, after] = tAround(ui, "edit.name", "column");
   const onInput = () => {
-    if (code !== null) setCode(check(read()));
+    const now = read();
+    if (code !== null && now !== null) setCode(check(now));
   };
+  const pick = { ui, value, ids, code, reader, onInput };
+  const onPick = (given: Read) => void done("key", given);
   return (
     <div
       ref={box}
@@ -174,6 +201,10 @@ export function CellEditor(props: EditorProps) {
       </span>
       {kind === "boolean" ? (
         <Choice {...{ ui, ids, code }} choice={choice} onPick={setChoice} />
+      ) : kind === "kind" || kind === "predicate" ? (
+        <PickList {...pick} kind={kind} onPick={onPick} />
+      ) : kind === "node" ? (
+        <NodePick {...pick} onPick={onPick} />
       ) : (
         <Field {...{ ids, code, kind, field, onInput }} />
       )}
@@ -189,7 +220,7 @@ function Field({
   field,
   onInput,
 }: Shared & {
-  kind: Exclude<InputKind, "boolean">;
+  kind: FieldKind;
   field: { current: HTMLInputElement | null };
   onInput: () => void;
 }): ComponentChildren {

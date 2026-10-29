@@ -145,26 +145,65 @@ function useLater(cell: RefObject<HTMLTableCellElement>) {
   };
 }
 
+type Editing = {
+  table: Table;
+  holder: { current: (() => boolean) | null };
+  onClose: (how: Close) => void;
+};
+
+function editorOf(
+  { table, holder, onClose }: Editing,
+  row: Row,
+  column: Column,
+) {
+  const value = cellValue(row, column);
+  const kind = inputOf(row, column, value);
+  if (kind === null) return null;
+  const { ui } = table;
+  return h(CellEditor, {
+    ...{ ui, kind, value, name: nameOf(ui, column), holder, onClose },
+    check: (read: Read) => table.onCheck(row, column, read),
+    save: (read: Read) => table.onSave(row, column, read),
+  });
+}
+
+// why: STORY-008-04 rule 3 — an arrow key moves the focus and scrolls the new row into view
+function arrowTo(table: Table, at: At, key: string): At | null {
+  const next = moved(table.rows, table.columns, at, key);
+  const el = table.scroll.current;
+  if (next === null || el === null) return null;
+  scrollTo(el, next.row, table.rowH);
+  table.measure(true);
+  return next.at;
+}
+
+// why: STORY-008-04 rules 3, 4 — after a key move, a save or a cancel by a key, the render
+// focuses the tab-stop cell (the page already scrolled it into view)
+function useFocusAfter(cell: RefObject<HTMLTableCellElement>) {
+  const want = useRef(false);
+  useLayoutEffect(() => {
+    if (!want.current) return;
+    want.current = false;
+    cell.current?.focus({ preventScroll: true });
+  });
+  return want;
+}
+
 // why: STORY-008-04 rules 2, 3, 4, 9 — the focused cell (the one tab stop), the cell in edit, the
 // start by double-click and F2 (it first saves an open editor), the arrow keys, Enter on a cell,
 // and the focus back to the cell after a save or a cancel
 export function useCells(table: Table) {
-  const { rows, columns, ui } = table;
+  const { rows, columns } = table;
   const [active, setActive] = useState<At | null>(null);
   const [editing, setEditing] = useState<At | null>(null);
   const cell = useRef<HTMLTableCellElement>(null);
-  const want = useRef(false);
+  const want = useFocusAfter(cell);
   const holder = useRef<(() => boolean) | null>(null);
   const later = useLater(cell);
   const stop = tabStop(rows, columns, active);
   const posOf = (at: At | null) =>
     at === null ? -1 : rows.findIndex((r) => r.index === at.index);
   const open = posOf(editing) >= 0 ? editing : null;
-  useLayoutEffect(() => {
-    if (!want.current) return;
-    want.current = false;
-    cell.current?.focus({ preventScroll: true });
-  });
   const close = (how: Close) => {
     holder.current = null;
     setEditing(null);
@@ -178,17 +217,6 @@ export function useCells(table: Table) {
     setActive(at);
     setEditing(at);
   };
-  const editorOf = (row: Row, column: Column) => {
-    const value = cellValue(row, column);
-    const kind = inputOf(row, column, value);
-    if (kind === null) return null;
-    return h(CellEditor, {
-      ...{ ui, kind, value, name: nameOf(ui, column), holder },
-      check: (read: Read) => table.onCheck(row, column, read),
-      save: (read: Read) => table.onSave(row, column, read),
-      onClose: close,
-    });
-  };
   const nav = (row: Row, column: Column): Nav => {
     const at = atOf(row, column);
     const tab = sameAt(at, stop);
@@ -199,7 +227,9 @@ export function useCells(table: Table) {
         if (!sameAt(at, active)) setActive(at);
       },
       onDblClick: () => start(row, column),
-      editor: sameAt(at, open) ? editorOf(row, column) : null,
+      editor: sameAt(at, open)
+        ? editorOf({ table, holder, onClose: close }, row, column)
+        : null,
     };
   };
   const onKey = (event: KeyboardEvent) => {
@@ -211,15 +241,14 @@ export function useCells(table: Table) {
     if (event.key === "F2") start(row, column);
     else if (event.key === "Enter") table.press(row);
     else if (isArrow(event.key)) {
-      const next = moved(rows, columns, stop, event.key);
-      const el = table.scroll.current;
-      if (next === null || el === null) return;
-      scrollTo(el, next.row, table.rowH);
-      table.measure(true);
+      const next = arrowTo(table, stop, event.key);
+      if (next === null) return;
       want.current = true;
-      setActive(next.at);
+      setActive(next);
     } else return;
     event.preventDefault();
   };
-  return { nav, onKey, keep: [posOf(open), posOf(stop)] };
+  // why: rule 9 — the row in edit stays rendered; the focused row too, once the user focused a cell
+  const kept = active === null ? -1 : posOf(stop);
+  return { nav, onKey, keep: [posOf(open), kept] };
 }

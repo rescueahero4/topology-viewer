@@ -17,11 +17,12 @@ vi.useFakeTimers({
 });
 vi.resetModules();
 const f = await import("./cellEditFrame");
+const { mountApp } = await import("./testFrame");
 const { appInput } = await import("./fixtureModel");
 const { datasets } = await import("@qdic-topology/fixtures");
 const state = await import("./state");
 
-const catalog = () => f.opened(appInput(datasets.catalog.graph));
+const catalog = () => f.opened(mountApp, appInput(datasets.catalog.graph));
 const active = () => state.editHistory.value.history.active();
 const stops = (root: Element) => [
   ...root.querySelectorAll<HTMLElement>(".wb-table tbody td[tabindex='0']"),
@@ -120,9 +121,12 @@ describe("S6 a press outside the editor", () => {
     f.type(f.input(root), "");
     f.click(bar);
     expect(f.editors(root)).toHaveLength(1);
+    expect(f.input(root)?.getAttribute("aria-invalid")).toBe("true");
     expect(f.input(root)?.getAttribute("aria-describedby")).toBe(
       root.querySelector(".cell-msg p")?.id,
     );
+    const live = root.querySelector(".cell-edit [aria-live=polite]");
+    expect(f.text(live)).toBe("Type a value. This cell cannot be empty.");
     f.type(f.input(root), "RAW_EU");
     f.click(bar);
     expect(f.editors(root)).toHaveLength(0);

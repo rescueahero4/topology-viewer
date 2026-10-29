@@ -9,7 +9,20 @@ import type { Key } from "./strings/index";
 import type { Column } from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
-export type InputKind = "text" | "number" | "date" | "datetime" | "boolean";
+export type InputKind =
+  | "text"
+  | "number"
+  | "date"
+  | "datetime"
+  | "boolean"
+  | "kind"
+  | "predicate"
+  | "node";
+
+export type FieldKind = Exclude<
+  InputKind,
+  "boolean" | "kind" | "predicate" | "node"
+>;
 
 // why: STORY-008-04 rule 5 — a date-only value takes the browser date input; any other date form
 // (a date-time with its time and zone) takes a text input with the `checkEdit` ISO 8601 check
@@ -25,6 +38,16 @@ const EDGE_CORE = new Set([
   "subject",
   "object",
   "attributes",
+]);
+
+const CORE_INPUTS = new Map<string, InputKind>([
+  ["kind", "kind"],
+  ["name", "text"],
+  ["system", "text"],
+  ["description", "text"],
+  ["predicate", "predicate"],
+  ["subject", "node"],
+  ["object", "node"],
 ]);
 
 // why: STORY-008-04 rule 1 — the value of a cell as the record or the triple holds it
@@ -58,9 +81,9 @@ export function editable(row: Row, column: Column, value: unknown): boolean {
   return (row.rtype === "node" ? NODE_CORE : EDGE_CORE).has(column.core);
 }
 
-// why: STORY-008-04 rule 5 — the input of an editable cell; `null` for a cell whose editor comes in
-// a later story (Context: Kind, Predicate, edge Name, Subject, Object in STORY-008-05; the edge
-// facts form in STORY-008-06)
+// why: STORY-008-04 rule 5 — the input of an editable cell. STORY-008-05 rule 1 — Kind takes the
+// type list, an edge Name and Predicate the predicate list, Subject and Object the node search;
+// `null` for the edge facts, whose form comes in STORY-008-06
 export function inputOf(
   row: Row,
   column: Column,
@@ -68,7 +91,9 @@ export function inputOf(
 ): InputKind | null {
   if (!editable(row, column, value)) return null;
   if ("core" in column)
-    return row.rtype === "node" && column.core !== "kind" ? "text" : null;
+    return row.rtype === "edge" && column.core === "name"
+      ? "predicate"
+      : (CORE_INPUTS.get(column.core) ?? null);
   const kind = valueKind(value);
   if (kind === "number") return "number";
   if (kind === "boolean") return "boolean";
@@ -93,7 +118,7 @@ type Field = { value: string; validity: { badInput: boolean } };
 // why: STORY-008-04 rule 5 — the browser gives an empty `value` for a bad number or a bad date, so
 // `badInput` decides first and a bad input never clears the cell; only an empty input with no bad
 // input clears (FR-CELL-5)
-export function readField(kind: InputKind, field: Field): Read {
+export function readField(kind: FieldKind, field: Field): Read {
   const bad = field.validity.badInput;
   if (kind === "number" && bad) return { code: "not-a-number" };
   if (kind === "date" && bad) return { code: "not-a-date" };

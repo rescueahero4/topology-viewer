@@ -1,7 +1,6 @@
 import { act } from "preact/test-utils";
 import { vi } from "vitest";
 import type { AppInput } from "./App";
-import { mountApp } from "./testFrame";
 
 // why: STORY-008-04 test plan — the shared steps of the cell editor tests; the caller turns on the
 // fake clock and imports this module with `await import` (testFrame.ts rule 15)
@@ -109,9 +108,19 @@ export function search(root: Element, value: string): void {
   });
 }
 
-export async function opened(input: AppInput, lang: "en" | "ja" = "en") {
+type Mount = (
+  input: AppInput,
+  options: { lang: "en" | "ja"; locale: string },
+) => Promise<{ root: HTMLElement }>;
+
+// why: the caller gives `mountApp` of `testFrame.ts` (only a test imports it, lint rule 12)
+export async function opened(
+  mount: Mount,
+  input: AppInput,
+  lang: "en" | "ja" = "en",
+) {
   if (!input.ok) throw new Error("fatal");
-  const frame = await mountApp(input, {
+  const frame = await mount(input, {
     lang,
     locale: lang === "ja" ? "ja-JP" : "en-US",
   });

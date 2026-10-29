@@ -48,3 +48,16 @@
   font-size: 12px;
   white-space: nowrap;
 }
+
+/* STORY-008-05 look: the Kind and Predicate list is the mockup `.pick-menu` (styles.css:113) and
+   the node list is the canvas `.search-results` list (styles.css:195); both open under the cell. */
+.cell-edit .menu {
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
+}
+/* why: STORY-008-05 rule 5 — the active item takes the active-row look of the canvas search list
+   (`.search-results li[aria-selected=true]`, styles.css:197) */
+.pick-list .pick-item[aria-selected="true"] {
+  background: var(--zinc-100);
+}
