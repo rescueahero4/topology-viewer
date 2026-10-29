@@ -69,6 +69,18 @@ describe("S8 the node search of a Subject cell", () => {
     expect(options(root)).toHaveLength(50);
     expect(active()).toHaveLength(0);
   });
+
+  it("gives empty on Enter in an emptied field and saves nothing", async () => {
+    const { root } = await f.opened(mountApp, appInput(datasets.catalog.graph));
+    f.search(root, "t_FCT_REVENUE");
+    const at = edgeOf(root, "t_FCT_REVENUE", "contains");
+    f.dblclick(at("Subject"));
+    f.type(combo(root), "");
+    f.key(combo(root), "Enter");
+    expect(f.editors(root)).toHaveLength(1);
+    expect(f.message(root)).toBe("Type a value. This cell cannot be empty.");
+    expect(combo(root)?.getAttribute("aria-invalid")).toBe("true");
+  });
 });
 
 describe("S11 a Subject equal to the Object", () => {
