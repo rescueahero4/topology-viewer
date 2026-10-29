@@ -190,8 +190,9 @@ describe("S11 an empty input clears the value", () => {
 });
 
 // why: S14 ran before STORY-008-05 on this branch (commit fee11c1); STORY-008-05 rule 1 gives the
-// Kind, Predicate, edge Name, Subject and Object cells their lists, so the cell that keeps no
-// editor until STORY-008-06 is the edge Attributes cell
+// Kind, Predicate, edge Name, Subject and Object cells their lists, and STORY-008-06 rule 1 gives an
+// edge with facts its form, so the cell that keeps no editor is the Attributes cell of an edge with
+// no fact (the `catalog` `contains` edges)
 describe("S14 no editor for a cell whose editor comes later", () => {
   it("presses the row only on the edge Attributes cell", async () => {
     const { root } = await f.opened(mountApp, appInput(datasets.catalog.graph));

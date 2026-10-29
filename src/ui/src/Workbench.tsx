@@ -17,7 +17,8 @@ import type { ComponentChildren } from "preact";
 import type { Actions } from "./actions";
 import { TableHead } from "./BulkBar";
 import type { CanvasModel } from "./canvas/index";
-import { checkCell, trySave } from "./edits";
+import { editKeys } from "./editKeys";
+import { checkCell, redoEdit, trySave, undoEdit } from "./edits";
 import type { ShellHost } from "./host";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { closeWorkbench, expandTable, layout } from "./split";
@@ -161,6 +162,9 @@ function useTableView(
 
 type View = ReturnType<typeof useTableView>;
 
+// why: STORY-008-07 rule 2 — the rows that the shown list of the Workbench holds, by row index
+const shownSet = (view: View) => new Set(view.shown.map((row) => row.index));
+
 // why: rule 4 (mockup app.js lines 1063-1065) — "N rows" or "N of M rows", the canvas part only
 // when the scope mode is not `all`, and the hidden part only when something is hidden
 function countText(ui: Lang, now: CanvasModel, view: View): string {
@@ -180,6 +184,16 @@ function countText(ui: Lang, now: CanvasModel, view: View): string {
     );
   if (view.hidden > 0) parts.push(t(ui, "wb.hidden", { count: view.hidden }));
   return parts.join("");
+}
+
+// why: STORY-008-08 rules 1, 6 — each button is off when its list is empty; a new dataset empties
+// both (STORY-008-02 rule 7)
+function editsOf(actions: Actions) {
+  const { history } = editHistory.value;
+  return {
+    undo: history.done.length > 0 ? () => undoEdit(actions) : null,
+    redo: history.undone.length > 0 ? () => redoEdit(actions) : null,
+  };
 }
 
 // why: rule 7 (mockup app.js lines 1213-1233) — a row with a hidden entity restores its Hidden
@@ -287,7 +301,9 @@ function BodyTable({
       onTick={tick}
       onPress={pressOf(actions, lookup)}
       onCheck={checkCell}
-      onSave={(row, column, read) => trySave(actions, row, column, read)}
+      onSave={(row, column, read) =>
+        trySave(actions, row, column, read, shownSet(view))
+      }
     />
   );
 }
@@ -315,6 +331,7 @@ function WorkbenchBody(props: BodyProps) {
           update((s) => ({ choice: choose(s.choice, column, on) }))
         }
         count={countText(ui, now, view)}
+        edits={editsOf(props.actions)}
         hidden={view.hidden}
         layout={layout.value}
         onExpand={() => expandTable(host)}
@@ -361,6 +378,7 @@ export function Workbench({ id, actions, host, start }: Props) {
       class="workbench"
       aria-label={t(ui, "datasetTable")}
       inert={!open}
+      onKeyDown={editKeys(actions)}
     >
       {open && base !== null && now !== null && actions !== null && (
         <WorkbenchBody

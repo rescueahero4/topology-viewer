@@ -1,9 +1,22 @@
 import type { EditCode, Lang } from "@qdic-topology/engine";
 import { h, type ComponentChildren, type RefObject } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
-import { cellValue, inputOf, type Read } from "./cellEdit";
+import {
+  cellValue,
+  factsOf,
+  inputOf,
+  type Read,
+  type Saved,
+  type Target,
+} from "./cellEdit";
 import { CellEditor, type Close } from "./CellEditor";
-import { coreName, columnKey, type Column } from "./workbenchColumns";
+import { FactsForm } from "./FactsForm";
+import {
+  attributesText,
+  coreName,
+  columnKey,
+  type Column,
+} from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
 // why: STORY-008-04 rule 3 — a cell is named by its row index and its column key, so the focus and
@@ -104,7 +117,8 @@ export function scrollTo(el: HTMLElement, row: number, rowH: number): void {
     el.scrollTop = top + rowH - el.clientHeight;
 }
 
-type Check = (row: Row, column: Column, read: Read) => EditCode | null;
+type Check = (row: Row, column: Target, read: Read) => EditCode | null;
+type Save = (row: Row, column: Target, read: Read) => Saved;
 
 export type Nav = {
   tab: boolean;
@@ -123,7 +137,7 @@ type Table = {
   measure: (force: boolean) => void;
   press: (row: Row) => void;
   onCheck: Check;
-  onSave: Check;
+  onSave: Save;
 };
 
 const nameOf = (ui: Lang, column: Column) =>
@@ -160,6 +174,15 @@ function editorOf(
   const kind = inputOf(row, column, value);
   if (kind === null) return null;
   const { ui } = table;
+  if (kind === "facts" && row.rtype === "edge")
+    return h(FactsForm, {
+      ...{ ui, holder, onClose },
+      text: attributesText(ui, row.triple),
+      facts: factsOf(row.triple),
+      check: (fact: string, read: Read) => table.onCheck(row, { fact }, read),
+      save: (fact: string, read: Read) => table.onSave(row, { fact }, read),
+    });
+  if (kind === "facts") return null;
   return h(CellEditor, {
     ...{ ui, kind, value, name: nameOf(ui, column), holder, onClose },
     check: (read: Read) => table.onCheck(row, column, read),

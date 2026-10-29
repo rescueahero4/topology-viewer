@@ -89,6 +89,21 @@ export function cellOf(root: Element, id: string, column: string) {
   return td as HTMLTableCellElement;
 }
 
+// why: STORY-008-07 — the items of the "this row or all rows" choice under the cell in edit
+export const choice = (root: Element) => [
+  ...root.querySelectorAll<HTMLElement>(
+    ".cell-edit [role=menu] [role=menuitem]",
+  ),
+];
+
+// why: STORY-008-07 rule 1 — a save of a value that 2 or more rows share asks; the first item saves
+// this row only
+export function thisRow(root: Element): void {
+  const item = choice(root)[0];
+  if (item === undefined) throw new Error("no choice");
+  click(item);
+}
+
 export const editors = (root: Element) => [
   ...root.querySelectorAll<HTMLElement>(".cell-edit"),
 ];

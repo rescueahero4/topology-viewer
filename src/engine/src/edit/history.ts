@@ -3,8 +3,10 @@ import type { Edit } from "./types";
 // why: PRD-002 FR-CELL-11 — the history keeps the last 20 edits of the session
 const LIMIT = 20;
 
-// why: SA §4.8 — plain arrays and no timers or DOM; the edited graph is `applyEdits` over `active()`
+// why: SA §4.8 — plain arrays and no timers or DOM; the edited graph is `applyEdits` over `active()`.
+// An edit dropped above 20 stays applied but cannot be undone (SA addendum 0.32)
 export class EditHistory {
+  private readonly keptList: Edit[] = [];
   private readonly doneList: Edit[] = [];
   private readonly undoneList: Edit[] = [];
 
@@ -18,7 +20,8 @@ export class EditHistory {
 
   push(edit: Edit): void {
     this.doneList.push(edit);
-    if (this.doneList.length > LIMIT) this.doneList.shift();
+    if (this.doneList.length > LIMIT)
+      this.keptList.push(...this.doneList.splice(0, 1));
     this.undoneList.length = 0;
   }
 
@@ -37,6 +40,6 @@ export class EditHistory {
   }
 
   active(): readonly Edit[] {
-    return [...this.doneList];
+    return [...this.keptList, ...this.doneList];
   }
 }

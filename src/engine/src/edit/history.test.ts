@@ -13,11 +13,13 @@ const editOf = (n: number): Edit => ({
 describe("S14 the 20-step history", () => {
   const edits = Array.from({ length: 22 }, (_, i) => editOf(i + 1));
 
-  it("drops the oldest edit above 20", () => {
+  it("drops the oldest edit above 20 from the steps and keeps it applied", () => {
     const history = new EditHistory();
     edits.slice(0, 21).forEach((edit) => history.push(edit));
     expect(history.done).toEqual(edits.slice(1, 21));
-    expect(history.active()).toEqual(edits.slice(1, 21));
+    expect(history.active()).toEqual(edits.slice(0, 21));
+    while (history.undo() !== null);
+    expect(history.active()).toEqual([edits[0]]);
   });
 
   it("undoes and redoes the moved edit in order", () => {
@@ -33,7 +35,7 @@ describe("S14 the 20-step history", () => {
     expect(history.undone).toEqual([]);
     expect(history.redo()).toBeNull();
     expect(history.active().at(-1)).toBe(edits[21]);
-    expect(history.active()).toHaveLength(20);
+    expect(history.active()).toHaveLength(21);
   });
 
   it("gives `null` for undo and redo on an empty history", () => {

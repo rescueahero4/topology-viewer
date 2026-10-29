@@ -100,6 +100,7 @@ describe("S2 S3 S4 the Kind list", () => {
       "View",
     );
     f.key(combo(root), "Enter");
+    f.thisRow(root);
     expect(plain(f.cellOf(root, "t_FCT_REVENUE", "Kind"))).toBe("View");
     expect(active()).toHaveLength(1);
   });
@@ -110,6 +111,7 @@ describe("S2 S3 S4 the Kind list", () => {
     f.dblclick(f.cellOf(root, "t_FCT_REVENUE", "Kind"));
     f.type(combo(root), "data_contract");
     f.key(combo(root), "Enter");
+    f.thisRow(root);
     const kind = f.cellOf(root, "t_FCT_REVENUE", "Kind");
     expect(f.text(kind.querySelector(".prov"))).toBe("[custom]");
     expect(plain(kind)).toBe("DCData contract");
@@ -153,6 +155,7 @@ describe("S7 S5 a Predicate edit", () => {
     f.type(combo(root), "derivedFrom");
     f.key(combo(root), "ArrowDown");
     f.key(combo(root), "Enter");
+    f.thisRow(root);
     expect([plain(at("Name")), plain(at("Predicate"))]).toEqual([
       "derivedFrom",
       "derivedFrom",
@@ -160,6 +163,7 @@ describe("S7 S5 a Predicate edit", () => {
     f.dblclick(at("Predicate"));
     f.type(combo(root), "reviewedBy");
     f.key(combo(root), "Enter");
+    f.thisRow(root);
     expect(f.text(at("Family"))).toBe("Custom");
     f.dblclick(at("Predicate"));
     expect(names(root)).toContain("reviewedBy");
@@ -179,6 +183,7 @@ describe("S12 the list keys and a press on an item", () => {
     expect(options(root)[1].getAttribute("aria-selected")).toBe("true");
     const picked = f.text(options(root)[4].querySelector(".nm"));
     f.click(options(root)[4]);
+    f.thisRow(root);
     expect(plain(f.cellOf(root, "t_FCT_REVENUE", "Kind"))).toBe(picked);
   });
 });
