@@ -1,5 +1,6 @@
 import {
   entityOfDrawnId,
+  type EditCode,
   type Lang,
   type OnCanvas,
   type Provenance,
@@ -8,6 +9,8 @@ import {
 } from "@qdic-topology/engine";
 import type { ComponentChildren, RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
+import type { Read } from "./cellEdit";
+import { partsOf, useCells, type Nav } from "./cellFocus";
 import { Checkbox } from "./Checkbox";
 import { EyeIcon } from "./EyeIcon";
 import { familyClass } from "./familyLook";
@@ -101,63 +104,76 @@ type Cells = {
   state: OnCanvas;
 };
 
+type Anchor = ReturnType<Tip["anchor"]>;
+type Body = { body: ComponentChildren; anchor: Anchor | null };
+
 // why: rule 2 — a long cell keeps one line (shell-workbench.css) and its full text is in the one
 // `Tooltip` of the table; the text is a text node, never an attribute (SA §11)
+function bodyOf(cells: Cells, column: Column, row: Row): Body {
+  const { ui, vocab, tip, state } = cells;
+  if ("core" in column && column.core === "canvas")
+    return { body: <EyeIcon state={state} />, anchor: null };
+  const text = cellText(ui, vocab, column, row);
+  if (text === "") return { body: null, anchor: null };
+  const anchor = tip.anchor(`${row.index}:${columnKey(column)}`, text);
+  const core = "core" in column ? column.core : null;
+  if (core === "id") return { body: <code>{text}</code>, anchor };
+  if (core === "type")
+    return { body: <span class={`t-${row.rtype}`}>{text}</span>, anchor: null };
+  if (core === "kind" && row.rtype === "node")
+    return { body: <KindCell {...{ ui, text, row, vocab }} />, anchor };
+  if (core === "predicate" && row.rtype === "edge") {
+    const provenance = vocab.predicates.get(row.predicate)?.provenance;
+    const tag = <ProvTag ui={ui} provenance={provenance} />;
+    return {
+      body: (
+        <>
+          {text}
+          {tag}
+        </>
+      ),
+      anchor,
+    };
+  }
+  if (core === "name" && row.rtype === "edge")
+    return { body: <span class="pred">{text}</span>, anchor };
+  if (core === "family" && row.rtype === "edge") {
+    const family = `fam ${familyClass(row.family)}`;
+    return { body: <span class={family}>{text}</span>, anchor };
+  }
+  return { body: text, anchor };
+}
+
 function Cell({
   column,
   row,
-  ui,
-  vocab,
-  tip,
-  state,
-}: Cells & { column: Column; row: Row }) {
-  if ("core" in column && column.core === "canvas")
+  nav,
+  ...cells
+}: Cells & { column: Column; row: Row; nav: Nav }) {
+  const own = {
+    tabIndex: nav.tab ? 0 : -1,
+    ref: nav.focus,
+    onDblClick: nav.onDblClick,
+  };
+  if (nav.editor !== null)
     return (
-      <td>
-        <EyeIcon state={state} />
+      <td class="editing" {...own}>
+        {nav.editor}
       </td>
     );
-  const text = cellText(ui, vocab, column, row);
-  if (text === "") return <td />;
-  const anchor = tip.anchor(`${row.index}:${columnKey(column)}`, text);
-  if (!("core" in column)) return <td {...anchor}>{text}</td>;
-  if (column.core === "id")
-    return (
-      <td {...anchor}>
-        <code>{text}</code>
-      </td>
-    );
-  if (column.core === "type")
-    return (
-      <td>
-        <span class={`t-${row.rtype}`}>{text}</span>
-      </td>
-    );
-  if (column.core === "kind" && row.rtype === "node")
-    return <KindCell {...{ ui, text, row, vocab, anchor }} />;
-  if (column.core === "predicate" && row.rtype === "edge")
-    return (
-      <td {...anchor}>
-        {text}
-        <ProvTag
-          ui={ui}
-          provenance={vocab.predicates.get(row.predicate)?.provenance}
-        />
-      </td>
-    );
-  if (column.core === "name" && row.rtype === "edge")
-    return (
-      <td {...anchor}>
-        <span class="pred">{text}</span>
-      </td>
-    );
-  if (column.core === "family" && row.rtype === "edge")
-    return (
-      <td {...anchor}>
-        <span class={`fam ${familyClass(row.family)}`}>{text}</span>
-      </td>
-    );
-  return <td {...anchor}>{text}</td>;
+  const { body, anchor } = bodyOf(cells, column, row);
+  return (
+    <td
+      {...anchor}
+      {...own}
+      onFocus={(event) => {
+        anchor?.onFocus(event);
+        nav.onFocus();
+      }}
+    >
+      {body}
+    </td>
+  );
 }
 
 // why: FR-VOC-3 (ISSUE-012 C7) — the inspector tag after the Kind of a node row and the Predicate
@@ -172,24 +188,21 @@ type KindProps = {
   text: string;
   row: Extract<Row, { rtype: "node" }>;
   vocab: Vocab;
-  anchor: ReturnType<Tip["anchor"]>;
 };
 
-function KindCell({ ui, text, row, vocab, anchor }: KindProps) {
+function KindCell({ ui, text, row, vocab }: KindProps) {
   const type = row.type === null ? undefined : vocab.types.get(row.type);
   const visual = type?.visual ?? null;
   return (
-    <td {...anchor}>
-      <span class="kind">
-        <TypeGlyph
-          visual={visual}
-          size={16}
-          untyped={row.type === null ? vocab.untyped : null}
-        />
-        {text}
-        <ProvTag ui={ui} provenance={type?.provenance} />
-      </span>
-    </td>
+    <span class="kind">
+      <TypeGlyph
+        visual={visual}
+        size={16}
+        untyped={row.type === null ? vocab.untyped : null}
+      />
+      {text}
+      <ProvTag ui={ui} provenance={type?.provenance} />
+    </span>
   );
 }
 
@@ -199,6 +212,7 @@ type Line = {
   ticked: boolean;
   focus: string | null;
   cells: Cells;
+  nav: (column: Column) => Nav;
   onTick: (shift: boolean) => void;
   onPress: () => void;
 };
@@ -211,6 +225,7 @@ function TableRow({
   ticked,
   focus,
   cells,
+  nav,
   onTick,
   onPress,
 }: Line) {
@@ -222,7 +237,8 @@ function TableRow({
       class={classes.filter((c) => c !== "").join(" ")}
       aria-selected={ticked}
       onClick={(event) => {
-        if (!(event.target as Element).closest("td.sel")) onPress();
+        const at = event.target as Element;
+        if (!at.closest("td.sel, .cell-edit")) onPress();
       }}
     >
       <td
@@ -245,7 +261,13 @@ function TableRow({
         />
       </td>
       {columns.map((column) => (
-        <Cell key={columnKey(column)} column={column} row={row} {...cells} />
+        <Cell
+          key={columnKey(column)}
+          column={column}
+          row={row}
+          nav={nav(column)}
+          {...cells}
+        />
       ))}
     </tr>
   );
@@ -260,6 +282,12 @@ function Spacer({ height, span }: { height: number; span: number }) {
   );
 }
 
+export type CellCheck = (
+  row: Row,
+  column: Column,
+  read: Read,
+) => EditCode | null;
+
 type Props = {
   rows: readonly Row[];
   columns: readonly Column[];
@@ -270,10 +298,13 @@ type Props = {
   empty: string | null;
   onTick: (index: number, shift: boolean) => void;
   onPress: (row: Row) => void;
+  onCheck: CellCheck;
+  onSave: CellCheck;
 };
 
-// why: FR-TABLE-4, rules 3, 6, 7 — the window of rows between two spacer rows, so the scroll height
-// stays the height of every row; the head is the column labels or the bulk bar
+// why: FR-TABLE-4, rules 3, 6, 7 — the window of rows between spacer rows, so the scroll height
+// stays the height of every row; the head is the column labels or the bulk bar. STORY-008-04
+// rules 3, 9 — the focused row and the row in edit stay rendered outside the window
 export function WorkbenchTable(props: Props) {
   const { rows, columns, states, vocab, ticked, head, empty } = props;
   const ui = lang.value;
@@ -284,28 +315,33 @@ export function WorkbenchTable(props: Props) {
   useFocusScroll(scroll, rows, fromTable, measure);
   const focus = focusOf(selection.value);
   const span = columns.length + 1;
+  const press = (row: Row) => {
+    const before = selection.peek();
+    props.onPress(row);
+    const after = selection.peek();
+    fromTable.current = after === before ? undefined : after;
+  };
+  const edit = useCells({ ...props, ui, rowH: ROW_H, scroll, measure, press });
   return (
     <div class="wb-scroll" ref={scroll} onScroll={() => measure(false)}>
       <table class="wb-table">
         <thead>{head}</thead>
-        <tbody>
-          <Spacer height={first * ROW_H} span={span} />
-          {rows.slice(first, last).map((row) => (
-            <TableRow
-              key={row.index}
-              {...{ row, columns, focus }}
-              ticked={ticked.has(row.index)}
-              cells={{ ui, vocab, tip, state: states[row.index] }}
-              onTick={(shift) => props.onTick(row.index, shift)}
-              onPress={() => {
-                const before = selection.peek();
-                props.onPress(row);
-                const after = selection.peek();
-                fromTable.current = after === before ? undefined : after;
-              }}
-            />
-          ))}
-          <Spacer height={(rows.length - last) * ROW_H} span={span} />
+        <tbody onKeyDown={edit.onKey}>
+          {partsOf(first, last, rows.length, edit.keep).map((part) =>
+            "pad" in part ? (
+              <Spacer key={part.key} height={part.pad * ROW_H} span={span} />
+            ) : (
+              <TableRow
+                key={rows[part.at].index}
+                {...{ row: rows[part.at], columns, focus }}
+                ticked={ticked.has(rows[part.at].index)}
+                cells={{ ui, vocab, tip, state: states[rows[part.at].index] }}
+                nav={(column) => edit.nav(rows[part.at], column)}
+                onTick={(shift) => props.onTick(rows[part.at].index, shift)}
+                onPress={() => press(rows[part.at])}
+              />
+            ),
+          )}
         </tbody>
       </table>
       {empty !== null && <p class="wb-empty">{empty}</p>}

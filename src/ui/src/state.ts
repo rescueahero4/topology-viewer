@@ -35,11 +35,12 @@ export const camera = signal<Camera | null>(null);
 export const selection = signal<Selection>(null);
 export const lastNotice = signal<NoticeKind | null>(null);
 // why: STORY-004-08 rule 6 — the input on the canvas (after an Undo of a paste it is not the prop)
-// and the state and camera of the last `settle`, for the Undo snapshot
+// and the state and camera of the last `settle`, for the Undo snapshot. STORY-008-04 (found by QA
+// of STORY-008-02 and 03) — each `settle` also keeps the `editHistory` version of its time, so the
+// kept row order knows the `settle` that came after the newest edit step
 export const shownInput = signal<AppInput | null>(null);
-export const settled = signal<{ state: CanvasState; camera: Camera } | null>(
-  null,
-);
+export type Settled = { state: CanvasState; camera: Camera; version: number };
+export const settled = signal<Settled | null>(null);
 
 // why: SA §4.8, STORY-008-02 rule 1 — one history for each base input; the version changes on each
 // push, undo and redo, so the computed values and the kept row order follow it. In memory only
@@ -140,7 +141,11 @@ export const feed: Feed = {
       canvasState.value = e.state;
       frontier.value = e.frontier;
       camera.value = e.camera;
-      settled.value = { state: e.state, camera: e.camera };
+      settled.value = {
+        state: e.state,
+        camera: e.camera,
+        version: editHistory.peek().version,
+      };
     });
   },
   notice: (e) => {

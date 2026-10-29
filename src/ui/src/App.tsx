@@ -46,6 +46,7 @@ import "./shell-inspector.css";
 import "./shell-relations.css";
 import "./shell-panels.css";
 import "./shell-workbench.css";
+import "./shell-edit.css";
 import "./shell-notices.css";
 import "./shell-narrow.css";
 import "./shell-embedded.css";

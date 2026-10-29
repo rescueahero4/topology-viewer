@@ -2,11 +2,15 @@ import type {
   Budget,
   CanvasState,
   DrawnId,
+  EditEffect,
+  Graph,
   Grouping,
   LayoutName,
+  OnCanvas,
+  Vocab,
 } from "@qdic-topology/engine";
 import type { AppInput } from "./App";
-import type { Camera, Canvas } from "./canvas/index";
+import type { Camera, Canvas, EditEnds } from "./canvas/index";
 import { settled, shownInput } from "./state";
 
 export type Actions = {
@@ -27,6 +31,8 @@ export type Actions = {
   reveal(path: string[]): void;
   groupAroundRoot(on: boolean): void;
   clearAndFit(): void;
+  onCanvas(id: string): OnCanvas;
+  applyEdit(graph: Graph, vocab: Vocab, ends: EditEnds): EditEffect;
 };
 
 export type Snapshot = {
@@ -81,5 +87,9 @@ export function actionsOf(canvas: Canvas, keep: () => void): Actions {
       canvas.select(null);
       canvas.fit();
     },
+    // why: SA §4.8, STORY-008-04 rule 6 — the save path reads the canvas state of each new end and
+    // applies the edit through this module
+    onCanvas: (id) => canvas.onCanvas(id),
+    applyEdit: (graph, vocab, ends) => canvas.applyEdit(graph, vocab, ends),
   };
 }
