@@ -351,7 +351,8 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "edit.allRows": "{count} 行すべてに適用",
   "edit.allRowsHidden":
     "{count} 行すべてに適用 (うち {hidden} 行は表に表示されていません)",
-  "edit.changed": "{count} 個のセルを変更しました",
+  "edit.changedOne": "セルを変更しました",
+  "edit.changedMany": "{count} 個のセルを変更しました",
   "edit.undone": "変更を元に戻しました",
   "wb.undo": "元に戻す",
   "wb.redo": "やり直す",

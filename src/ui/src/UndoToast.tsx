@@ -54,7 +54,9 @@ function EditToast(props: { ui: Lang; step: EditStep; actions: Actions }) {
       <span class="ut-txt">
         {step.kind === "undo"
           ? t(ui, "edit.undone")
-          : t(ui, "edit.changed", { count: step.count })}
+          : step.count === 1
+            ? t(ui, "edit.changedOne")
+            : t(ui, "edit.changedMany", { count: step.count })}
       </span>
       {step.kind !== "undo" && (
         <button type="button" class="fp-act" onClick={() => undoEdit(actions)}>
