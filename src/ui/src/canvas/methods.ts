@@ -9,11 +9,14 @@ import {
   type Budget,
   type DrawnId,
   type DrawnNode,
+  type EditEffect,
   type Frontier,
   type GroupNode,
+  type Graph,
   type LayoutName,
   type OnCanvas,
   type Selection,
+  type Vocab,
 } from "@qdic-topology/engine";
 import {
   fadedAfter,
@@ -23,6 +26,7 @@ import {
   layoutExit,
   type FocusAction,
 } from "./around";
+import { applyEdit, type EditEnds } from "./edit";
 import type { CanvasEvent, EventName } from "./events";
 import {
   act,
@@ -69,6 +73,7 @@ export type Canvas = {
   setFilters(f: Filter): void;
   groupAroundRoot(on: boolean): void;
   fit(): void;
+  applyEdit(graph: Graph, vocab: Vocab, ends: EditEnds): EditEffect;
   on<K extends EventName>(
     event: K,
     handler: (event: CanvasEvent[K]) => void,
@@ -317,6 +322,7 @@ export function methodsOf(ctx: Ctx): Canvas {
       }),
     groupAroundRoot: (on) => run(() => groupAroundRoot(ctx, on)),
     fit: () => run(() => ctx.renderer.fit()),
+    applyEdit: (graph, vocab, ends) => applyEdit(ctx, graph, vocab, ends),
     on: (event, handler) => ctx.events.on(event, handler),
   };
 }
