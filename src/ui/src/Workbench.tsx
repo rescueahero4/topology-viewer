@@ -17,8 +17,9 @@ import type { ComponentChildren } from "preact";
 import type { Actions } from "./actions";
 import { TableHead } from "./BulkBar";
 import type { CanvasModel } from "./canvas/index";
+import { ChangeBar } from "./ChangeBar";
 import { editKeys } from "./editKeys";
-import { checkCell, redoEdit, trySave, undoEdit } from "./edits";
+import { checkCell, trySave } from "./edits";
 import type { ShellHost } from "./host";
 import { keepTicks, rangeSelect, type Ticks } from "./rangeSelect";
 import { closeWorkbench, expandTable, layout } from "./split";
@@ -186,16 +187,6 @@ function countText(ui: Lang, now: CanvasModel, view: View): string {
   return parts.join("");
 }
 
-// why: STORY-008-08 rules 1, 6 — each button is off when its list is empty; a new dataset empties
-// both (STORY-008-02 rule 7)
-function editsOf(actions: Actions) {
-  const { history } = editHistory.value;
-  return {
-    undo: history.done.length > 0 ? () => undoEdit(actions) : null,
-    redo: history.undone.length > 0 ? () => redoEdit(actions) : null,
-  };
-}
-
 // why: rule 7 (mockup app.js lines 1213-1233) — a row with a hidden entity restores its Hidden
 // entries; any other row focuses its record, or the subject of a triple
 function pressOf(actions: Actions, lookup: CanvasLookup | null) {
@@ -331,7 +322,6 @@ function WorkbenchBody(props: BodyProps) {
           update((s) => ({ choice: choose(s.choice, column, on) }))
         }
         count={countText(ui, now, view)}
-        edits={editsOf(props.actions)}
         hidden={view.hidden}
         layout={layout.value}
         onExpand={() => expandTable(host)}
@@ -381,9 +371,12 @@ export function Workbench({ id, actions, host, start }: Props) {
       onKeyDown={editKeys(actions)}
     >
       {open && base !== null && now !== null && actions !== null && (
-        <WorkbenchBody
-          {...{ base, now, actions, host, session, update, onText, start }}
-        />
+        <>
+          <WorkbenchBody
+            {...{ base, now, actions, host, session, update, onText, start }}
+          />
+          <ChangeBar actions={actions} />
+        </>
       )}
     </section>
   );
