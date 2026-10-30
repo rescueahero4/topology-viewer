@@ -31,7 +31,20 @@ export type EditEffect = { drew: DrawnId[]; undrew: DrawnId[] };
 export type Edit = { changes: readonly CellChange[]; effect: EditEffect };
 
 export type EditCode =
-  "empty" | "self-edge" | "not-a-number" | "not-a-date" | "inverse-name";
+  | "empty"
+  | "self-edge"
+  | "not-a-number"
+  | "not-a-date"
+  | "inverse-name"
+  | "duplicate-id"
+  | "bad-syntax"
+  | "bad-json"
+  | "bad-xml"
+  | "empty-key"
+  | "duplicate-key"
+  | "reserved-key"
+  | "too-large"
+  | "not-a-boolean";
 
 export type ValueKind =
   "text" | "number" | "boolean" | "date" | "list" | "object";
@@ -40,7 +53,15 @@ export type RowKind = "node" | "edge";
 
 export type Field = { key: string; attr: boolean };
 
+// why: SA §4.8 addendum 0.33 (1)-(3), (5) — the ID and the Type label are overlay fields over the
+// stable ids; the Family of an edge row is the family of its predicate (`Graph.familyEdits`)
+const SHARED: [CoreColumn, Field][] = [
+  ["id", { key: "shownId", attr: false }],
+  ["type", { key: "typeLabel", attr: false }],
+];
+
 const NODE = new Map<CoreColumn, Field>([
+  ...SHARED,
   ["kind", { key: "type", attr: false }],
   ["name", { key: "label", attr: false }],
   ["system", { key: "service_name", attr: true }],
@@ -49,6 +70,11 @@ const NODE = new Map<CoreColumn, Field>([
 
 // why: PRD-002 FR-CELL-1 — on an edge row, Name and Predicate are one value
 const EDGE = new Map<CoreColumn, Field>([
+  ...SHARED,
+  ["family", { key: "family", attr: false }],
+  // why: SA §4.8 addendum 0.33.1 — edge System and Description are edge attributes
+  ["system", { key: "service_name", attr: true }],
+  ["description", { key: "description", attr: true }],
   ["name", { key: "predicate", attr: false }],
   ["predicate", { key: "predicate", attr: false }],
   ["subject", { key: "subject", attr: false }],

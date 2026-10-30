@@ -369,6 +369,7 @@ export function resolveVocab(
     shapedTriples,
     payload,
     profile,
+    graph.familyEdits,
   );
   const vocab = { types, predicates, families, entities, untyped, provenance };
   return { vocab, issues: [...issues, ...unknownIssues(graph, typed, ctx)] };

@@ -1,12 +1,21 @@
 import type { EditCode, Lang } from "@qdic-topology/engine";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
-import { startText, type Read } from "./cellEdit";
-import { predicateColour } from "./familyLook";
+import { startText, type PickKind, type Read } from "./cellEdit";
+import { familyClass, predicateColour } from "./familyLook";
 import { useElementId } from "./ids";
-import { provTag } from "./names";
-import { filtered, kindItems, kindText, predicateItems } from "./pickItems";
+import { familyName, provTag } from "./names";
+import {
+  CANVAS_ITEMS,
+  familyItems,
+  filtered,
+  kindItems,
+  kindText,
+  predicateItems,
+  typeLabelItems,
+} from "./pickItems";
+import { SHOWN } from "./SearchResults";
 import { editedModel, shownInput } from "./state";
-import { t } from "./strings/index";
+import { t, type Key } from "./strings/index";
 import { TypeGlyph } from "./TypeGlyph";
 
 export type PickProps = {
@@ -17,6 +26,7 @@ export type PickProps = {
   reader: { current: (() => Read | null) | null };
   onPick: (read: Read) => void;
   onInput: () => void;
+  values?: readonly string[];
 };
 
 // why: STORY-008-05 rules 5, 9 — the cell input is a combobox that keeps the focus; ArrowDown and
@@ -77,29 +87,76 @@ export const optionOf = (
   onClick: onPress,
 });
 
+type Model = NonNullable<typeof editedModel.value>;
+type Input = Extract<NonNullable<typeof shownInput.value>, { ok: true }>;
+
+// why: SA §4.8 addendum 0.33 (4) — an edge row has no "Not on canvas"
+function itemsOf(
+  props: PickProps & { kind: PickKind },
+  model: Model,
+  input: Input,
+) {
+  const { graph, vocab } = model;
+  const { kind } = props;
+  if (kind === "kind") return kindItems(input.profile, graph);
+  if (kind === "predicate") return predicateItems(input.profile, graph);
+  if (kind === "family") return familyItems(input.profile, vocab);
+  if (kind === "typeLabel") return typeLabelItems(graph);
+  if (kind === "values") return [...(props.values ?? [])];
+  return props.value === "edge" ? CANVAS_ITEMS.slice(0, 1) : CANVAS_ITEMS;
+}
+
+const CANVAS_TEXT: Readonly<Record<string, Key>> = {
+  on: "edit.onCanvas",
+  off: "edit.notOnCanvas",
+};
+
+function textOf(ui: Lang, kind: PickKind, model: Model | null) {
+  return (item: string) => {
+    if (kind === "kind" && model !== null)
+      return kindText(ui, model.vocab)(item);
+    if (kind === "family") return familyName(ui, item);
+    if (kind === "canvas") return t(ui, CANVAS_TEXT[item]);
+    if (kind === "typeLabel" && (item === "node" || item === "edge"))
+      return t(ui, item === "node" ? "wb.node" : "wb.edge");
+    return item;
+  };
+}
+
+const LABELS: Readonly<Record<PickKind, Key>> = {
+  kind: "edit.kinds",
+  predicate: "edit.predicates",
+  family: "wb.col.family",
+  typeLabel: "wb.col.type",
+  canvas: "wb.col.canvas",
+  values: "edit.values",
+};
+
 // why: STORY-008-05 rules 2, 3, 7, 8 — the Kind and the Predicate list (`.pick-menu`, `.pick-item`,
 // `TypeGlyph`, `.prov`, `.pdot`) with free text: Enter saves the active item, else the typed text
-// (trimmed; an empty text gives `empty` through `checkEdit`). Every label is a text node
-export function PickList(props: PickProps & { kind: "kind" | "predicate" }) {
+// (trimmed; an empty text gives `empty` through `checkEdit`). Every label is a text node.
+// STORY-008-09 rules 10, 11, 13, 17 — the Type and Family lists take free text too; the Canvas
+// list takes one of its two items only (a typed text saves when it is the text of an item)
+export function PickList(props: PickProps & { kind: PickKind }) {
   const { ui, kind, reader, onPick } = props;
   const model = editedModel.value;
   const input = shownInput.value;
   const all =
     model === null || input === null || !input.ok
       ? []
-      : kind === "kind"
-        ? kindItems(input.profile, model.graph)
-        : predicateItems(input.profile, model.graph);
-  const shown = (item: string) =>
-    kind === "kind" && model !== null ? kindText(ui, model.vocab)(item) : item;
-  const combo = useCombo(props.value);
-  const items = filtered(all, combo.query ?? "", shown);
+      : itemsOf(props, model, input);
+  const shown = textOf(ui, kind, model);
+  const combo = useCombo(kind === "canvas" ? "" : props.value);
+  const items = filtered(all, combo.query ?? "", shown).slice(0, SHOWN);
   const active = combo.active < items.length ? combo.active : -1;
-  reader.current = () =>
-    active >= 0
-      ? { after: items[active] }
-      : { after: (combo.field.current?.value ?? "").trim() };
-  const name = kind === "kind" ? "edit.kinds" : "edit.predicates";
+  reader.current = () => {
+    if (active >= 0) return { after: items[active] };
+    const text = (combo.field.current?.value ?? "").trim();
+    if (kind === "values" && text === "") return { after: undefined };
+    if (kind !== "canvas") return { after: text };
+    const item = all.find((one) => shown(one) === text || one === text);
+    return item === undefined ? null : { after: item };
+  };
   return (
     <>
       <input {...combo.attributes(props, items.length)} />
@@ -108,7 +165,7 @@ export function PickList(props: PickProps & { kind: "kind" | "predicate" }) {
           id={combo.list}
           class="pick-list"
           role="listbox"
-          aria-label={t(ui, name)}
+          aria-label={t(ui, LABELS[kind])}
         >
           {items.map((item, i) => (
             <div
@@ -119,14 +176,7 @@ export function PickList(props: PickProps & { kind: "kind" | "predicate" }) {
                 onPick({ after: item }),
               )}
             >
-              {kind === "kind" ? (
-                <KindItem ui={ui} item={item} />
-              ) : (
-                <>
-                  <span class="pdot" aria-hidden="true" />
-                  <span class="nm">{item}</span>
-                </>
-              )}
+              <ItemBody ui={ui} kind={kind} item={item} text={shown(item)} />
             </div>
           ))}
         </div>
@@ -136,6 +186,22 @@ export function PickList(props: PickProps & { kind: "kind" | "predicate" }) {
       </div>
     </>
   );
+}
+
+type Body = { ui: Lang; kind: PickKind; item: string; text: string };
+
+function ItemBody({ ui, kind, item, text }: Body) {
+  if (kind === "kind") return <KindItem ui={ui} item={item} />;
+  if (kind === "predicate")
+    return (
+      <>
+        <span class="pdot" aria-hidden="true" />
+        <span class="nm">{item}</span>
+      </>
+    );
+  if (kind === "family")
+    return <span class={`fam ${familyClass(item)}`}>{text}</span>;
+  return <span class="nm">{text}</span>;
 }
 
 function KindItem({ ui, item }: { ui: Lang; item: string }) {

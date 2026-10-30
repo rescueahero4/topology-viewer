@@ -23,6 +23,7 @@ export {
 } from "./data/notices";
 export { canvasColor, type Hex, type Rgb } from "./vocab/colors";
 export {
+  CUSTOM,
   fold,
   type Family,
   type Provenance,
@@ -146,8 +147,19 @@ export {
 } from "./view/exit";
 export type { Profile } from "@qdic-topology/contract";
 export { applyEdits, locate } from "./edit/apply";
+export {
+  attributeChanges,
+  attributeSet,
+  MAX_TEXT,
+  readAttributes,
+  readJsonCell,
+  writeAttributes,
+  type AttrEntry,
+} from "./edit/attrText";
+export { familyPredicateName } from "./edit/family";
+export { rowIds } from "./edit/rowIds";
 export { checkEdit, valueKind } from "./edit/check";
-export { EditHistory } from "./edit/history";
+export { cancelEffect, EditHistory } from "./edit/history";
 export { sameValueRows } from "./edit/same";
 export type {
   CellChange,

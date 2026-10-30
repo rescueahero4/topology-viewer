@@ -168,38 +168,7 @@ type BarProps = {
   onExpand: () => void;
   onClose: () => void;
   start: ComponentChildren;
-  edits: Edits;
 };
-
-export type Edits = {
-  undo: (() => void) | null;
-  redo: (() => void) | null;
-};
-
-// why: STORY-008-08 rule 1 (PRD-002 FR-CELL-11) — Undo and Redo text buttons of the bar, each off
-// with no step (`null`)
-function EditButtons({ ui, edits }: { ui: Lang; edits: Edits }) {
-  return (
-    <>
-      <button
-        type="button"
-        class="wb-btn"
-        disabled={edits.undo === null}
-        onClick={edits.undo ?? undefined}
-      >
-        {t(ui, "wb.undo")}
-      </button>
-      <button
-        type="button"
-        class="wb-btn"
-        disabled={edits.redo === null}
-        onClick={edits.redo ?? undefined}
-      >
-        {t(ui, "wb.redo")}
-      </button>
-    </>
-  );
-}
 
 const scopeOptions = (ui: Lang, hidden: number): Option<Scope>[] => [
   { value: "all", label: t(ui, "wb.scopeAll") },
@@ -276,7 +245,6 @@ export function WorkbenchBar(props: BarProps) {
     <div class="wb-bar">
       {props.start}
       <FilterControls {...props} />
-      <EditButtons ui={ui} edits={props.edits} />
       <span class="spacer" />
       <span class="wb-count" aria-live="polite">
         {props.count}

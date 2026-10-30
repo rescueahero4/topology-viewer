@@ -10,6 +10,7 @@ import {
   type Ask,
   type FieldKind,
   type InputKind,
+  type PickKind,
   type Read,
   type Saved,
 } from "./cellEdit";
@@ -29,6 +30,7 @@ export type EditorProps = {
   save: (read: Read) => Saved;
   onClose: (how: Close) => void;
   holder: { current: (() => boolean) | null };
+  values?: readonly string[];
 };
 
 export const TYPES: Readonly<Record<FieldKind, string>> = {
@@ -36,7 +38,21 @@ export const TYPES: Readonly<Record<FieldKind, string>> = {
   datetime: "text",
   number: "number",
   date: "date",
+  attributes: "text",
+  list: "text",
+  object: "text",
 };
+
+const PICKS: ReadonlySet<InputKind> = new Set<PickKind>([
+  "kind",
+  "predicate",
+  "canvas",
+  "typeLabel",
+  "family",
+  "values",
+]);
+
+const isPick = (kind: InputKind): kind is PickKind => PICKS.has(kind);
 
 const CHOICES = [
   { value: true, key: "edit.yes" },
@@ -142,9 +158,9 @@ function useField(kind: InputKind, value: unknown) {
   useLayoutEffect(() => {
     const el = field.current;
     if (el === null) return;
-    el.value = startText(value);
+    el.value = startText(value, kind);
     el.focus();
-    if (kind === "text" || kind === "datetime") el.select();
+    if (kind !== "number" && kind !== "date") el.select();
   }, []);
   return field;
 }
@@ -162,8 +178,7 @@ function readOf(
   field: HTMLInputElement | null,
 ): Read | null {
   if (kind === "boolean") return { after: choice };
-  if (kind === "kind" || kind === "predicate" || kind === "node")
-    return reader.current?.() ?? null;
+  if (isPick(kind) || kind === "node") return reader.current?.() ?? null;
   return field === null ? null : readField(kind, field);
 }
 
@@ -253,7 +268,7 @@ export function CellEditor(props: EditorProps) {
     const now = read();
     if (code !== null && now !== null) setCode(check(now));
   };
-  const picks = { ui, value, ids, code, reader, onInput };
+  const picks = { ui, value, ids, code, reader, onInput, values: props.values };
   const onPick = (given: Read) => void done("key", given);
   return (
     <div ref={box} class="cell-edit" onKeyDown={keysOf(onClose, done)}>
@@ -264,12 +279,12 @@ export function CellEditor(props: EditorProps) {
       </span>
       {kind === "boolean" ? (
         <Choice ui={ui} label={ids.name} choice={choice} onPick={setChoice} />
-      ) : kind === "kind" || kind === "predicate" ? (
+      ) : isPick(kind) ? (
         <PickList {...picks} kind={kind} onPick={onPick} />
       ) : kind === "node" ? (
         <NodePick {...picks} onPick={onPick} />
       ) : (
-        <Field {...{ ids, code, kind, field, onInput }} />
+        <Field {...{ ui, ids, code, kind, field, onInput }} />
       )}
       <Message {...{ ui, ids, code }} />
       {asking !== null && (
@@ -287,13 +302,16 @@ export function CellEditor(props: EditorProps) {
   );
 }
 
+// why: STORY-008-09 rule 18 — the Attributes field shows the form hint as its placeholder
 function Field({
+  ui,
   ids,
   code,
   kind,
   field,
   onInput,
 }: Shared & {
+  ui: Lang;
   kind: FieldKind;
   field: { current: HTMLInputElement | null };
   onInput: () => void;
@@ -303,6 +321,7 @@ function Field({
       ref={field}
       class="cell-input"
       type={TYPES[kind]}
+      placeholder={kind === "attributes" ? t(ui, "edit.attrHint") : undefined}
       aria-labelledby={ids.name}
       aria-invalid={code === null ? undefined : "true"}
       aria-describedby={code === null ? undefined : ids.message}

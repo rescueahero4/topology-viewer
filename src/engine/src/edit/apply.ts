@@ -8,7 +8,6 @@ import type { Graph } from "../data/normalize";
 import { isRetired } from "../data/records";
 import {
   fieldOf,
-  valueOf,
   type CellChange,
   type Edit,
   type Field,
@@ -50,6 +49,7 @@ type Work = {
   entityIds: ReadonlySet<string>;
   touched: Set<number>;
   unshaped: { records: Set<string>; triples: Set<string> };
+  familyEdits: [string, string][];
 };
 
 function workOf(base: Graph, keys: readonly string[]): Work {
@@ -67,6 +67,7 @@ function workOf(base: Graph, keys: readonly string[]): Work {
     entityIds: new Set(base.entities.map((entity) => entity.id)),
     touched: new Set(),
     unshaped: { records: new Set(), triples: new Set() },
+    familyEdits: [],
   };
 }
 
@@ -100,6 +101,7 @@ function mapWith<T>(
 function fits(work: Work, field: Field, after: unknown): boolean {
   if (field.attr) return true;
   switch (field.key) {
+    case "family":
     case "label":
     case "predicate":
       return typeof after === "string";
@@ -113,11 +115,9 @@ function fits(work: Work, field: Field, after: unknown): boolean {
   }
 }
 
-// why: PRD-002 FR-CELL-1, SA §5 Errors — a list or object attribute cell is read-only, and a value
-// that the field cannot hold is a programmer error (the shell runs `checkEdit` first)
-function guard(work: Work, field: Field, current: unknown, after: unknown) {
-  if (field.attr && typeof current === "object" && current !== null)
-    throw new Error("The cell is read-only.");
+// why: SA §5 Errors — a value that the field cannot hold is a programmer error (the shell runs
+// `checkEdit` first). SA §4.8 addendum 0.33 (7) — an attribute holds any JSON value
+function guard(work: Work, field: Field, after: unknown) {
   if (!fits(work, field, after))
     throw new Error("The value does not fit the field.");
 }
@@ -130,6 +130,15 @@ const SHAPED_FIELDS = new Set(["type", "predicate", "subject", "object"]);
 // the newest saved name or kind; the edit removes the AI reason of the field
 function nodeChange(work: Work, index: number, field: Field, after: unknown) {
   const record = work.records[index];
+  const at = work.entityAt.get(record.id) as number;
+  if (field.key === "shownId" || field.key === "typeLabel") {
+    const value = after === (field.key === "shownId" ? record.id : "node");
+    const next = value ? undefined : after;
+    work.records[index] = withKey(record, field.key, next);
+    if (field.key === "shownId" && work.entities[at].id === record.id)
+      work.entities[at] = withKey(work.entities[at], field.key, next);
+    return;
+  }
   if (!field.attr && SHAPED_FIELDS.has(field.key))
     work.unshaped.records.add(record.id);
   const inferred = Object.hasOwn(record.inferred, field.key)
@@ -140,12 +149,24 @@ function nodeChange(work: Work, index: number, field: Field, after: unknown) {
     : withKey(record, field.key, after);
   work.records[index] = { ...next, inferred };
   if (field.attr) return;
-  const at = work.entityAt.get(record.id) as number;
   work.entities[at] = withKey(work.entities[at], field.key, after);
 }
 
 function edgeChange(work: Work, index: number, field: Field, after: unknown) {
   const triple = work.triples[index];
+  if (field.key === "family") {
+    work.familyEdits.push([triple.predicate, after as string]);
+    return;
+  }
+  if (field.key === "shownId" || field.key === "typeLabel") {
+    const base = field.key === "shownId" ? null : "edge";
+    work.triples[index] = withKey(
+      triple,
+      field.key,
+      after === base ? undefined : after,
+    );
+    return;
+  }
   if (!field.attr && SHAPED_FIELDS.has(field.key))
     work.unshaped.triples.add(triple.key);
   const next = field.attr
@@ -165,8 +186,7 @@ function applyChange(work: Work, change: CellChange) {
       : work.recordAt.get(row.record);
   if (index === undefined) throw new Error("The row is not in the graph.");
   const field = fieldOf(kind, change.column);
-  const target = kind === "edge" ? work.triples[index] : work.records[index];
-  guard(work, field, valueOf(target, field), after);
+  guard(work, field, after);
   if (kind === "edge") edgeChange(work, index, field, after);
   else nodeChange(work, index, field, after);
 }
@@ -222,6 +242,16 @@ export function applyEdits(
       ),
     },
   };
+  // why: SA §4.8 addendum 0.33 (5) — a null-prototype map, written only by a Family edit
+  if (work.familyEdits.length > 0) {
+    let map: Record<string, string> = Object.create(null) as Record<
+      string,
+      string
+    >;
+    for (const [predicate, family] of work.familyEdits)
+      map = mapWith(map, predicate, family);
+    graph.familyEdits = map;
+  }
   baseKeys.set(graph, keys);
   return graph;
 }

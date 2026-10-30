@@ -47,10 +47,20 @@ export const settled = signal<Settled | null>(null);
 // (SA §11 addendum 0.28)
 export const editHistory = signal({ history: new EditHistory(), version: 0 });
 
-// why: STORY-008-08 rule 5 (PRD-002 FR-CELL-12) — the last save, Undo or Redo with its change
-// count, for the toast; a new object each time, so the toast shows again for the same kind
-export type EditStep = { kind: "save" | "undo" | "redo"; count: number };
+// why: STORY-008-09 rule 8 (FR-CELL-16) — the last save, Undo, Redo, Cancel or Save with its change
+// count, for the `aria-live` result; a new object each time, so the same result is read again
+export type EditStep = {
+  kind: "save" | "undo" | "redo" | "saved" | "cancelled";
+  count: number;
+};
 export const editStep = signal<EditStep | null>(null);
+
+export function freshHistory(): void {
+  editHistory.value = {
+    history: new EditHistory(),
+    version: editHistory.peek().version + 1,
+  };
+}
 
 export function stepEdits(step: (history: EditHistory) => unknown): void {
   const { history, version } = editHistory.peek();
@@ -98,10 +108,7 @@ function keepsEdits(was: AppInput | null, input: AppInput, kept: EditsKept) {
 export function takeInput(input: AppInput, kept: EditsKept): void {
   batch(() => {
     if (!keepsEdits(shownInput.peek(), input, kept)) {
-      editHistory.value = {
-        history: new EditHistory(),
-        version: editHistory.peek().version + 1,
-      };
+      freshHistory();
       editStep.value = null;
     }
     shownInput.value = input;

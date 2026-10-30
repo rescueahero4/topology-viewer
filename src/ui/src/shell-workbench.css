@@ -15,6 +15,7 @@
   overflow: hidden;
 }
 .workbench {
+  position: relative;
   flex: 1 1 0;
   min-height: 0;
   display: flex;
@@ -341,6 +342,37 @@
 /* why: rule 8 — a disabled bulk button keeps its focus and its Tooltip reason, so it is
    `aria-disabled`; the look of the mockup `.btn:disabled` (styles.css line 482) */
 .wb-bulk-in .btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--surface);
+}
+/* STORY-008-09 look (rule 1): the change bar is a `.float-card` (styles.css:85) in the row form
+   of the bulk bar `.wb-bulk-in` (styles.css:479) with `.btn.small` buttons (styles.css:341); Save
+   changes is `.btn.primary` (styles.css:337); an off button is `.wb-bulk-in .btn:disabled`
+   (styles.css:482) */
+.change-bar {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--zinc-700);
+}
+/* why: PRD-002 FR-CELL-19 — the bar does not hide the last table row: while the bar shows, the
+   table ends with space for the bar, so the last row scrolls above it */
+.workbench:has(.change-bar) .wb-table {
+  margin-bottom: 52px;
+}
+.change-bar .change-label {
+  margin-right: 4px;
+  color: var(--zinc-900);
+}
+.change-bar .btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   background: var(--surface);

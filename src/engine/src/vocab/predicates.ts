@@ -74,7 +74,7 @@ export const fold = (text: string) => text.normalize("NFC").toLowerCase();
 
 // why: lead decisions D15 (PO P4) and D51 — a supplied category that equals a profile family
 // after NFC and lower case is that family with the profile spelling; `Custom` joins Custom
-function familyOf(
+export function familyOf(
   supplied: unknown,
   fallback: string | undefined,
   order: readonly string[],
@@ -89,6 +89,7 @@ function familyOf(
 
 type Context = {
   profile: Profile;
+  familyEdits: Readonly<Record<string, string>>;
   payload: ReadonlyMap<string, PayloadPredicate>;
   rows: ReadonlyMap<string, Row>;
   shaped: ReadonlyMap<string, string | undefined>;
@@ -99,7 +100,10 @@ function predicateOf(name: string, ctx: Context): ResolvedPredicate {
   const sent = ctx.payload.get(name);
   const row = ctx.rows.get(name);
   const base = own(ctx.profile.predicates, name);
-  const supplied = sent?.category ?? (row && own(row, "category"));
+  const supplied =
+    own(ctx.familyEdits, name) ??
+    sent?.category ??
+    (row && own(row, "category"));
   const rowInverse = row && own(row, "inverse_predicate");
   const role = sent?.role ?? base?.role;
   const reason = ctx.shaped.get(name);
@@ -160,12 +164,14 @@ export function predicatesOf(
   shapedKeys: ReadonlySet<string>,
   payload: Payload,
   profile: Profile,
+  familyEdits: Readonly<Record<string, string>> = {},
 ) {
   const counts = new Map<string, number>();
   for (const { predicate } of triples)
     counts.set(predicate, (counts.get(predicate) ?? 0) + 1);
   const ctx: Context = {
     profile,
+    familyEdits,
     payload: entriesOf(payload.predicates),
     rows: rowsOf(payload.vocabulary?.predicates),
     shaped: shapedPredicates(triples, shapedKeys),

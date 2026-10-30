@@ -1,9 +1,11 @@
-import type {
-  Graph,
-  Lang,
-  OnCanvas,
-  Triple,
-  Vocab,
+import {
+  attributeSet,
+  type AttrEntry,
+  type Graph,
+  type Lang,
+  type OnCanvas,
+  type Triple,
+  type Vocab,
 } from "@qdic-topology/engine";
 import { valueText } from "./formatValue";
 import { familyName, typeName } from "./names";
@@ -111,21 +113,36 @@ export function shownColumns(keys: readonly string[], choice: Choice) {
 const own = (attrs: Readonly<Record<string, unknown>>, key: string) =>
   Object.hasOwn(attrs, key) ? attrs[key] : undefined;
 
-// why: rule 2 (FR-QDIC-5) — the triple attributes in record key order, then `valid_from`,
-// `valid_to` and `isActive` when the triple has them; each value by the STORY-004-04 value rule
-export function attributesText(lang: Lang, triple: Triple): string {
-  const pair = (key: string, value: unknown) =>
-    t(lang, "wb.pair", { key, value: valueText(lang, value) });
-  const parts = Object.keys(triple.attrs).map((key) =>
-    pair(key, own(triple.attrs, key)),
-  );
-  if (triple.validFrom !== undefined)
-    parts.push(pair(t(lang, "wb.validFrom"), triple.validFrom));
-  if (triple.validTo !== undefined)
-    parts.push(pair(t(lang, "wb.validTo"), triple.validTo));
-  if (triple.isActive !== undefined)
-    parts.push(pair(t(lang, "wb.isActive"), triple.isActive));
-  return parts.join(t(lang, "wb.join"));
+const NAMED: Readonly<Record<string, Key>> = {
+  valid_from: "wb.validFrom",
+  valid_to: "wb.validTo",
+  isActive: "wb.isActive",
+};
+
+// why: rule 2 (FR-QDIC-5) — the set of the row (SA §4.8 addendum 0.33 (6) `attributeSet`): the
+// attributes in record key order, then `valid_from`, `valid_to` and `isActive` when the triple has
+// them; each value by the STORY-004-04 value rule
+function setText(lang: Lang, set: readonly AttrEntry[]): string {
+  return set
+    .map(([key, value]) =>
+      t(lang, "wb.pair", {
+        key: Object.hasOwn(NAMED, key) ? t(lang, NAMED[key]) : key,
+        value: valueText(lang, value),
+      }),
+    )
+    .join(t(lang, "wb.join"));
+}
+
+export const attributesText = (lang: Lang, triple: Triple) =>
+  setText(lang, attributeSet("edge", triple));
+
+// why: SA §4.8 addendum 0.33 (3) — the Type label; `node` or `edge` shows as the UI word
+function typeText(lang: Lang, row: Row): string {
+  const label =
+    (row.rtype === "node" ? row.record.typeLabel : row.triple.typeLabel) ??
+    row.rtype;
+  if (label === "node") return t(lang, "wb.node");
+  return label === "edge" ? t(lang, "wb.edge") : label;
 }
 
 function nodeText(lang: Lang, vocab: Vocab, key: CoreKey, row: Row): string {
@@ -136,11 +153,17 @@ function nodeText(lang: Lang, vocab: Vocab, key: CoreKey, row: Row): string {
     return valueText(lang, own(row.record.attrs, "service_name"));
   if (key === "description")
     return valueText(lang, own(row.record.attrs, "description"));
+  if (key === "attributes")
+    return setText(lang, attributeSet("node", row.record));
   return "";
 }
 
 function edgeText(lang: Lang, key: CoreKey, row: Row): string {
   if (row.rtype !== "edge") return "";
+  if (key === "system")
+    return valueText(lang, own(row.triple.attrs, "service_name"));
+  if (key === "description")
+    return valueText(lang, own(row.triple.attrs, "description"));
   if (key === "name" || key === "predicate") return row.predicate;
   if (key === "subject") return row.subjectLabel;
   if (key === "object") return row.objectLabel;
@@ -156,9 +179,8 @@ export function cellText(lang: Lang, vocab: Vocab, column: Column, row: Row) {
       ? valueText(lang, own(row.record.attrs, column.attr))
       : "";
   const key = column.core;
-  if (key === "id") return row.id;
-  if (key === "type")
-    return t(lang, row.rtype === "node" ? "wb.node" : "wb.edge");
+  if (key === "id") return row.shownId;
+  if (key === "type") return typeText(lang, row);
   return row.rtype === "node"
     ? nodeText(lang, vocab, key, row)
     : edgeText(lang, key, row);

@@ -108,3 +108,25 @@ describe("S15 undo of all edits gives the base graph", () => {
     });
   });
 });
+
+// why: SA addendum 0.33 (11) (b), (c) — a save keeps the edited graph; a cancel gives the graph of
+// the last save
+describe("STORY-008-09 save and cancel keep the graph of the last save", () => {
+  it.each(keys)("%s", (key) => {
+    const base = baseOf(key);
+    SEEDS.forEach((seed) => {
+      const edits = randomEdits(base, seed);
+      const half = Math.floor(edits.length / 2);
+      const history = new EditHistory();
+      edits.slice(0, half).forEach((edit) => history.push(edit));
+      const before = applyEdits(base, history.active(), NOW);
+      history.save();
+      expect(applyEdits(base, history.active(), NOW)).toEqual(before);
+      edits.slice(half).forEach((edit) => history.push(edit));
+      history.undo();
+      history.cancel();
+      expect(applyEdits(base, history.active(), NOW)).toEqual(before);
+      expect(history.dirty()).toBe(false);
+    });
+  });
+});

@@ -216,7 +216,6 @@ function Floating(props: FloatingProps) {
           snapshot={undo.snapshot}
           close={undo.close}
           remake={remake}
-          actions={actions}
         />
       </div>
       <Inspector
@@ -247,12 +246,7 @@ function LoneToast(props: {
   if (snapshot === null) return null;
   return (
     <div class="status-stack">
-      <UndoToast
-        snapshot={snapshot}
-        close={close}
-        remake={props.remake}
-        actions={null}
-      />
+      <UndoToast snapshot={snapshot} close={close} remake={props.remake} />
     </div>
   );
 }

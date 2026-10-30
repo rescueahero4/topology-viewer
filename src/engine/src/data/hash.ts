@@ -8,7 +8,7 @@ function isNested(value: unknown): value is object {
 }
 
 // why: question 16, SA ruling S6 — an explicit stack, so a 10,000-level value never overflows
-function tooDeep(value: unknown): boolean {
+export function tooDeep(value: unknown): boolean {
   const stack: [unknown, number][] = [[value, 2]];
   while (stack.length > 0) {
     const [item, level] = stack.pop() as [unknown, number];
