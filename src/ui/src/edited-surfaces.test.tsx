@@ -124,6 +124,35 @@ async function catalog() {
   return { ...frame, input };
 }
 
+describe("STORY-008-09 S12 an ID edit reaches the inspector Records row", () => {
+  it("lists the shown ID of each record of a merged entity", async () => {
+    const input = fixtureModel("s-merge-namesakes");
+    if (!input.ok) throw new Error("fatal");
+    const { root } = await mountApp(input);
+    const entity = input.model.graph.entities.find((e) =>
+      e.records.includes("t_orders_a"),
+    );
+    if (entity === undefined) throw new Error("no entity");
+    run(() => canvas().select(`e:${entity.id}`));
+    const records = () => {
+      const dt = [...root.querySelectorAll(".inspector .facts dt")].find(
+        (el) => el.firstChild?.textContent === "Records",
+      );
+      return text(dt?.nextElementSibling ?? null);
+    };
+    expect(records()).toContain("t_orders_a");
+    pushEdit({
+      row: { record: "t_orders_a" },
+      column: "id",
+      before: "t_orders_a",
+      after: "NEWID",
+    });
+    expect(records()).toContain("NEWID");
+    expect(records()).not.toContain("t_orders_a");
+    expect(records()).toContain("t_orders_b");
+  });
+});
+
 describe("S1 a Name edit reaches the inspector and search", () => {
   it("titles the merged entity ORDERS_EU and finds it with its 2 records", async () => {
     const input = fixtureModel("s-merge-namesakes");
