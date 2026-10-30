@@ -152,6 +152,7 @@ export function PickList(props: PickProps & { kind: PickKind }) {
   reader.current = () => {
     if (active >= 0) return { after: items[active] };
     const text = (combo.field.current?.value ?? "").trim();
+    if (kind === "values" && text === "") return { after: undefined };
     if (kind !== "canvas") return { after: text };
     const item = all.find((one) => shown(one) === text || one === text);
     return item === undefined ? null : { after: item };
