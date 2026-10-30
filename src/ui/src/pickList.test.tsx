@@ -105,6 +105,25 @@ describe("S2 S3 S4 the Kind list", () => {
     expect(active()).toHaveLength(1);
   });
 
+  it("gives the profile icon to a profile type that the data does not use", async () => {
+    const { root } = await catalog();
+    f.search(root, "t_FCT_REVENUE");
+    f.dblclick(f.cellOf(root, "t_FCT_REVENUE", "Kind"));
+    const items = kindItems(profile, state.editedGraph.value!);
+    const used = state.editedModel.value!.vocab.types;
+    const iconed = items.filter(
+      (item) =>
+        !used.has(item) &&
+        Object.hasOwn(profile.nodeTypes, item) &&
+        profile.nodeTypes[item].icon !== undefined,
+    );
+    expect(iconed.length).toBeGreaterThan(0);
+    for (const item of iconed) {
+      const mark = options(root)[items.indexOf(item)].querySelector("svg");
+      expect(mark?.childNodes.length, item).toBeGreaterThan(0);
+    }
+  });
+
   it("saves free text as a new custom type", async () => {
     const { root } = await catalog();
     f.search(root, "t_FCT_REVENUE");
