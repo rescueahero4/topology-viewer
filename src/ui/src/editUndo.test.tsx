@@ -27,7 +27,7 @@ const history = () => state.editHistory.value.history;
 // time under full-suite load
 const TIME_OUT = 40_000;
 const catalog = () => f.opened(mountApp, appInput(datasets.catalog.graph));
-const bar = (root: Element) => root.querySelector(".wb-bar") as HTMLElement;
+const bar = (root: Element) => root.querySelector(".change-bar") as HTMLElement;
 const undo = (root: Element) => f.button(bar(root), "Undo");
 const redo = (root: Element) => f.button(bar(root), "Redo");
 const off = (el: HTMLElement) => (el as HTMLButtonElement).disabled;
@@ -46,7 +46,7 @@ describe("S1 S4 twenty steps", () => {
     "keeps the last 20 of 21 saves; Undo goes off after 20 presses",
     async () => {
       const { root } = await catalog();
-      expect([off(undo(root)), off(redo(root))]).toEqual([true, true]);
+      expect(bar(root)).toBeNull();
       for (let i = 1; i <= 21; i++) rename(root, `N${i}`);
       expect(history().done).toHaveLength(20);
       expect(nameOf("t_SF_ACCOUNT")).toBe("N21");
