@@ -69,6 +69,7 @@ export type Vocab = {
   families: Family[];
   entities: Map<string, ResolvedEntity>;
   untyped: Designed | null;
+  previews: Map<string, Visual>;
   provenance: Record<Provenance, number>;
 };
 
@@ -226,7 +227,25 @@ function typesOf(
   });
   const at = order.indexOf(null);
   const untyped = at === -1 ? null : (visuals[at] as Designed);
-  return { types, untyped, issues };
+  return { types, untyped, previews: previewsOf(order, ctx, canvas), issues };
+}
+
+// why: the Kind list marks a profile type that the data does not use by the canvas rules, as if
+// the type came after the types of the data; a second run keeps the visuals of the data unchanged
+function previewsOf(
+  order: readonly (string | null)[],
+  ctx: Context,
+  canvas: Hex,
+): Map<string, Visual> {
+  const spare = Object.keys(ctx.profile.nodeTypes).filter(
+    (name) => !order.includes(name),
+  );
+  const { visuals } = visualsOf(
+    [...order, ...spare].map((name) => specOf(name, ctx)),
+    [...ctx.types.values()].flatMap((entry) => entry.abbr ?? []),
+    canvas,
+  );
+  return new Map(spare.map((name, i) => [name, visuals[order.length + i]]));
 }
 
 // why: FR-QDIC-4 and lead decision D11 — the "lost" key is the profile attribute with `lost: true`
@@ -337,7 +356,12 @@ export function resolveVocab(
   const typed = new Map(
     graph.entities.map((e) => [e.id, typeOfEntity(e, ctx)]),
   );
-  const { types, untyped, issues } = typesOf(graph, typed, ctx, canvas);
+  const { types, untyped, previews, issues } = typesOf(
+    graph,
+    typed,
+    ctx,
+    canvas,
+  );
   const typeAt = (id: string) => {
     const type = typed.get(id)?.type;
     return type === null || type === undefined ? undefined : types.get(type);
@@ -371,7 +395,15 @@ export function resolveVocab(
     profile,
     graph.familyEdits,
   );
-  const vocab = { types, predicates, families, entities, untyped, provenance };
+  const vocab = {
+    types,
+    predicates,
+    families,
+    entities,
+    untyped,
+    previews,
+    provenance,
+  };
   return { vocab, issues: [...issues, ...unknownIssues(graph, typed, ctx)] };
 }
 

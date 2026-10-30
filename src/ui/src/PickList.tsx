@@ -1,4 +1,4 @@
-import type { EditCode, Lang, Visual } from "@qdic-topology/engine";
+import type { EditCode, Lang } from "@qdic-topology/engine";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { startText, type PickKind, type Read } from "./cellEdit";
 import { familyClass, predicateColour } from "./familyLook";
@@ -204,29 +204,14 @@ function ItemBody({ ui, kind, item, text }: Body) {
   return <span class="nm">{text}</span>;
 }
 
-// why: the vocabulary holds only the types of the data; a profile type that the data does not use
-// takes the profile icon, as the canvas gives it once a row has the type
-function visualOf(item: string, visual: Visual | undefined): Visual | null {
-  if (visual !== undefined) return visual;
-  const input = shownInput.value;
-  if (input === null || !input.ok) return null;
-  const { nodeTypes } = input.profile;
-  const icon = Object.hasOwn(nodeTypes, item)
-    ? nodeTypes[item].icon
-    : undefined;
-  return icon === undefined ? null : { icon };
-}
-
 function KindItem({ ui, item }: { ui: Lang; item: string }) {
   const vocab = editedModel.value?.vocab;
   const type = vocab?.types.get(item);
+  // why: a profile type that the data does not use takes its preview mark (`Vocab.previews`)
+  const visual = type?.visual ?? vocab?.previews.get(item) ?? null;
   return (
     <>
-      <TypeGlyph
-        visual={visualOf(item, type?.visual)}
-        size={16}
-        untyped={null}
-      />
+      <TypeGlyph visual={visual} size={16} untyped={null} />
       <span class="nm">
         {vocab === undefined ? item : kindText(ui, vocab)(item)}
       </span>

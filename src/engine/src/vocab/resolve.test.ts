@@ -344,3 +344,29 @@ describe("S6 families of supplied categories", () => {
     ]);
   });
 });
+
+describe("the preview marks of the profile types that the data does not use", () => {
+  const { vocab } = resolved(loadFixture("q-full-vocabulary").input);
+  const small = resolved({
+    nodes: [{ id: "a", type: "table" }],
+    edges: [],
+  }).vocab;
+
+  it("has no preview when the data uses every profile type", () => {
+    expect(vocab.previews.size).toBe(0);
+  });
+
+  it("gives a profile icon or a shape with new letters to every other profile type", () => {
+    const spare = Object.keys(profile.nodeTypes).filter((n) => n !== "table");
+    expect([...small.previews.keys()]).toEqual(spare);
+    const letters = new Set<string>();
+    for (const [name, visual] of small.previews) {
+      if (profile.nodeTypes[name].icon !== undefined)
+        expect(visual).toEqual({ icon: profile.nodeTypes[name].icon });
+      else if ("letters" in visual && visual.letters !== undefined) {
+        expect(letters.has(visual.letters), name).toBe(false);
+        letters.add(visual.letters);
+      } else throw new Error(`no letters for ${name}`);
+    }
+  });
+});
