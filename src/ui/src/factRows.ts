@@ -114,10 +114,13 @@ function attributes(
     });
 }
 
-// why: FR-DATA-5, rule 6 — a merged entity lists its record ids first
+// why: FR-DATA-5, rule 6 — a merged entity lists its record ids first; PRD-002 FR-CELL-21 — each
+// as its shown ID (SA 0.33 (2))
 function recordsRow(model: CanvasModel, entityId: string): FactRow[] {
   const ids = recordIds(model, entityId);
-  return ids.length > 1 ? [{ kind: "records", ids }] : [];
+  if (ids.length < 2) return [];
+  const shown = new Map(model.graph.records.map((r) => [r.id, r.shownId]));
+  return [{ kind: "records", ids: ids.map((id) => shown.get(id) ?? id) }];
 }
 
 export function genericRows(
