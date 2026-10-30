@@ -31,7 +31,16 @@ export type EditEffect = { drew: DrawnId[]; undrew: DrawnId[] };
 export type Edit = { changes: readonly CellChange[]; effect: EditEffect };
 
 export type EditCode =
-  "empty" | "self-edge" | "not-a-number" | "not-a-date" | "inverse-name";
+  | "empty"
+  | "self-edge"
+  | "not-a-number"
+  | "not-a-date"
+  | "inverse-name"
+  | "id-in-use"
+  | "bad-attributes"
+  | "blocked-key"
+  | "too-long"
+  | "not-json";
 
 export type ValueKind =
   "text" | "number" | "boolean" | "date" | "list" | "object";
@@ -40,7 +49,18 @@ export type RowKind = "node" | "edge";
 
 export type Field = { key: string; attr: boolean };
 
+// why: STORY-008-09 rules 12, 13, 17, 18 — the ID and the Type label are shown values over the
+// stable ids (`shownId`, `typeLabel`), the Family is an overlay of the kind or the predicate, and
+// Attributes is the whole set
+const SHARED: [CoreColumn, Field][] = [
+  ["id", { key: "shownId", attr: false }],
+  ["type", { key: "typeLabel", attr: false }],
+  ["family", { key: "family", attr: false }],
+  ["attributes", { key: "attrs", attr: false }],
+];
+
 const NODE = new Map<CoreColumn, Field>([
+  ...SHARED,
   ["kind", { key: "type", attr: false }],
   ["name", { key: "label", attr: false }],
   ["system", { key: "service_name", attr: true }],
@@ -49,6 +69,9 @@ const NODE = new Map<CoreColumn, Field>([
 
 // why: PRD-002 FR-CELL-1 — on an edge row, Name and Predicate are one value
 const EDGE = new Map<CoreColumn, Field>([
+  ...SHARED,
+  ["system", { key: "service_name", attr: true }],
+  ["description", { key: "description", attr: true }],
   ["name", { key: "predicate", attr: false }],
   ["predicate", { key: "predicate", attr: false }],
   ["subject", { key: "subject", attr: false }],
@@ -68,7 +91,7 @@ export function fieldOf(row: RowKind, column: EditColumn): Field {
   if (typeof column === "string") {
     const field = (row === "node" ? NODE : EDGE).get(column);
     if (field !== undefined) return field;
-  } else if (row === "node" && Object.hasOwn(column, "attr"))
+  } else if (Object.hasOwn(column, "attr"))
     return { key: (column as { attr: string }).attr, attr: true };
   else if (row === "edge" && Object.hasOwn(column, "fact")) {
     const { fact } = column as { fact: string };
@@ -79,6 +102,7 @@ export function fieldOf(row: RowKind, column: EditColumn): Field {
 }
 
 export function valueOf(target: NodeRecord | Triple, field: Field): unknown {
+  if (field.key === "family") return undefined;
   const holder: object = field.attr ? target.attrs : target;
   return Object.hasOwn(holder, field.key)
     ? (holder as Record<string, unknown>)[field.key]

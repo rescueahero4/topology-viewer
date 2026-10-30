@@ -15,6 +15,8 @@ import {
   type NodeRecord,
   type RowRef,
   type Triple,
+  checkEdit,
+  familiesOf,
 } from "../index";
 
 const NOW = "2026-10-14";
@@ -384,15 +386,100 @@ describe("S20 a column that the row cannot edit is a programmer error", () => {
   const cases: [string, RowRef, EditColumn][] = [
     ["(a) kind on an edge row", edge, "kind"],
     ["(b) subject on a node row", node, "subject"],
-    ["(c) id on a node row", node, "id"],
-    ["(c) id on an edge row", edge, "id"],
-    ["(d) family on an edge row", edge, "family"],
-    ["attribute on an edge row", edge, { attr: "x" }],
     ["fact on a node row", node, { fact: "x" }],
-    ["list attribute", { record: listed?.id ?? "" }, { attr: "owners" }],
+    [
+      "text in a list attribute",
+      { record: listed?.id ?? "" },
+      { attr: "owners" },
+    ],
+    ["text as the attribute set", node, "attributes"],
   ];
 
   it.each(cases)("%s throws", (_, row, column) => {
     expect(() => apply(base, edit(change(row, column, "x")))).toThrow();
+  });
+});
+
+describe("STORY-008-09 the new editable columns", () => {
+  const base = catalog();
+  const record = base.records[0];
+  const node = { record: record.id };
+  const triple = base.triples[0];
+  const edge = { triple: triple.key };
+
+  it("S12 an ID edit sets the shown ID; the stable ids and the edges stay", () => {
+    const graph = apply(base, edit(change(node, "id", "renamed")));
+    expect(graph.records[0]).toMatchObject({
+      id: record.id,
+      shownId: "renamed",
+    });
+    expect(graph.triples).toEqual(base.triples);
+    expect(apply(base).records[0].shownId).toBeUndefined();
+  });
+
+  it("S13 an empty ID or an ID in use is blocked", () => {
+    const used = base.records[1].id;
+    const check = (after: unknown) =>
+      checkEdit(base, profile, change(node, "id", after));
+    expect(check("")).toBe("empty");
+    expect(check(used)).toBe("id-in-use");
+    expect(check("free-id")).toBeNull();
+    const renamed = apply(base, edit(change(node, "id", "free-id")));
+    const other = { record: base.records[1].id };
+    expect(checkEdit(renamed, profile, change(other, "id", "free-id"))).toBe(
+      "id-in-use",
+    );
+  });
+
+  it("S14 a Type edit sets only the shown label", () => {
+    const graph = apply(base, edit(change(node, "type", "asset")));
+    expect(graph.records[0].typeLabel).toBe("asset");
+    expect(graph.records[0].type).toBe(record.type);
+    expect(graph.entities).toEqual(base.entities);
+  });
+
+  it("S15 a Predicate edit keeps the ends", () => {
+    const graph = apply(base, edit(change(edge, "predicate", "feeds")));
+    expect(graph.triples[0]).toMatchObject({
+      subject: triple.subject,
+      object: triple.object,
+      predicate: "feeds",
+    });
+  });
+
+  it("S16 a Family edit moves the kind or the predicate in the overlay", () => {
+    const graph = apply(
+      base,
+      edit(change(node, "family", "Ops"), change(edge, "family", "Flow")),
+    );
+    expect(familiesOf(graph).types.get(record.type as string)).toBe("Ops");
+    expect(familiesOf(graph).predicates.get(triple.predicate)).toBe("Flow");
+    expect(familiesOf(apply(base)).types.size).toBe(0);
+  });
+
+  it("S18 an Attributes edit replaces the whole set", () => {
+    const set = { a: 1, valid_from: "2026-01-01", isActive: false };
+    const graph = apply(base, edit(change(edge, "attributes", set)));
+    expect({ ...graph.triples[0].attrs }).toEqual({ a: 1 });
+    expect(graph.triples[0]).toMatchObject({
+      validFrom: "2026-01-01",
+      isActive: false,
+    });
+    expect(graph.triples[0].validTo).toBeUndefined();
+    const nodes = apply(base, edit(change(node, "attributes", { b: "x" })));
+    expect({ ...nodes.records[0].attrs }).toEqual({ b: "x" });
+    expect(Object.getPrototypeOf(nodes.records[0].attrs)).toBeNull();
+    const bad = change(edge, "attributes", { isActive: "yes" });
+    expect(checkEdit(base, profile, bad)).toBe("bad-attributes");
+  });
+
+  it("S20 a list attribute takes a list only", () => {
+    const listed = base.records.find((r) => Object.hasOwn(r.attrs, "owners"));
+    const row = { record: listed?.id ?? "" };
+    const graph = apply(base, edit(change(row, { attr: "owners" }, ["x"])));
+    const at = base.records.indexOf(listed as NodeRecord);
+    expect(graph.records[at].attrs.owners).toEqual(["x"]);
+    const text = change(row, { attr: "owners" }, "x");
+    expect(checkEdit(base, profile, text)).toBe("not-json");
   });
 });

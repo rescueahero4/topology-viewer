@@ -58,7 +58,7 @@ describe("S21 the edit tests import the edit parts from the engine entry", () =>
     expect(text).not.toMatch(/from "\.\/|from "\.\.\/edit\//);
   });
 
-  it("covers the six test files", () => {
-    expect(files).toHaveLength(6);
+  it("covers the seven test files", () => {
+    expect(files).toHaveLength(7);
   });
 });
