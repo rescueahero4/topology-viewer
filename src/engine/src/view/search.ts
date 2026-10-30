@@ -7,11 +7,13 @@ import { fold } from "../vocab/predicates";
 export function matchEntities(graph: Graph, query: string): string[] {
   const key = fold(query.trim());
   if (key === "") return [];
+  // why: SA §4.8 addendum 0.33 (2) — the shown ID of each record, not the old id
+  const shown = new Map(graph.records.map((r) => [r.id, r.shownId ?? r.id]));
   return graph.entities
     .filter(
       (entity) =>
         fold(entity.label).includes(key) ||
-        entity.records.some((record) => fold(record) === key),
+        entity.records.some((id) => fold(shown.get(id) ?? id) === key),
     )
     .map((entity) => entity.id);
 }

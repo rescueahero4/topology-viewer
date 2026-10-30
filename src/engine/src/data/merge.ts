@@ -15,6 +15,8 @@ export type NodeRecord = {
   isWritable?: boolean;
   inferred: Record<string, string>;
   position: number;
+  shownId?: string;
+  typeLabel?: string;
 };
 
 export type EdgeRecord = {
@@ -35,12 +37,15 @@ export type Entity = {
   type?: string;
   label: string;
   records: string[];
+  shownId?: string;
 };
 
 export type Triple = Omit<EdgeRecord, "id"> & {
   key: string;
   inferred?: { predicate?: string };
   records: number[];
+  shownId?: string;
+  typeLabel?: string;
 };
 
 export type Merged = {

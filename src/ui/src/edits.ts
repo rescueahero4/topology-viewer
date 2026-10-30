@@ -1,6 +1,10 @@
 import {
+  attributeChanges,
   cancelEffect,
   checkEdit,
+  entityDrawnId,
+  familyPredicateName,
+  readAttributes,
   sameValueRows,
   type CellChange,
   type Edit,
@@ -10,13 +14,7 @@ import {
 } from "@qdic-topology/engine";
 import type { Actions } from "./actions";
 import { endsToDraw } from "./canvas/index";
-import {
-  changeOf,
-  sameValue,
-  type Read,
-  type Saved,
-  type Target,
-} from "./cellEdit";
+import { changeOf, sameValue, type Read, type Saved } from "./cellEdit";
 import { localVocab } from "./names";
 import {
   editedModel,
@@ -27,6 +25,7 @@ import {
   shownInput,
   stepEdits,
 } from "./state";
+import type { Column } from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
 // why: SA §4.8, STORY-008-04 rule 6 — one save is one history step: the edit goes into the
@@ -115,7 +114,7 @@ const NOTHING: Checked = {
 
 // why: STORY-008-04 rule 4 (PRD-002 FR-CELL-5) — the code of a bad value, or the change; an
 // unchanged value gives no change, so the editor closes with no history step
-function checked(row: Row, column: Target, read: Read): Checked {
+function checked(row: Row, column: Column, read: Read): Checked {
   if ("code" in read) return { ...NOTHING, code: read.code };
   const base = model.peek();
   const now = editedModel.peek();
@@ -128,8 +127,44 @@ function checked(row: Row, column: Target, read: Read): Checked {
   return { code: check(change), change, check, graph: now.graph };
 }
 
-export const checkCell = (row: Row, column: Target, read: Read) =>
-  checked(row, column, read).code;
+const isCore = (column: Column, key: string) =>
+  "core" in column && column.core === key;
+
+type SetRead = { code: EditCode } | { changes: CellChange[] };
+
+// why: SA §4.8 addendum 0.33 (6) — the Attributes text is read by the row type; the changes of one
+// save are the replace of the set (`attributeChanges`), for this row only
+function setRead(row: Row, read: Read): SetRead {
+  if ("code" in read) return read;
+  const text = typeof read.after === "string" ? read.after : "";
+  const found = readAttributes(text, row.rtype);
+  const base = model.peek();
+  const now = editedModel.peek();
+  if ("code" in found) return found;
+  if (base === null || now === null) return { changes: [] };
+  const ref = changeOf(base.graph, row, { core: "attributes" }, null).row;
+  return { changes: attributeChanges(now.graph, ref, found.entries) };
+}
+
+export function checkCell(row: Row, column: Column, read: Read) {
+  if (isCore(column, "canvas")) return null;
+  if (isCore(column, "attributes")) {
+    const found = setRead(row, read);
+    return "code" in found ? found.code : null;
+  }
+  return checked(row, column, read).code;
+}
+
+// why: SA §4.8 addendum 0.33 (4) — the Canvas select is not an edit: one row of the bulk bar rules.
+// "On canvas" draws or restores the node, or the ends of an edge; "Not on canvas" hides a node
+// (the canvas keeps one node drawn); an edge row has no "Not on canvas"
+function canvasSave(actions: Actions, row: Row, read: Read): EditCode | null {
+  if ("code" in read) return read.code;
+  const ends = row.rtype === "node" ? [row.entity] : [row.subject, row.object];
+  if (read.after === "on") actions.reveal(ends);
+  else if (row.rtype === "node") actions.hide([entityDrawnId(row.entity)]);
+  return null;
+}
 
 // why: STORY-008-07 rule 2 — the place of a row in the row list: the records, then the triples
 function placesOf(base: Graph): (ref: RowRef) => number {
@@ -156,16 +191,48 @@ function applyAll(actions: Actions, found: Checked, refs: RowRef[]) {
   return null;
 }
 
+// why: SA §4.8 addendum 0.33 (5) — "this row only" on a Family gives the edge its own predicate
+// `familyPredicateName`, then the family, in one edit of two changes
+function ownFamily(actions: Actions, row: Row, found: Checked) {
+  const base = model.peek();
+  const input = shownInput.peek();
+  const { change, check, graph } = found;
+  if (row.rtype !== "edge" || !input?.ok || !base || !change || !graph)
+    return null;
+  const family = String(change.after);
+  const { profile } = input;
+  const name = familyPredicateName(
+    graph,
+    profile,
+    base.payload,
+    row.triple.predicate,
+    family,
+  );
+  const own = changeOf(base.graph, row, { core: "predicate" }, name);
+  const code = check(own);
+  if (code !== null) return code;
+  saveEdit(actions, [own, change]);
+  return null;
+}
+
 // why: STORY-008-04 rule 4 — a save runs `checkEdit` first; with a code the save does not occur.
 // STORY-008-07 rule 1 (FR-CELL-6) — with 2 or more rows of the same old value the save asks; an
-// empty old value gives one row (`sameValueRows`), so it saves at once
+// empty old value gives one row (`sameValueRows`), so it saves at once. SA §4.8 addendum 0.33
+// (4)-(6) — Canvas is a canvas action; Attributes saves this row only
 export function trySave(
   actions: Actions,
   row: Row,
-  column: Target,
+  column: Column,
   read: Read,
   shown: ReadonlySet<number>,
 ): Saved {
+  if (isCore(column, "canvas")) return canvasSave(actions, row, read);
+  if (isCore(column, "attributes")) {
+    const found = setRead(row, read);
+    if ("code" in found) return found.code;
+    if (found.changes.length > 0) saveEdit(actions, found.changes);
+    return null;
+  }
   const found = checked(row, column, read);
   const { code, change, graph } = found;
   if (code !== null || change === null || graph === null) return code;
@@ -181,6 +248,7 @@ export function trySave(
     hidden: refs.filter((ref) => !shown.has(place(ref))).length,
     apply: (all) => {
       if (all) return applyAll(actions, found, refs);
+      if (isCore(column, "family")) return ownFamily(actions, row, found);
       saveEdit(actions, [change]);
       return null;
     },

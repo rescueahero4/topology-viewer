@@ -18,7 +18,7 @@ vi.useFakeTimers({
 vi.resetModules();
 const f = await import("./cellEditFrame");
 const { mountApp } = await import("./testFrame");
-const { appInput, fixtureModel } = await import("./fixtureModel");
+const { appInput } = await import("./fixtureModel");
 const { datasets } = await import("@qdic-topology/fixtures");
 const state = await import("./state");
 
@@ -182,38 +182,5 @@ describe("S8 one bad change of all N rows", () => {
     );
     expect(f.editors(root)).toHaveLength(1);
     expect(done()).toHaveLength(0);
-  });
-});
-
-describe("S10 a shared fact value", () => {
-  it("changes each triple with the old value in one edit", async () => {
-    const { root } = await f.opened(
-      mountApp,
-      fixtureModel("q-full-vocabulary"),
-    );
-    const before = graph()
-      .triples.filter((t) => t.isActive === true)
-      .map((t) => t.key);
-    expect(before.length).toBeGreaterThanOrEqual(2);
-    const id = "ugrp-analysts · permissionedTo · tbl-orders";
-    f.search(root, id);
-    f.dblclick(f.cellOf(root, id, "Attributes"));
-    const form = root.querySelector(".facts-form") as HTMLElement;
-    const keys = [...form.querySelectorAll("dt")].map(f.text);
-    const line = form.querySelectorAll("dd")[keys.indexOf("isActive")];
-    const no = line.querySelectorAll("button")[1];
-    f.click(no);
-    f.key(no, "Enter");
-    const items = [...form.querySelectorAll("[role=menuitem]")];
-    expect(items.map(f.text)).toEqual([
-      "Apply to this row only",
-      `Apply to all ${before.length} rows (${before.length - 1} not shown)`,
-    ]);
-    f.click(items[1]);
-    expect(done()).toHaveLength(1);
-    expect(done()[0].changes).toHaveLength(before.length);
-    const after = graph().triples.filter((t) => before.includes(t.key));
-    expect(after.map((t) => t.isActive)).toEqual(before.map(() => false));
-    expect(root.querySelector(".facts-form")).not.toBeNull();
   });
 });

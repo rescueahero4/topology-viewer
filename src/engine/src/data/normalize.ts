@@ -31,6 +31,7 @@ export type Payload = Pick<
 
 export type Graph = Merged & {
   shapedSet: { records: string[]; triples: string[] };
+  familyEdits?: Record<string, string>;
 };
 
 export type Counts = {

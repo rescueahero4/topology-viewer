@@ -1,6 +1,7 @@
 import type { Profile } from "@qdic-topology/contract";
 import type { Graph } from "../data/normalize";
 import { locate } from "./apply";
+import { rowIds } from "./rowIds";
 import {
   fieldOf,
   valueOf,
@@ -34,7 +35,7 @@ const daysIn = (year: number, month: number) =>
       : 31;
 
 // why: STORY-008-01 rule 6 — a date cell takes only a real calendar date (`2026-02-30` is not one)
-function isDate(value: unknown): boolean {
+export function isDate(value: unknown): boolean {
   const parts = typeof value === "string" ? DATE_FORM.exec(value) : null;
   if (parts === null) return false;
   const [year, month, day, hour, minute, second, offHour, offMinute] = parts
@@ -54,7 +55,10 @@ function isDate(value: unknown): boolean {
 }
 
 // why: PRD-002 FR-CELL-5 — the columns that may never be empty
-const REQUIRED = new Set(["label", "type", "predicate", "subject", "object"]);
+const REQUIRED = new Set([
+  ...["label", "type", "predicate", "subject", "object"],
+  ...["shownId", "typeLabel", "family"],
+]);
 
 const blank = (value: unknown) =>
   value === undefined ||
@@ -70,6 +74,12 @@ function selfEdge(graph: Graph, index: number, field: Field, after: unknown) {
   return subject === object;
 }
 
+// why: SA §4.8 addendum 0.33 (2) — another row of `rowIds` shows the same text
+function duplicateId(graph: Graph, kind: string, index: number, id: unknown) {
+  const at = kind === "node" ? index : graph.records.length + index;
+  return rowIds(graph).some((shown, place) => place !== at && shown === id);
+}
+
 // why: SA §4.8, PRD-002 FR-CELL-5 — the engine gives the code only; the shell shows its text.
 // The inverse check is an own-key check, so `__proto__` is not an inverse name (LEARNINGS 68)
 export function checkEdit(
@@ -83,6 +93,8 @@ export function checkEdit(
   const required = !field.attr && REQUIRED.has(field.key);
   if (required && blank(after)) return "empty";
   if (after === undefined) return null;
+  if (field.key === "shownId" && duplicateId(graph, kind, index, after))
+    return "duplicate-id";
   if (kind === "edge" && selfEdge(graph, index, field, after))
     return "self-edge";
   if (

@@ -38,52 +38,40 @@ describe("S1 editable", () => {
   const edge = all.find((r) => r.rtype === "edge");
   if (node === undefined || edge === undefined) throw new Error("no rows");
   const can = (row: typeof node, column: Parameters<typeof editable>[1]) =>
-    editable(row, column, cellValue(row, column));
+    editable(row, column);
 
-  it("is true for the FR-CELL-1 core cells of each row type only", () => {
+  it("is true for every data cell of each row type (STORY-008-09 rule 10)", () => {
     const nodeCore = CORE.filter((key) => can(node, { core: key }));
     const edgeCore = CORE.filter((key) => can(edge, { core: key }));
-    expect(nodeCore).toEqual(["kind", "name", "system", "description"]);
-    expect(edgeCore).toEqual([
-      "name",
-      "predicate",
-      "subject",
-      "object",
+    expect(nodeCore).toEqual([
+      ...["canvas", "id", "type", "kind", "name", "system", "description"],
       "attributes",
+    ]);
+    expect(edgeCore).toEqual([
+      ...["canvas", "id", "type", "name", "system", "description"],
+      ...["predicate", "subject", "object", "family", "attributes"],
     ]);
   });
 
-  it("is true for text, number, true/false, date and empty attributes", () => {
+  it("is true for every node attribute, also a list or an object (rule 19)", () => {
     const keys = ["n", "d", "dt", "z", "bool", "s", "list", "obj", "none"];
-    expect(keys.filter((attr) => can(node, { attr }))).toEqual([
-      "n",
-      "d",
-      "dt",
-      "z",
-      "bool",
-      "s",
-      "none",
-    ]);
+    expect(keys.filter((attr) => can(node, { attr }))).toEqual(keys);
     expect(keys.filter((attr) => can(edge, { attr }))).toEqual([]);
   });
 
   it("gives the input of each value kind (rule 5)", () => {
     const of = (attr: string) =>
       inputOf(node, { attr }, cellValue(node, { attr }));
-    expect(["n", "d", "dt", "z", "bool", "s", "none"].map(of)).toEqual([
-      "number",
-      "date",
-      "datetime",
-      "text",
-      "boolean",
-      "text",
-      "text",
+    const keys = ["n", "d", "dt", "z", "bool", "s", "none", "list", "obj"];
+    expect(keys.map(of)).toEqual([
+      ...["number", "date", "datetime", "values", "boolean", "values"],
+      ...["values", "list", "object"],
     ]);
   });
 });
 
 describe("S9 the input of each attribute cell", () => {
-  it("opens a number, a date, a choice and text inputs; no editor on a list", async () => {
+  it("opens a number, a date, a choice, text inputs and a JSON text on a list", async () => {
     const { root } = await f.opened(mountApp, kinds());
     const open = (id: string, column: string) => {
       f.dblclick(f.cellOf(root, id, column));
@@ -101,7 +89,7 @@ describe("S9 the input of each attribute cell", () => {
     expect(open("a", "bool")).toBe("Yes/No/No value");
     expect(open("a", "s")).toBe("text");
     expect(open("b", "n")).toBe("text");
-    expect(open("a", "list")).toBe("none");
+    expect(open("a", "list")).toBe("text");
   });
 
   it("keeps the time of a date-time and removes the key with No value", async () => {
@@ -189,16 +177,14 @@ describe("S11 an empty input clears the value", () => {
   });
 });
 
-// why: S14 ran before STORY-008-05 on this branch (commit fee11c1); STORY-008-05 rule 1 gives the
-// Kind, Predicate, edge Name, Subject and Object cells their lists, and STORY-008-06 rule 1 gives an
-// edge with facts its form, so the cell that keeps no editor is the Attributes cell of an edge with
-// no fact (the `catalog` `contains` edges)
-describe("S14 no editor for a cell whose editor comes later", () => {
-  it("presses the row only on the edge Attributes cell", async () => {
+// why: S14 ran before STORY-008-05 on this branch (commit fee11c1); STORY-008-09 rule 10 makes
+// every data cell editable, so the cell that keeps no editor is a cell with no data for its row
+// type (the Predicate cell of a node row)
+describe("S14 no editor for a cell with no data for the row type", () => {
+  it("presses the row only on the node Predicate cell", async () => {
     const { root } = await f.opened(mountApp, appInput(datasets.catalog.graph));
     f.search(root, "t_FCT_REVENUE");
-    const edge = f.rows(root).find((tr) => f.text(tr).includes("contains"));
-    f.dblclick(edge?.children[f.heads(root).indexOf("Attributes")]);
+    f.dblclick(f.cellOf(root, "t_FCT_REVENUE", "Predicate"));
     expect(state.selection.value).not.toBeNull();
     expect(f.editors(root)).toHaveLength(0);
     expect(active()).toHaveLength(0);

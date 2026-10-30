@@ -9,7 +9,7 @@ import {
 } from "@qdic-topology/engine";
 import type { ComponentChildren, RefObject } from "preact";
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
-import type { Read, Saved, Target } from "./cellEdit";
+import type { Read, Saved } from "./cellEdit";
 import { partsOf, useCells, type Nav } from "./cellFocus";
 import { Checkbox } from "./Checkbox";
 import { EyeIcon } from "./EyeIcon";
@@ -253,7 +253,7 @@ function TableRow({
           label={
             <span class="sr-only">
               {before}
-              {row.rtype === "node" ? row.name : row.id}
+              {row.rtype === "node" ? row.name : row.shownId}
               {after}
             </span>
           }
@@ -284,7 +284,7 @@ function Spacer({ height, span }: { height: number; span: number }) {
 
 export type CellCheck = (
   row: Row,
-  column: Target,
+  column: Column,
   read: Read,
 ) => EditCode | null;
 
@@ -299,7 +299,7 @@ type Props = {
   onTick: (index: number, shift: boolean) => void;
   onPress: (row: Row) => void;
   onCheck: CellCheck;
-  onSave: (row: Row, column: Target, read: Read) => Saved;
+  onSave: (row: Row, column: Column, read: Read) => Saved;
 };
 
 // why: FR-TABLE-4, rules 3, 6, 7 — the window of rows between spacer rows, so the scroll height

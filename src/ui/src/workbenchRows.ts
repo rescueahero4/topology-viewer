@@ -1,6 +1,7 @@
 import {
   entityOfRecord,
   fold,
+  rowIds,
   type Graph,
   type Lang,
   type NodeRecord,
@@ -14,6 +15,7 @@ type NodeRow = {
   rtype: "node";
   index: number;
   id: string;
+  shownId: string;
   entity: string;
   type: string | null;
   name: string;
@@ -24,6 +26,7 @@ type EdgeRow = {
   rtype: "edge";
   index: number;
   id: string;
+  shownId: string;
   subject: string;
   object: string;
   subjectLabel: string;
@@ -35,15 +38,11 @@ type EdgeRow = {
 
 export type Row = NodeRow | EdgeRow;
 
-// why: rule 2, open question 1 (Product Owner, epic review) — the parts of an edge-row ID join
-// with a middle dot; a repeat number follows the same join
-const PART = " · ";
-
 const built = new WeakMap<Graph, readonly Row[]>();
 
 // why: STORY-008-02 rule 4 (PRD-002 FR-CELL-7) — the Kind of a node row is the type of its record,
 // else the type of its entity, so a "this row only" edit on a merged node shows in its row only
-function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
+function nodeRows(graph: Graph, vocab: Vocab, ids: string[]): NodeRow[] {
   const owner = entityOfRecord(graph);
   return graph.records.map((record, index) => {
     const entity = owner(record.id) ?? record.id;
@@ -51,6 +50,7 @@ function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
       rtype: "node",
       index,
       id: record.id,
+      shownId: ids[index],
       entity,
       type: record.type ?? vocab.entities.get(entity)?.type ?? null,
       name: record.label,
@@ -59,22 +59,18 @@ function nodeRows(graph: Graph, vocab: Vocab): NodeRow[] {
   });
 }
 
-// why: rule 2 (Security build condition) — the ID comes from the `Triple` fields; the repeat number
-// is the place of the triple among the triples with the same three parts in `graph.triples`, so
-// nothing parses `Triple.key` and nothing can throw
-function edgeRows(graph: Graph, vocab: Vocab, start: number): EdgeRow[] {
-  const seen = new Map<string, number>();
+// why: rule 2 (Security build condition), SA §4.8 addendum 0.33 (2) — the ID is the shown ID of
+// `rowIds`, built from the `Triple` fields; nothing parses `Triple.key` and nothing can throw
+function edgeRows(graph: Graph, vocab: Vocab, ids: string[]): EdgeRow[] {
+  const start = graph.records.length;
   const label = (id: string) => vocab.entities.get(id)?.label ?? id;
   return graph.triples.map((triple, at) => {
     const { subject, predicate, object } = triple;
-    const parts = JSON.stringify([subject, predicate, object]);
-    const place = (seen.get(parts) ?? 0) + 1;
-    seen.set(parts, place);
-    const id = [subject, predicate, object].join(PART);
     return {
       rtype: "edge",
       index: start + at,
-      id: place === 1 ? id : `${id}${PART}${place}`,
+      id: ids[start + at],
+      shownId: ids[start + at],
       subject,
       object,
       subjectLabel: label(subject),
@@ -91,8 +87,8 @@ function edgeRows(graph: Graph, vocab: Vocab, start: number): EdgeRow[] {
 export function rowsOf(graph: Graph, vocab: Vocab): readonly Row[] {
   let rows = built.get(graph);
   if (rows === undefined) {
-    const nodes = nodeRows(graph, vocab);
-    rows = [...nodes, ...edgeRows(graph, vocab, nodes.length)];
+    const ids = rowIds(graph);
+    rows = [...nodeRows(graph, vocab, ids), ...edgeRows(graph, vocab, ids)];
     built.set(graph, rows);
   }
   return rows;
@@ -138,7 +134,11 @@ const haystacks = new WeakMap<readonly Row[], Map<Lang, readonly string[]>>();
 // ids of both ends and the family (its key and its name in the UI language)
 function textsOf(lang: Lang, vocab: Vocab, row: Row): string[] {
   if (row.rtype === "node")
-    return [row.id, row.name, cellText(lang, vocab, { core: "system" }, row)];
+    return [
+      row.shownId,
+      row.name,
+      cellText(lang, vocab, { core: "system" }, row),
+    ];
   const family = cellText(lang, vocab, { core: "family" }, row);
   return [
     ...[row.id, row.predicate, row.subjectLabel, row.objectLabel],
