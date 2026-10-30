@@ -140,7 +140,8 @@ describe("S5 S6 S7 Save changes", () => {
     press(root, "Save changes");
     expect(nameOf("t_SF_ACCOUNT")).toBe("S2");
     expect(f.text(f.cellOf(root, "t_SF_ACCOUNT", "Name"))).toBe("S2");
-    expect(history().active()).toHaveLength(0);
+    expect(history().done).toHaveLength(0);
+    expect(history().dirty()).toBe(false);
     expect(history().undone).toHaveLength(0);
     expect(bar(root)).toBeNull();
     expect(news(root)).toBe("Changes saved");
@@ -169,6 +170,27 @@ describe("S5 S6 S7 Save changes", () => {
     expect(nameOf("t_SF_ACCOUNT")).toBe("S1");
     expect(f.text(f.cellOf(root, "t_SF_ACCOUNT", "Name"))).toBe("S1");
     expect(bar(root)).toBeNull();
+  });
+});
+
+describe("SA addendum 0.33 (10) a bar press with a cell in edit", () => {
+  it("runs the press outside first; with a bad value the action does not run", async () => {
+    const { root } = await catalog();
+    rename(root, "P1");
+    f.dblclick(f.cellOf(root, "t_SF_ACCOUNT", "Name"));
+    f.type(f.input(root), "");
+    press(root, "Save changes");
+    expect(f.editors(root)).toHaveLength(1);
+    expect(history().dirty()).toBe(true);
+    f.type(f.input(root), "P2");
+    const save = f.button(bar(root) as HTMLElement, "Save changes");
+    f.run(() =>
+      save.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })),
+    );
+    f.click(save);
+    expect(f.editors(root)).toHaveLength(0);
+    expect(nameOf("t_SF_ACCOUNT")).toBe("P2");
+    expect(history().dirty()).toBe(false);
   });
 });
 

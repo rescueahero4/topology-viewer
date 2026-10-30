@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { EditHistory, type Edit } from "../index";
+import { cancelEffect, EditHistory, type Edit } from "../index";
 
 const editOf = (n: number): Edit => ({
   changes: [
@@ -60,5 +60,62 @@ describe("S21 the edit tests import the edit parts from the engine entry", () =>
 
   it("covers the six test files", () => {
     expect(files).toHaveLength(6);
+  });
+});
+
+describe("STORY-008-09 save, cancel and the cancel effect (SA addendum 0.33 (9))", () => {
+  const edits = Array.from({ length: 23 }, (_, i) => editOf(i + 1));
+  const effectOf = (drew: string[], undrew: string[]): Edit => ({
+    ...editOf(0),
+    effect: { drew, undrew },
+  });
+
+  it("folds saved, kept and done into one saved edit; Undo cannot reach it", () => {
+    const history = new EditHistory();
+    edits.slice(0, 21).forEach((edit) => history.push(edit));
+    history.undo();
+    expect(history.dirty()).toBe(true);
+    history.save();
+    expect(history.dirty()).toBe(false);
+    expect([history.done, history.undone]).toEqual([[], []]);
+    const changes = edits.slice(0, 20).flatMap((edit) => edit.changes);
+    expect(history.active()).toEqual([
+      { changes, effect: { drew: [], undrew: [] } },
+    ]);
+    expect(history.undo()).toBeNull();
+    history.push(edits[21]);
+    history.save();
+    expect(history.active()[0].changes).toEqual([
+      ...changes,
+      ...edits[21].changes,
+    ]);
+  });
+
+  it("cancel returns kept and done in order and keeps the saved edit", () => {
+    const history = new EditHistory();
+    history.push(edits[0]);
+    history.save();
+    const saved = history.active();
+    edits.slice(1, 23).forEach((edit) => history.push(edit));
+    history.undo();
+    expect(history.cancel()).toEqual(edits.slice(1, 22));
+    expect(history.active()).toEqual(saved);
+    expect(history.dirty()).toBe(false);
+  });
+
+  it("is dirty with only Redo steps left", () => {
+    const history = new EditHistory();
+    history.push(edits[0]);
+    history.undo();
+    expect(history.dirty()).toBe(true);
+  });
+
+  it("lets the oldest cancelled edit decide each id", () => {
+    const first = effectOf(["a", "b"], ["c"]);
+    const second = effectOf(["c"], ["a", "d"]);
+    expect(cancelEffect([first, second])).toEqual({
+      draw: ["c", "d"],
+      undraw: ["a", "b"],
+    });
   });
 });

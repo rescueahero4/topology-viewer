@@ -147,7 +147,7 @@ export {
 export type { Profile } from "@qdic-topology/contract";
 export { applyEdits, locate } from "./edit/apply";
 export { checkEdit, valueKind } from "./edit/check";
-export { EditHistory } from "./edit/history";
+export { cancelEffect, EditHistory } from "./edit/history";
 export { sameValueRows } from "./edit/same";
 export type {
   CellChange,

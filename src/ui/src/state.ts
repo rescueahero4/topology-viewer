@@ -50,14 +50,10 @@ export const editHistory = signal({ history: new EditHistory(), version: 0 });
 // why: STORY-008-09 rule 8 (FR-CELL-16) — the last save, Undo, Redo, Cancel or Save with its change
 // count, for the `aria-live` result; a new object each time, so the same result is read again
 export type EditStep = {
-  kind: "save" | "undo" | "redo" | "cancel" | "kept";
+  kind: "save" | "undo" | "redo" | "saved" | "cancelled";
   count: number;
 };
 export const editStep = signal<EditStep | null>(null);
-
-// why: STORY-008-09 rule 5 — "Save changes" folds the edits into this graph and empties the history,
-// so Undo cannot go past a save; `null` is the base graph. In memory only (rule 6)
-export const savedGraph = signal<Graph | null>(null);
 
 export function freshHistory(): void {
   editHistory.value = {
@@ -78,7 +74,7 @@ export const editedGraph = computed<Graph | null>(() => {
   const input = shownInput.value;
   if (input === null || !input.ok) return null;
   const edits = editHistory.value.history.active();
-  const graph = savedGraph.value ?? input.model.graph;
+  const { graph } = input.model;
   return edits.length === 0 ? graph : applyEdits(graph, edits, input.now);
 });
 
@@ -113,7 +109,6 @@ export function takeInput(input: AppInput, kept: EditsKept): void {
   batch(() => {
     if (!keepsEdits(shownInput.peek(), input, kept)) {
       freshHistory();
-      savedGraph.value = null;
       editStep.value = null;
     }
     shownInput.value = input;

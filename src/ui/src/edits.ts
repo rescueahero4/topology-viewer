@@ -1,5 +1,5 @@
-import { batch } from "@preact/signals";
 import {
+  cancelEffect,
   checkEdit,
   sameValueRows,
   type CellChange,
@@ -9,7 +9,7 @@ import {
   type RowRef,
 } from "@qdic-topology/engine";
 import type { Actions } from "./actions";
-import { endsToDraw, type EditEnds } from "./canvas/index";
+import { endsToDraw } from "./canvas/index";
 import {
   changeOf,
   sameValue,
@@ -19,14 +19,11 @@ import {
 } from "./cellEdit";
 import { localVocab } from "./names";
 import {
-  editedGraph,
   editedModel,
   editHistory,
   editStep,
-  freshHistory,
   lang,
   model,
-  savedGraph,
   shownInput,
   stepEdits,
 } from "./state";
@@ -81,43 +78,25 @@ export function redoEdit(actions: Actions): void {
   editStep.value = { kind: "redo", count: edit.changes.length };
 }
 
-// why: STORY-008-09 rule 4 — the canvas effect of the Undo of each active edit, newest first, in one
-// list: the oldest edit decides each node, so a node that an edit drew and a later edit took off
-// is not drawn after the Cancel
-function backOf(edits: readonly Edit[]): EditEnds {
-  const last = new Map<string, boolean>();
-  for (const { effect } of [...edits].reverse()) {
-    for (const id of effect.drew) last.set(id, false);
-    for (const id of effect.undrew) last.set(id, true);
-  }
-  const ids = (draw: boolean) =>
-    [...last].filter(([, on]) => on === draw).map(([id]) => id);
-  return { draw: ids(true), undraw: ids(false) };
-}
-
-// why: STORY-008-09 rule 4 (SA addendum 0.32) — "Cancel change" takes back every active edit, also
-// the edits that the 20-step history dropped, in one canvas step with no confirmation
-export function cancelEdits(actions: Actions): void {
-  const edits = editHistory.peek().history.active();
-  freshHistory();
-  editStep.value = { kind: "cancel", count: edits.length };
+// why: SA addendum 0.33 (9), STORY-008-09 rule 4 — "Cancel change" takes back every unsaved edit,
+// also the edits that the 20-step history dropped (addendum 0.32), in one canvas step with no
+// confirmation
+export function cancelChanges(actions: Actions): void {
+  let cancelled: Edit[] = [];
+  stepEdits((history) => (cancelled = history.cancel()));
+  editStep.value = { kind: "cancelled", count: cancelled.length };
   const now = editedModel.peek();
-  if (now === null || edits.length === 0) return;
+  if (now === null || cancelled.length === 0) return;
   const vocab = localVocab(lang.peek(), now.vocab);
-  actions.applyEdit(now.graph, vocab, backOf(edits));
+  actions.applyEdit(now.graph, vocab, cancelEffect(cancelled));
 }
 
-// why: STORY-008-09 rule 5 — "Save changes" keeps the edited graph as the new base and empties the
-// history (its memory goes); the canvas already shows this graph, so it does not move
-export function keepEdits(): void {
-  const graph = editedGraph.peek();
-  if (graph === null) return;
-  const count = editHistory.peek().history.active().length;
-  batch(() => {
-    savedGraph.value = graph;
-    freshHistory();
-    editStep.value = { kind: "kept", count };
-  });
+// why: SA addendum 0.33 (9), STORY-008-09 rule 5 — "Save changes" folds the unsaved edits into the
+// one saved edit and empties Undo and Redo; the edited graph is the same, so the canvas does not move
+export function saveChanges(): void {
+  const count = editHistory.peek().history.done.length;
+  stepEdits((history) => history.save());
+  editStep.value = { kind: "saved", count };
 }
 
 type Checked = {
