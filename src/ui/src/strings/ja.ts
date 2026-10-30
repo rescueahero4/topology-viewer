@@ -346,7 +346,22 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "edit.predicates": "述語",
   "edit.nodes": "ノード",
   "edit.noMatch": "一致なし",
-  "edit.facts": "属性を編集",
+  "edit.values": "値",
+  "edit.duplicateId":
+    "この ID はすでに使われています。別の ID を入力してください。",
+  "edit.badSyntax": "key=value の組をカンマで区切って入力してください。",
+  "edit.badJson": "有効な JSON を入力してください。",
+  "edit.badXml":
+    "簡単な XML (<key>value</key> の要素のみ) を入力してください。",
+  "edit.emptyKey": "各キーには名前が必要です。",
+  "edit.duplicateKey": "同じキーは 1 回だけ使えます。",
+  "edit.reservedKey":
+    "このキーには専用の列があります。その列で編集してください。",
+  "edit.tooLarge": "このテキストは大きすぎます。",
+  "edit.notABoolean": "true または false を入力してください。",
+  "edit.attrHint": "key=value, key=value",
+  "edit.onCanvas": "キャンバス上",
+  "edit.notOnCanvas": "キャンバス外",
   "edit.thisRow": "この行だけに適用",
   "edit.allRows": "{count} 行すべてに適用",
   "edit.allRowsHidden":

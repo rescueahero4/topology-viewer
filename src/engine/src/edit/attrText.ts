@@ -5,8 +5,8 @@ import { locate } from "./apply";
 import { isDate } from "./check";
 import type { CellChange, EditCode, RowKind, RowRef } from "./types";
 
-export type Entry = [string, unknown];
-export type ReadSet = { entries: Entry[] } | { code: EditCode };
+export type AttrEntry = [string, unknown];
+export type ReadSet = { entries: AttrEntry[] } | { code: EditCode };
 
 // why: SA §4.8 addendum 0.33 (6) Limits — the text cap, checked before any parse
 export const MAX_TEXT = 1_000_000;
@@ -31,11 +31,11 @@ const own = (attrs: Readonly<Record<string, unknown>>, key: string) =>
 export function attributeSet(
   kind: RowKind,
   item: { attrs: Readonly<Record<string, unknown>> } & Partial<Triple>,
-): Entry[] {
+): AttrEntry[] {
   const keys = Object.keys(item.attrs);
   if (kind === "node")
     return keys.filter((k) => !reserved(k)).map((k) => [k, own(item.attrs, k)]);
-  const set: Entry[] = keys
+  const set: AttrEntry[] = keys
     .filter((k) => !OWN_COLUMNS.has(k))
     .map((k) => [k, own(item.attrs, k)]);
   for (const [key, field] of NAMED)
@@ -145,9 +145,9 @@ function readValue(scan: Scan): unknown {
 }
 
 // why: addendum 0.33 (6) (a) — `key=value` pairs split by a top-level comma
-function readPairs(text: string): Entry[] {
+function readPairs(text: string): AttrEntry[] {
   const scan = { text, at: 0 };
-  const entries: Entry[] = [];
+  const entries: AttrEntry[] = [];
   for (;;) {
     skip(scan);
     if (scan.at >= text.length) fail("bad-syntax");
@@ -162,7 +162,7 @@ function readPairs(text: string): Entry[] {
 }
 
 // why: addendum 0.33 (6) (b) — a JSON object; each value keeps its JSON kind
-function readObject(text: string): Entry[] {
+function readObject(text: string): AttrEntry[] {
   const value = parseJson(text);
   if (typeof value !== "object" || value === null || Array.isArray(value))
     fail("bad-json");
@@ -226,9 +226,9 @@ function expect(scan: Scan, part: string) {
 
 // why: addendum 0.33 (6) (c) — an own scanner of `ws (element ws)*`, element `<name>text</name>`;
 // `<!`, `<?`, an attribute, `<a/>`, a nested element, a wrong closing tag or outside text is bad
-function readXml(text: string): Entry[] {
+function readXml(text: string): AttrEntry[] {
   const scan = { text, at: 0 };
-  const entries: Entry[] = [];
+  const entries: AttrEntry[] = [];
   skip(scan);
   while (scan.at < text.length) {
     expect(scan, "<");
@@ -244,7 +244,7 @@ function readXml(text: string): Entry[] {
   return entries;
 }
 
-function checked(entries: Entry[], kind: RowKind): Entry[] {
+function checked(entries: AttrEntry[], kind: RowKind): AttrEntry[] {
   const seen = new Set<string>();
   for (const [key, value] of entries) {
     if (key === "") fail("empty-key");
@@ -312,7 +312,7 @@ function bareValue(value: string): boolean {
 }
 
 // why: addendum 0.33 (6) Writer — `key=value` pairs that `readAttributes` reads back to the same set
-export function writeAttributes(set: readonly Entry[]): string {
+export function writeAttributes(set: readonly AttrEntry[]): string {
   return set
     .map(([key, value]) => {
       const name = bareKey(key) ? key : JSON.stringify(key);
@@ -330,7 +330,7 @@ export function writeAttributes(set: readonly Entry[]): string {
 export function attributeChanges(
   graph: Graph,
   row: RowRef,
-  entries: readonly Entry[],
+  entries: readonly AttrEntry[],
 ): CellChange[] {
   const { kind, index } = locate(graph, row);
   const item = kind === "node" ? graph.records[index] : graph.triples[index];

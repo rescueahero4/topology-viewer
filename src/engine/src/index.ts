@@ -23,6 +23,7 @@ export {
 } from "./data/notices";
 export { canvasColor, type Hex, type Rgb } from "./vocab/colors";
 export {
+  CUSTOM,
   fold,
   type Family,
   type Provenance,
@@ -153,6 +154,7 @@ export {
   readAttributes,
   readJsonCell,
   writeAttributes,
+  type AttrEntry,
 } from "./edit/attrText";
 export { familyPredicateName } from "./edit/family";
 export { rowIds } from "./edit/rowIds";
