@@ -8,7 +8,6 @@ import type { Graph } from "../data/normalize";
 import { isRetired } from "../data/records";
 import {
   fieldOf,
-  valueOf,
   type CellChange,
   type Edit,
   type Field,
@@ -24,19 +23,6 @@ const baseKeys = new WeakMap<Graph, readonly string[]>();
 export function baseKeysOf(graph: Graph): readonly string[] {
   return baseKeys.get(graph) ?? graph.triples.map((triple) => triple.key);
 }
-
-// why: STORY-008-09 rule 17 — a Family edit moves a kind or a predicate to a family; the edited
-// graph keeps the overlay beside it, and the vocabulary reads it (`state.ts`)
-export type Families = {
-  types: ReadonlyMap<string, string>;
-  predicates: ReadonlyMap<string, string>;
-};
-
-const NO_FAMILIES: Families = { types: new Map(), predicates: new Map() };
-const families = new WeakMap<Graph, Families>();
-
-export const familiesOf = (graph: Graph): Families =>
-  families.get(graph) ?? NO_FAMILIES;
 
 export function locate(
   graph: Graph,
@@ -63,7 +49,7 @@ type Work = {
   entityIds: ReadonlySet<string>;
   touched: Set<number>;
   unshaped: { records: Set<string>; triples: Set<string> };
-  families: { types: Map<string, string>; predicates: Map<string, string> };
+  familyEdits: [string, string][];
 };
 
 function workOf(base: Graph, keys: readonly string[]): Work {
@@ -81,7 +67,7 @@ function workOf(base: Graph, keys: readonly string[]): Work {
     entityIds: new Set(base.entities.map((entity) => entity.id)),
     touched: new Set(),
     unshaped: { records: new Set(), triples: new Set() },
-    families: { types: new Map(), predicates: new Map() },
+    familyEdits: [],
   };
 }
 
@@ -112,14 +98,9 @@ function mapWith<T>(
   >;
 }
 
-const isSet = (value: unknown) =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 function fits(work: Work, field: Field, after: unknown): boolean {
   if (field.attr) return true;
   switch (field.key) {
-    case "attrs":
-      return isSet(after);
     case "family":
     case "label":
     case "predicate":
@@ -135,15 +116,8 @@ function fits(work: Work, field: Field, after: unknown): boolean {
 }
 
 // why: SA §5 Errors — a value that the field cannot hold is a programmer error (the shell runs
-// `checkEdit` first). STORY-008-09 rule 19 — a list or object cell takes a list or an object
-function guard(work: Work, field: Field, current: unknown, after: unknown) {
-  if (
-    field.attr &&
-    typeof current === "object" &&
-    current !== null &&
-    (typeof after !== "object" || after === null)
-  )
-    throw new Error("The value does not fit the field.");
+// `checkEdit` first). SA §4.8 addendum 0.33 (7) — an attribute holds any JSON value
+function guard(work: Work, field: Field, after: unknown) {
   if (!fits(work, field, after))
     throw new Error("The value does not fit the field.");
 }
@@ -154,30 +128,15 @@ const SHAPED_FIELDS = new Set(["type", "predicate", "subject", "object"]);
 
 // why: PRD-002 FR-CELL-7, FR-CELL-8 addendum 0.3 — the merge never runs again; the entity takes
 // the newest saved name or kind; the edit removes the AI reason of the field
-// why: STORY-008-09 rule 18 — the whole set; a null-prototype copy of own keys only
-const setOf = (value: unknown): Record<string, unknown> =>
-  Object.setPrototypeOf(
-    Object.fromEntries(Object.entries(value as object)),
-    null,
-  ) as Record<string, unknown>;
-
 function nodeChange(work: Work, index: number, field: Field, after: unknown) {
   const record = work.records[index];
   const at = work.entityAt.get(record.id) as number;
-  if (field.key === "family") {
-    const type = record.type ?? work.entities[at].type;
-    if (type === undefined) throw new Error("The node has no kind.");
-    work.families.types.set(type, after as string);
-    return;
-  }
-  if (field.key === "attrs") {
-    work.records[index] = { ...record, attrs: setOf(after) };
-    return;
-  }
   if (field.key === "shownId" || field.key === "typeLabel") {
-    work.records[index] = withKey(record, field.key, after);
+    const value = after === (field.key === "shownId" ? record.id : "node");
+    const next = value ? undefined : after;
+    work.records[index] = withKey(record, field.key, next);
     if (field.key === "shownId" && work.entities[at].id === record.id)
-      work.entities[at] = withKey(work.entities[at], field.key, after);
+      work.entities[at] = withKey(work.entities[at], field.key, next);
     return;
   }
   if (!field.attr && SHAPED_FIELDS.has(field.key))
@@ -193,34 +152,19 @@ function nodeChange(work: Work, index: number, field: Field, after: unknown) {
   work.entities[at] = withKey(work.entities[at], field.key, after);
 }
 
-const NAMED = new Map([
-  ["valid_from", "validFrom"],
-  ["valid_to", "validTo"],
-  ["isActive", "isActive"],
-]);
-
-// why: STORY-008-09 rule 18 — the edge set holds the three named facts outside `attrs`
-function edgeSet(triple: Triple, after: unknown): Triple {
-  const set = setOf(after);
-  const named = (key: string) =>
-    Object.hasOwn(set, key) ? set[key] : undefined;
-  const attrs = Object.fromEntries(
-    Object.entries(set).filter(([key]) => !NAMED.has(key)),
-  );
-  let next: Triple = { ...triple, attrs: setOf(attrs) };
-  for (const [key, name] of NAMED) next = withKey(next, name, named(key));
-  return next;
-}
-
 function edgeChange(work: Work, index: number, field: Field, after: unknown) {
   const triple = work.triples[index];
   if (field.key === "family") {
-    work.families.predicates.set(triple.predicate, after as string);
+    work.familyEdits.push([triple.predicate, after as string]);
     return;
   }
-  if (field.key === "attrs") {
-    work.triples[index] = edgeSet(triple, after);
-    work.touched.add(index);
+  if (field.key === "shownId" || field.key === "typeLabel") {
+    const base = field.key === "shownId" ? null : "edge";
+    work.triples[index] = withKey(
+      triple,
+      field.key,
+      after === base ? undefined : after,
+    );
     return;
   }
   if (!field.attr && SHAPED_FIELDS.has(field.key))
@@ -242,8 +186,7 @@ function applyChange(work: Work, change: CellChange) {
       : work.recordAt.get(row.record);
   if (index === undefined) throw new Error("The row is not in the graph.");
   const field = fieldOf(kind, change.column);
-  const target = kind === "edge" ? work.triples[index] : work.records[index];
-  guard(work, field, valueOf(target, field), after);
+  guard(work, field, after);
   if (kind === "edge") edgeChange(work, index, field, after);
   else nodeChange(work, index, field, after);
 }
@@ -299,7 +242,16 @@ export function applyEdits(
       ),
     },
   };
+  // why: SA §4.8 addendum 0.33 (5) — a null-prototype map, written only by a Family edit
+  if (work.familyEdits.length > 0) {
+    let map: Record<string, string> = Object.create(null) as Record<
+      string,
+      string
+    >;
+    for (const [predicate, family] of work.familyEdits)
+      map = mapWith(map, predicate, family);
+    graph.familyEdits = map;
+  }
   baseKeys.set(graph, keys);
-  families.set(graph, work.families);
   return graph;
 }

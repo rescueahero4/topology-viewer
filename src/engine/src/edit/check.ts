@@ -1,6 +1,7 @@
 import type { Profile } from "@qdic-topology/contract";
 import type { Graph } from "../data/normalize";
 import { locate } from "./apply";
+import { rowIds } from "./rowIds";
 import {
   fieldOf,
   valueOf,
@@ -34,7 +35,7 @@ const daysIn = (year: number, month: number) =>
       : 31;
 
 // why: STORY-008-01 rule 6 — a date cell takes only a real calendar date (`2026-02-30` is not one)
-function isDate(value: unknown): boolean {
+export function isDate(value: unknown): boolean {
   const parts = typeof value === "string" ? DATE_FORM.exec(value) : null;
   if (parts === null) return false;
   const [year, month, day, hour, minute, second, offHour, offMinute] = parts
@@ -73,40 +74,10 @@ function selfEdge(graph: Graph, index: number, field: Field, after: unknown) {
   return subject === object;
 }
 
-// why: STORY-008-09 rule 12 — an ID is in use when another node, entity or edge shows it
-function idInUse(graph: Graph, index: number, kind: string, id: unknown) {
-  const own = kind === "node" ? graph.records[index].id : null;
-  const nodes = [...graph.records, ...graph.entities].some(
-    (item) => item.id !== own && (item.shownId ?? item.id) === id,
-  );
-  return (
-    nodes ||
-    graph.triples.some(
-      (triple, at) =>
-        !(kind === "edge" && at === index) && triple.shownId === id,
-    )
-  );
-}
-
-// why: STORY-008-09 rule 18 — the named edge facts keep their kinds (`valid_from`, `valid_to`
-// text, `isActive` true/false)
-function badEdgeSet(after: unknown): boolean {
-  const set = after as Record<string, unknown>;
-  const at = (key: string) => (Object.hasOwn(set, key) ? set[key] : undefined);
-  const text = (v: unknown) => v === undefined || typeof v === "string";
-  const flag = at("isActive");
-  return (
-    !text(at("valid_from")) ||
-    !text(at("valid_to")) ||
-    !(flag === undefined || typeof flag === "boolean")
-  );
-}
-
-// why: STORY-008-09 rule 19 — a list cell takes a list and an object cell an object
-function badShape(current: string, after: unknown): boolean {
-  if (current === "list") return !Array.isArray(after);
-  if (current !== "object") return false;
-  return typeof after !== "object" || after === null || Array.isArray(after);
+// why: SA §4.8 addendum 0.33 (2) — another row of `rowIds` shows the same text
+function duplicateId(graph: Graph, kind: string, index: number, id: unknown) {
+  const at = kind === "node" ? index : graph.records.length + index;
+  return rowIds(graph).some((shown, place) => place !== at && shown === id);
 }
 
 // why: SA §4.8, PRD-002 FR-CELL-5 — the engine gives the code only; the shell shows its text.
@@ -122,10 +93,8 @@ export function checkEdit(
   const required = !field.attr && REQUIRED.has(field.key);
   if (required && blank(after)) return "empty";
   if (after === undefined) return null;
-  if (field.key === "shownId" && idInUse(graph, index, kind, after))
-    return "id-in-use";
-  if (field.key === "attrs")
-    return kind === "edge" && badEdgeSet(after) ? "bad-attributes" : null;
+  if (field.key === "shownId" && duplicateId(graph, kind, index, after))
+    return "duplicate-id";
   if (kind === "edge" && selfEdge(graph, index, field, after))
     return "self-edge";
   if (
@@ -137,7 +106,6 @@ export function checkEdit(
     return "inverse-name";
   const target = kind === "node" ? graph.records[index] : graph.triples[index];
   const current = valueKind(valueOf(target, field));
-  if (field.attr && badShape(current, after)) return "not-json";
   if (
     current === "number" &&
     !(typeof after === "number" && Number.isFinite(after))

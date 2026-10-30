@@ -1,221 +1,352 @@
-import type { EditCode } from "./types";
+import { stableJson, tooDeep } from "../data/hash";
+import type { Triple } from "../data/merge";
+import type { Graph } from "../data/normalize";
+import { locate } from "./apply";
+import { isDate } from "./check";
+import type { CellChange, EditCode, RowKind, RowRef } from "./types";
 
-export type Attrs = Record<string, unknown>;
-export type Parsed<T> = { value: T } | { code: EditCode };
+export type Entry = [string, unknown];
+export type ReadSet = { entries: Entry[] } | { code: EditCode };
 
-// why: STORY-008-09 rule 20 (SA §11 Untrusted input) — a text above this size is blocked before
-// any parse, so a 1 MB paste ends at once
-export const MAX_TEXT = 100_000;
-const MAX_DEPTH = 32;
+// why: SA §4.8 addendum 0.33 (6) Limits — the text cap, checked before any parse
+export const MAX_TEXT = 1_000_000;
 
-// why: STORY-008-09 rule 20 — prototype names are never a key of a parsed set or value
-const BLOCKED = new Set(["__proto__", "constructor", "prototype"]);
+// why: addendum 0.33 (6) The set — these three edge names always mean the triple fields
+const NAMED: readonly [string, "validFrom" | "validTo" | "isActive"][] = [
+  ["valid_from", "validFrom"],
+  ["valid_to", "validTo"],
+  ["isActive", "isActive"],
+];
 
-const bad = (code: EditCode = "bad-attributes") => ({ code });
+// why: addendum 0.33 (6) — the own columns and the `_` keys are not in a node set; the edge System
+// and Description columns are not in an edge set (addendum 0.33.1)
+const OWN_COLUMNS = new Set(["service_name", "description"]);
+const reserved = (key: string) => OWN_COLUMNS.has(key) || key.startsWith("_");
 
-const nullRecord = (entries: [string, unknown][]): Attrs =>
-  Object.setPrototypeOf(Object.fromEntries(entries), null) as Attrs;
+const own = (attrs: Readonly<Record<string, unknown>>, key: string) =>
+  Object.hasOwn(attrs, key) ? attrs[key] : undefined;
 
-// why: rule 20 — an own-key walk with a stack and a depth limit, so a deep value cannot overflow it
-function checkTree(root: unknown): EditCode | null {
-  const stack: [unknown, number][] = [[root, 0]];
-  while (stack.length > 0) {
-    const [value, depth] = stack.pop() as [unknown, number];
-    if (typeof value !== "object" || value === null) continue;
-    if (depth > MAX_DEPTH) return "bad-attributes";
-    for (const key of Object.keys(value)) {
-      if (BLOCKED.has(key)) return "blocked-key";
-      stack.push([(value as Attrs)[key], depth + 1]);
-    }
-  }
-  return null;
+// why: addendum 0.33 (6) The set — node: the own `attrs` keys but the own columns and `_` keys;
+// edge: the own `attrs` keys, then the named facts that the triple has
+export function attributeSet(
+  kind: RowKind,
+  item: { attrs: Readonly<Record<string, unknown>> } & Partial<Triple>,
+): Entry[] {
+  const keys = Object.keys(item.attrs);
+  if (kind === "node")
+    return keys.filter((k) => !reserved(k)).map((k) => [k, own(item.attrs, k)]);
+  const set: Entry[] = keys
+    .filter((k) => !OWN_COLUMNS.has(k))
+    .map((k) => [k, own(item.attrs, k)]);
+  for (const [key, field] of NAMED)
+    if (item[field] !== undefined) set.push([key, item[field]]);
+  return set;
 }
 
-function parseJson(text: string): Parsed<unknown> {
+// why: SA §5 Errors — a bad text is no programmer error; `readAttributes` turns it into its code
+class Bad extends Error {
+  constructor(readonly code: EditCode) {
+    super(code);
+  }
+}
+
+const fail = (code: EditCode): never => {
+  throw new Bad(code);
+};
+
+const NUMBER = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+
+function parseJson(text: string): unknown {
   let value: unknown;
   try {
     value = JSON.parse(text);
   } catch {
-    return bad("not-json");
+    return fail("bad-json");
   }
-  const code = checkTree(value);
-  return code === null ? { value } : bad(code);
+  if (tooDeep(value)) fail("too-large");
+  return value;
 }
 
-const NUMBER = /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
-
-// why: STORY-008-09 rule 18 — a value is a number, true/false, `null`, a JSON list, object or
-// quoted text when it looks like one, else text; a date stays text in ISO form (`valueKind`)
-export function typedValue(raw: string): Parsed<unknown> {
+// why: addendum 0.33 (6) Value kind — on the trimmed raw text: true/false, null, the JSON number
+// form, a JSON value by its first character, else text (`01234` stays text)
+function typed(raw: string): unknown {
   const text = raw.trim();
-  if (text === "") return bad();
-  if (/^[[{"]/.test(text)) {
-    const parsed = parseJson(text);
-    return "code" in parsed && parsed.code === "not-json" ? bad() : parsed;
-  }
-  if (NUMBER.test(text)) return { value: Number(text) };
-  if (text === "true" || text === "false") return { value: text === "true" };
-  if (text === "null") return { value: null };
-  return { value: text };
+  if (text === "true" || text === "false") return text === "true";
+  if (text === "null") return null;
+  if (NUMBER.test(text) && Number.isFinite(Number(text))) return Number(text);
+  if (/^[[{"]/.test(text)) return parseJson(text);
+  return text;
 }
 
-// why: rule 18 — a comma or a new line outside a quoted text or a bracket ends a pair
-function splitPairs(text: string): string[] {
-  const parts: string[] = [];
+const isSpace = (char: string | undefined) =>
+  char === " " || char === "\t" || char === "\n" || char === "\r";
+
+type Scan = { text: string; at: number };
+
+function skip(scan: Scan) {
+  while (isSpace(scan.text[scan.at])) scan.at++;
+}
+
+// why: addendum 0.33 (6) (a) — the end of a JSON value from its first character, with string
+// escapes respected; one forward pass
+function jsonEnd(scan: Scan): number {
+  const { text } = scan;
   let depth = 0;
   let quoted = false;
-  let start = 0;
-  for (let at = 0; at < text.length; at++) {
+  for (let at = scan.at; at < text.length; at++) {
     const char = text[at];
     if (quoted) {
       if (char === "\\") at++;
-      else if (char === '"') quoted = false;
+      else if (char === '"') {
+        quoted = false;
+        if (depth === 0) return at + 1;
+      }
     } else if (char === '"') quoted = true;
     else if (char === "[" || char === "{") depth++;
-    else if (char === "]" || char === "}") depth--;
-    else if (depth === 0 && (char === "," || char === "\n")) {
-      parts.push(text.slice(start, at));
-      start = at + 1;
+    else if (char === "]" || char === "}") {
+      depth--;
+      if (depth === 0) return at + 1;
     }
   }
-  parts.push(text.slice(start));
-  return parts.map((part) => part.trim()).filter((part) => part !== "");
+  return fail("bad-json");
 }
 
-function fromPairs(pairs: [string, string][]): Parsed<Attrs> {
-  const entries: [string, unknown][] = [];
-  const seen = new Set<string>();
-  for (const [rawKey, raw] of pairs) {
-    const key = rawKey.trim();
-    if (key === "" || seen.has(key)) return bad();
-    if (BLOCKED.has(key)) return bad("blocked-key");
-    const typed = typedValue(raw);
-    if ("code" in typed) return typed;
-    seen.add(key);
-    entries.push([key, typed.value]);
+function readKey(scan: Scan): string {
+  const { text } = scan;
+  if (text[scan.at] === '"') {
+    const end = jsonEnd(scan);
+    const key = parseJson(text.slice(scan.at, end));
+    scan.at = end;
+    skip(scan);
+    if (typeof key !== "string") fail("bad-syntax");
+    return key as string;
   }
-  return { value: nullRecord(entries) };
-}
-
-function parseList(text: string): Parsed<Attrs> {
-  const pairs: [string, string][] = [];
-  for (const part of splitPairs(text)) {
-    const at = part.indexOf("=");
-    if (at < 0) return bad();
-    pairs.push([part.slice(0, at), part.slice(at + 1)]);
+  const start = scan.at;
+  while (scan.at < text.length && text[scan.at] !== "=") {
+    if (text[scan.at] === "," || text[scan.at] === '"') fail("bad-syntax");
+    scan.at++;
   }
-  return fromPairs(pairs);
+  return text.slice(start, scan.at).trim();
 }
 
-function parseObject(text: string): Parsed<Attrs> {
-  const parsed = parseJson(text);
-  if ("code" in parsed)
-    return parsed.code === "not-json" ? bad() : bad(parsed.code);
-  const { value } = parsed;
+function readValue(scan: Scan): unknown {
+  const { text } = scan;
+  if (/[[{"]/.test(text[scan.at] ?? "")) {
+    const end = jsonEnd(scan);
+    const value = parseJson(text.slice(scan.at, end));
+    scan.at = end;
+    skip(scan);
+    if (scan.at < text.length && text[scan.at] !== ",") fail("bad-syntax");
+    return value;
+  }
+  const start = scan.at;
+  while (scan.at < text.length && text[scan.at] !== ",") scan.at++;
+  return typed(text.slice(start, scan.at));
+}
+
+// why: addendum 0.33 (6) (a) — `key=value` pairs split by a top-level comma
+function readPairs(text: string): Entry[] {
+  const scan = { text, at: 0 };
+  const entries: Entry[] = [];
+  for (;;) {
+    skip(scan);
+    if (scan.at >= text.length) fail("bad-syntax");
+    const key = readKey(scan);
+    if (text[scan.at] !== "=") fail("bad-syntax");
+    scan.at++;
+    skip(scan);
+    entries.push([key, readValue(scan)]);
+    if (scan.at >= text.length) return entries;
+    scan.at++;
+  }
+}
+
+// why: addendum 0.33 (6) (b) — a JSON object; each value keeps its JSON kind
+function readObject(text: string): Entry[] {
+  const value = parseJson(text);
   if (typeof value !== "object" || value === null || Array.isArray(value))
-    return bad();
-  return { value: nullRecord(Object.entries(value)) };
+    fail("bad-json");
+  return Object.entries(value as object);
 }
 
-const ENTITIES: Readonly<Record<string, string>> = {
-  lt: "<",
-  gt: ">",
-  amp: "&",
-  quot: '"',
-  apos: "'",
-};
+const ENTITIES = new Map([
+  ["lt", "<"],
+  ["gt", ">"],
+  ["amp", "&"],
+  ["quot", '"'],
+  ["apos", "'"],
+]);
 
-// why: rule 20 — only the five XML names decode; any other `&` form is bad input (no entity table)
-function decoded(text: string): string | null {
-  let ok = true;
-  const out = text.replace(/&([^;&]*);?/g, (all, name: string) => {
-    if (all.endsWith(";") && Object.hasOwn(ENTITIES, name))
-      return ENTITIES[name];
-    ok = false;
-    return "";
-  });
-  return ok ? out : null;
+// why: §11 addendum 0.33 (3) — the five XML names and a numeric reference to a Unicode scalar
+// value other than 0; no other reference decodes, so no entity expands
+function reference(name: string): string {
+  const named = ENTITIES.get(name);
+  if (named !== undefined) return named;
+  const digits = /^#(?:x([0-9A-Fa-f]{1,6})|(\d{1,7}))$/.exec(name);
+  if (digits === null) return fail("bad-xml");
+  const point =
+    digits[1] === undefined ? Number(digits[2]) : parseInt(digits[1], 16);
+  const scalar =
+    point > 0 && point <= 0x10ffff && (point < 0xd800 || point > 0xdfff);
+  return scalar ? String.fromCodePoint(point) : fail("bad-xml");
 }
 
-const NAME = "[A-Za-z_][\\w.-]*";
-const ELEMENT = new RegExp(`^<(${NAME})\\s*>([^<]*)</(${NAME})\\s*>`);
-const EMPTY = new RegExp(`^<(${NAME})\\s*/>`);
+const NAME_START = /^[\p{L}_]$/u;
+const NAME_PART = /^[\p{L}\p{N}_.-]$/u;
 
-// why: rule 18, rule 20 — simple XML is a list of `<key>text</key>` (or `<key/>`) elements, with an
-// optional single wrapper element; it is read by an own scanner, never by a DOM parser, so a
-// `DOCTYPE`, an entity declaration, a comment, an attribute or a nested element is bad input
-function parseXml(text: string): Parsed<Attrs> {
-  let rest = text.replace(/^<\?xml[^?<>]*\?>\s*/, "");
-  if (rest.includes("<!") || rest.includes("<?")) return bad();
-  const wrapper = new RegExp(`^<(${NAME})\\s*>([\\s\\S]*)</(${NAME})\\s*>$`);
-  const wrapped = wrapper.exec(rest);
-  if (wrapped !== null && wrapped[1] === wrapped[3] && /^\s*</.test(wrapped[2]))
-    rest = wrapped[2].trim();
-  const pairs: [string, string][] = [];
-  while (rest !== "") {
-    const full = ELEMENT.exec(rest);
-    const empty = full === null ? EMPTY.exec(rest) : null;
-    if (full !== null && full[1] === full[3]) {
-      const value = decoded(full[2]);
-      if (value === null) return bad();
-      pairs.push([full[1], value.trim() === "" ? '""' : value]);
-      rest = rest.slice(full[0].length).trim();
-    } else if (empty !== null) {
-      pairs.push([empty[1], '""']);
-      rest = rest.slice(empty[0].length).trim();
-    } else return bad();
+function xmlName(scan: Scan): string {
+  const { text } = scan;
+  const start = scan.at;
+  if (!NAME_START.test(text[scan.at] ?? "")) fail("bad-xml");
+  scan.at++;
+  while (NAME_PART.test(text[scan.at] ?? "")) scan.at++;
+  return text.slice(start, scan.at);
+}
+
+function xmlText(scan: Scan): string {
+  const { text } = scan;
+  let out = "";
+  while (scan.at < text.length && text[scan.at] !== "<") {
+    if (text[scan.at] !== "&") {
+      out += text[scan.at++];
+      continue;
+    }
+    const end = text.indexOf(";", scan.at);
+    if (end < 0 || end - scan.at > 10) fail("bad-xml");
+    out += reference(text.slice(scan.at + 1, end));
+    scan.at = end + 1;
   }
-  return fromPairs(pairs);
+  return out;
 }
 
-// why: STORY-008-09 rules 18, 20 — the whole attribute set from one text: a JSON object, simple
-// XML, or `key=value` pairs; an empty text is an empty set. Pure: no DOM, no `eval`
-export function parseAttributes(text: string): Parsed<Attrs> {
-  if (text.length > MAX_TEXT) return bad("too-long");
+function expect(scan: Scan, part: string) {
+  if (!scan.text.startsWith(part, scan.at)) fail("bad-xml");
+  scan.at += part.length;
+}
+
+// why: addendum 0.33 (6) (c) — an own scanner of `ws (element ws)*`, element `<name>text</name>`;
+// `<!`, `<?`, an attribute, `<a/>`, a nested element, a wrong closing tag or outside text is bad
+function readXml(text: string): Entry[] {
+  const scan = { text, at: 0 };
+  const entries: Entry[] = [];
+  skip(scan);
+  while (scan.at < text.length) {
+    expect(scan, "<");
+    const name = xmlName(scan);
+    expect(scan, ">");
+    const value = xmlText(scan);
+    expect(scan, "</");
+    if (xmlName(scan) !== name) fail("bad-xml");
+    expect(scan, ">");
+    entries.push([name, typed(value)]);
+    skip(scan);
+  }
+  return entries;
+}
+
+function checked(entries: Entry[], kind: RowKind): Entry[] {
+  const seen = new Set<string>();
+  for (const [key, value] of entries) {
+    if (key === "") fail("empty-key");
+    if (seen.has(key)) fail("duplicate-key");
+    seen.add(key);
+    if (kind === "node" ? reserved(key) : OWN_COLUMNS.has(key))
+      fail("reserved-key");
+    if (kind === "edge" && (key === "valid_from" || key === "valid_to"))
+      if (typeof value !== "string" || !isDate(value)) fail("not-a-date");
+    if (kind === "edge" && key === "isActive" && typeof value !== "boolean")
+      fail("not-a-boolean");
+  }
+  return entries;
+}
+
+// why: SA §4.8 addendum 0.33 (6), §11 addendum 0.33 — the whole attribute set from one text: the
+// first character after a trim picks the form; pure, one forward pass, no DOM, no `eval`
+export function readAttributes(text: string, kind: RowKind): ReadSet {
+  if (text.length > MAX_TEXT) return { code: "too-large" };
   const trimmed = text.trim();
-  if (trimmed === "") return { value: nullRecord([]) };
-  if (trimmed.startsWith("{")) return parseObject(trimmed);
-  if (trimmed.startsWith("<")) return parseXml(trimmed);
-  return parseList(trimmed);
+  try {
+    if (trimmed === "") return { entries: [] };
+    const first = trimmed[0];
+    const entries =
+      first === "{"
+        ? readObject(trimmed)
+        : first === "<"
+          ? readXml(trimmed)
+          : readPairs(trimmed);
+    return { entries: checked(entries, kind) };
+  } catch (error) {
+    if (error instanceof Bad) return { code: error.code };
+    throw error;
+  }
 }
 
-// why: STORY-008-09 rule 19 — a list or an object attribute cell takes valid JSON of the same kind
-export function parseJsonCell(
+// why: addendum 0.33 (7) — a list or an object cell takes valid JSON of either kind
+export function readJsonCell(
   text: string,
-  want: "list" | "object",
-): Parsed<unknown> {
-  if (text.length > MAX_TEXT) return bad("too-long");
-  const parsed = parseJson(text.trim());
-  if ("code" in parsed) return parsed;
-  const { value } = parsed;
-  const list = Array.isArray(value);
-  const object = typeof value === "object" && value !== null && !list;
-  return (want === "list" ? list : object) ? { value } : bad("not-json");
+): { value: unknown } | { code: EditCode } {
+  if (text.length > MAX_TEXT) return { code: "too-large" };
+  try {
+    const value = parseJson(text.trim());
+    if (typeof value !== "object" || value === null)
+      return { code: "bad-json" };
+    return { value };
+  } catch (error) {
+    if (error instanceof Bad) return { code: error.code };
+    throw error;
+  }
 }
 
-const PLAIN_KEY = /^[^\s=,"[{<][^=,\n]*$/;
-
-function plainText(value: string): boolean {
-  if (value !== value.trim() || value === "") return false;
-  if (/[,\n]/.test(value)) return false;
-  const typed = typedValue(value);
-  return "value" in typed && typed.value === value;
+function bareKey(key: string): boolean {
+  if (key === "" || key !== key.trim() || /^[{<["]/.test(key)) return false;
+  return !/[=,"]/.test(key);
 }
 
-// why: rule 18 — the text that the field shows: `key=value` pairs that read back to the same set,
-// or a JSON object when a key does not fit that form
-export function attributesSource(attrs: Readonly<Attrs>): string {
-  const keys = Object.keys(attrs);
-  if (keys.some((key) => !PLAIN_KEY.test(key) || key.trim() !== key))
-    return JSON.stringify(nullRecord(keys.map((k) => [k, attrs[k]])));
-  return keys
-    .map((key) => {
-      const value = attrs[key];
+function bareValue(value: string): boolean {
+  if (value !== value.trim() || value.includes(",")) return false;
+  try {
+    return typed(value) === value;
+  } catch {
+    return false;
+  }
+}
+
+// why: addendum 0.33 (6) Writer — `key=value` pairs that `readAttributes` reads back to the same set
+export function writeAttributes(set: readonly Entry[]): string {
+  return set
+    .map(([key, value]) => {
+      const name = bareKey(key) ? key : JSON.stringify(key);
       const text =
-        typeof value === "string" && plainText(value)
+        typeof value === "string" && bareValue(value)
           ? value
-          : JSON.stringify(value ?? null);
-      return `${key}=${text}`;
+          : (JSON.stringify(value) ?? "null");
+      return `${name}=${text}`;
     })
     .join(", ");
+}
+
+// why: addendum 0.33 (6) Replace — one change for each new or changed key in text order, then one
+// `after: undefined` for each key of the set that the text does not hold; equal keys give none
+export function attributeChanges(
+  graph: Graph,
+  row: RowRef,
+  entries: readonly Entry[],
+): CellChange[] {
+  const { kind, index } = locate(graph, row);
+  const item = kind === "node" ? graph.records[index] : graph.triples[index];
+  const set = new Map(attributeSet(kind, item));
+  const column = (key: string) =>
+    kind === "node" ? { attr: key } : { fact: key };
+  const changes: CellChange[] = [];
+  const named = new Set<string>();
+  for (const [key, after] of entries) {
+    named.add(key);
+    const before = set.get(key);
+    if (set.has(key) && stableJson(before) === stableJson(after)) continue;
+    changes.push({ row, column: column(key), before, after });
+  }
+  for (const [key, before] of set)
+    if (!named.has(key))
+      changes.push({ row, column: column(key), before, after: undefined });
+  return changes;
 }

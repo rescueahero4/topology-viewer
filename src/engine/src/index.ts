@@ -145,13 +145,17 @@ export {
   type Placed,
 } from "./view/exit";
 export type { Profile } from "@qdic-topology/contract";
-export { applyEdits, familiesOf, locate, type Families } from "./edit/apply";
+export { applyEdits, locate } from "./edit/apply";
 export {
-  attributesSource,
+  attributeChanges,
+  attributeSet,
   MAX_TEXT,
-  parseAttributes,
-  parseJsonCell,
+  readAttributes,
+  readJsonCell,
+  writeAttributes,
 } from "./edit/attrText";
+export { familyPredicateName } from "./edit/family";
+export { rowIds } from "./edit/rowIds";
 export { checkEdit, valueKind } from "./edit/check";
 export { EditHistory } from "./edit/history";
 export { sameValueRows } from "./edit/same";
