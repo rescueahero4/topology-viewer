@@ -173,6 +173,22 @@ describe("S5 S6 S7 Save changes", () => {
   });
 });
 
+describe("FR-CELL-16 addendum 0.4 the focus when the bar hides", () => {
+  it("goes back to the last focused cell after Save changes and Cancel change", async () => {
+    const { root } = await catalog();
+    for (const name of ["Save changes", "Cancel change"]) {
+      rename(root, `F-${name}`);
+      const button = f.button(bar(root) as HTMLElement, name);
+      button.focus();
+      press(root, name);
+      expect(bar(root)).toBeNull();
+      expect(document.activeElement).toBe(
+        f.cellOf(root, "t_SF_ACCOUNT", "Name"),
+      );
+    }
+  });
+});
+
 describe("SA addendum 0.33 (10) a bar press with a cell in edit", () => {
   it("runs the press outside first; with a bad value the action does not run", async () => {
     const { root } = await catalog();

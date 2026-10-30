@@ -15,12 +15,17 @@ function resultOf(ui: Lang, step: EditStep): string {
 }
 
 // why: SA addendum 0.33 (10) — the press outside of FR-CELL-3 runs first (`CellEditor` listens to
-// `pointerdown`); the action runs only when no cell is in edit after it
+// `pointerdown`); the action runs only when no cell is in edit after it. FR-CELL-16 addendum 0.4:
+// when the bar hides, the focus goes back to the tab stop of the table, the last focused cell
 function whenFree(action: () => void) {
   return (event: MouseEvent) => {
     const workbench = (event.currentTarget as Element).closest(".workbench");
     if (workbench?.querySelector(".cell-edit") != null) return;
     action();
+    if (editHistory.value.history.dirty()) return;
+    workbench
+      ?.querySelector<HTMLElement>('.wb-scroll td[tabindex="0"]')
+      ?.focus();
   };
 }
 

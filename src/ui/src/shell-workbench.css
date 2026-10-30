@@ -363,6 +363,11 @@
   font-weight: 500;
   color: var(--zinc-700);
 }
+/* why: PRD-002 FR-CELL-19 — the bar does not hide the last table row: while the bar shows, the
+   table ends with space for the bar, so the last row scrolls above it */
+.workbench:has(.change-bar) .wb-table {
+  margin-bottom: 52px;
+}
 .change-bar .change-label {
   margin-right: 4px;
   color: var(--zinc-900);
