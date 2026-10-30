@@ -24,6 +24,7 @@ import {
   type SlotContext,
   type Slots,
 } from "./slots";
+import { previewsOf } from "./previews";
 import {
   visualsOf,
   type Designed,
@@ -210,11 +211,9 @@ function typesOf(
       ...ctx.rows.keys(),
     ]),
   ];
-  const { visuals, issues } = visualsOf(
-    order.map((name) => specOf(name, ctx)),
-    [...ctx.types.values()].flatMap((entry) => entry.abbr ?? []),
-    canvas,
-  );
+  const spec = (name: string | null) => specOf(name, ctx);
+  const claimed = [...ctx.types.values()].flatMap((entry) => entry.abbr ?? []);
+  const { visuals, issues } = visualsOf(order.map(spec), claimed, canvas);
   const shaped = shapedTypes(graph.records, ctx.shapedRecords);
   const types = new Map<string, ResolvedType>();
   order.forEach((name, i) => {
@@ -227,25 +226,9 @@ function typesOf(
   });
   const at = order.indexOf(null);
   const untyped = at === -1 ? null : (visuals[at] as Designed);
-  return { types, untyped, previews: previewsOf(order, ctx, canvas), issues };
-}
-
-// why: the Kind list marks a profile type that the data does not use by the canvas rules, as if
-// the type came after the types of the data; a second run keeps the visuals of the data unchanged
-function previewsOf(
-  order: readonly (string | null)[],
-  ctx: Context,
-  canvas: Hex,
-): Map<string, Visual> {
-  const spare = Object.keys(ctx.profile.nodeTypes).filter(
-    (name) => !order.includes(name),
-  );
-  const { visuals } = visualsOf(
-    [...order, ...spare].map((name) => specOf(name, ctx)),
-    [...ctx.types.values()].flatMap((entry) => entry.abbr ?? []),
-    canvas,
-  );
-  return new Map(spare.map((name, i) => [name, visuals[order.length + i]]));
+  const spare = Object.keys(ctx.profile.nodeTypes);
+  const previews = previewsOf(order, spare, { spec, claimed, canvas });
+  return { types, untyped, previews, issues };
 }
 
 // why: FR-QDIC-4 and lead decision D11 — the "lost" key is the profile attribute with `lost: true`
@@ -356,15 +339,12 @@ export function resolveVocab(
   const typed = new Map(
     graph.entities.map((e) => [e.id, typeOfEntity(e, ctx)]),
   );
-  const { types, untyped, previews, issues } = typesOf(
-    graph,
-    typed,
-    ctx,
-    canvas,
-  );
+  const { issues, ...made } = typesOf(graph, typed, ctx, canvas);
   const typeAt = (id: string) => {
     const type = typed.get(id)?.type;
-    return type === null || type === undefined ? undefined : types.get(type);
+    return type === null || type === undefined
+      ? undefined
+      : made.types.get(type);
   };
   const slots = slotContext(graph, payload, ctx, typeAt, typed);
   const entities = new Map<string, ResolvedEntity>();
@@ -380,7 +360,7 @@ export function resolveVocab(
     const resolved = entityOf(
       entity,
       typed.get(entity.id) as Typed,
-      types,
+      made.types,
       { ...slotsOf(entity, slots), path },
       ctx,
     );
@@ -395,15 +375,7 @@ export function resolveVocab(
     profile,
     graph.familyEdits,
   );
-  const vocab = {
-    types,
-    predicates,
-    families,
-    entities,
-    untyped,
-    previews,
-    provenance,
-  };
+  const vocab = { ...made, predicates, families, entities, provenance };
   return { vocab, issues: [...issues, ...unknownIssues(graph, typed, ctx)] };
 }
 
