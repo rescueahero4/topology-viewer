@@ -111,7 +111,7 @@ const shapeHeuristicSchema = z.strictObject({
 });
 
 const typeMenuCategoriesSchema = z.strictObject({
-  order: z.array(text).min(1),
+  order: z.array(text),
   source: sourceSchema,
 });
 

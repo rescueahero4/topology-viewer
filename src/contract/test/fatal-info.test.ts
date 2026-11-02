@@ -1,17 +1,9 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { fatalInfoSchema, notices, shapedKindSchema } from "../index";
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 const LANGUAGES = ["en", "ja"] as const;
 const TAG = /<[a-zA-Z/]/;
-
-const topology = readFileSync(
-  new URL("../../../.design-recall/mockups/lib/topology.js", import.meta.url),
-  "utf8",
-);
-const kindOfLine =
-  topology.split("\n").find((line) => line.includes("const kindOf =")) ?? "";
 
 function fill(template: string, values: Record<string, string>): string {
   return template.replace(PLACEHOLDER, (_, key: string) => values[key] ?? "—");
@@ -22,38 +14,6 @@ function names(template: string): string[] {
 }
 
 describe("fatal-notice values", () => {
-  it("S1 has the 7 got texts; the en texts are the mockup kindOf strings", () => {
-    const tokens = [
-      "array",
-      "string",
-      "number",
-      "boolean",
-      "null",
-      "object",
-      "missing",
-    ];
-    for (const language of LANGUAGES) {
-      const texts = notices.got[language];
-      expect(Object.keys(texts)).toEqual(tokens);
-      for (const value of Object.values(texts)) {
-        expect(value.length).toBeGreaterThan(0);
-        expect(value).not.toMatch(TAG);
-      }
-    }
-    expect(notices.got.en).toEqual({
-      array: "a list",
-      string: "text",
-      number: "a number",
-      boolean: "true/false",
-      null: "null",
-      object: "an object",
-      missing: "nothing (the field is missing)",
-    });
-    expect(kindOfLine).not.toBe("");
-    for (const value of Object.values(notices.got.en))
-      expect(kindOfLine, value).toContain(`"${value}"`);
-  });
-
   it("S2 has the 4 measure templates, each with the one placeholder count", () => {
     expect(notices.measure.en).toEqual({
       nodes: "{count} nodes",

@@ -1,3 +1,4 @@
+import { targetOf } from "./eventScope";
 import type { Lang } from "#engine";
 import { useEffect, useLayoutEffect, useRef } from "preact/hooks";
 import type { Ask } from "./cellEdit";
@@ -24,7 +25,7 @@ function usePressOutside(
   useEffect(() => {
     const doc = box.current?.ownerDocument;
     const onPress = (event: Event) => {
-      const target = event.target;
+      const target = targetOf(event);
       if (target instanceof Node && box.current?.contains(target)) return;
       latest.current();
     };

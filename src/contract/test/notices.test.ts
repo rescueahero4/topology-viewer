@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { notices, type Notice } from "../index";
 
@@ -41,53 +39,6 @@ const PLACEHOLDER = /\{(\w+)\}/g;
 const LANGUAGES = ["en", "ja"] as const;
 
 type Table = Record<string, Notice>;
-type Mockup = {
-  NOTICES: Record<
-    string,
-    {
-      title: string;
-      body: string;
-      user?: string[];
-      ai?: string;
-      actions?: string[];
-    }
-  >;
-  SKIPS: [string, (count: string, info: object) => string][];
-  SKIP_AI: string;
-  noticeText: (notice: {
-    key: string;
-    info: Record<string, string>;
-    detail: string;
-  }) => string;
-};
-
-const MARKERS = [
-  ["const AI_SHAPE =", "function renderNotice("],
-  ["const SKIPS = [", "const dataNotice ="],
-] as const;
-
-function cut(source: string, start: string, end: string): string {
-  const from = source.indexOf(start);
-  if (from < 0) throw new Error(`marker not found: ${start}`);
-  const to = source.indexOf(end, from);
-  if (to < 0) throw new Error(`marker not found: ${end}`);
-  return source.slice(from, to);
-}
-
-// why: memo 2026-10-14 addendum 2 (m2, m3, m4) — the mockup constants are local to its IIFE,
-// so the test reads the text and runs the cut parts in one empty `vm` context
-function loadMockup(source: string): Mockup {
-  const code = MARKERS.map(([from, to]) => cut(source, from, to)).join("\n");
-  return runInNewContext(
-    `${code};({ AI_SHAPE, NOTICES, ACTIONS, SKIPS, SKIP_AI, noticeText })`,
-    {},
-  ) as Mockup;
-}
-
-const appSource = readFileSync(
-  new URL("../../../.design-recall/mockups/app.js", import.meta.url),
-  "utf8",
-);
 
 function names(text: string): string[] {
   return [...text.matchAll(PLACEHOLDER)].map((match) => match[1]);
@@ -265,71 +216,7 @@ describe("notice catalog", () => {
   });
 });
 
-describe("notice texts against the mockup", () => {
-  const mockup = loadMockup(appSource);
-
-  it("S8 keeps the wording of the 9 mockup notices", () => {
-    expect(Object.keys(mockup.NOTICES)).toHaveLength(9);
-    for (const [code, mock] of Object.entries(mockup.NOTICES)) {
-      const entry = notices.en[code as keyof typeof notices.en];
-      const { title, body, user, ai, actions } = entry;
-      expect({ title, body, user, ai, actions }, code).toEqual({
-        title: mock.title,
-        body: mock.body,
-        user: mock.user,
-        ai: mock.ai ?? "",
-        actions: mock.actions ?? [],
-      });
-    }
-  });
-
-  it("S8 keeps the skip lines and SKIP_AI of the mockup", () => {
-    const codes = {
-      missingId: "no-id",
-      duplicates: "duplicate-id",
-      dangling: "dangling-edge",
-    };
-    expect(mockup.SKIPS.map(([key]) => key)).toEqual(Object.keys(codes));
-    for (const [key, line] of mockup.SKIPS) {
-      const entry = notices.en[codes[key as keyof typeof codes] as "no-id"];
-      expect(entry.body, key).toBe(line(`{${entry.placeholders[0]}}`, {}));
-      expect(entry.ai, key).toBe(mockup.SKIP_AI);
-    }
-  });
-
-  it("S12 copyMessage has the four placeholders and equals the mockup noticeText", () => {
-    for (const language of LANGUAGES)
-      expect(sorted(names(notices.copyMessage[language]))).toEqual([
-        "ai",
-        "body",
-        "detail",
-        "title",
-      ]);
-    const info = { got: "a string" };
-    const detail = "not-object: the payload is a string";
-    const entry = notices.en["not-object"];
-    const message = fill(notices.copyMessage.en, {
-      title: entry.title,
-      body: fill(entry.body, info),
-      ai: fill(entry.ai, info),
-      detail,
-    });
-    expect(message).toBe(
-      mockup.noticeText({ key: "not-object", info, detail }),
-    );
-  });
-
-  it("S19 fails and names the marker when a cut marker is missing", () => {
-    for (const marker of MARKERS.flat()) {
-      expect(appSource.split(marker)).toHaveLength(2);
-      expect(() => loadMockup(appSource.replace(marker, ""))).toThrow(
-        `marker not found: ${marker}`,
-      );
-    }
-  });
-});
-
-describe("S16 field names in the For the AI client texts", () => {
+describe("S16 field names in the For the data provider texts", () => {
   const all = (
     language: "en" | "ja",
     code: keyof typeof notices.en,

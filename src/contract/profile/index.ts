@@ -1,5 +1,4 @@
 import { z } from "zod";
-import qdic from "./qdic.json" with { type: "json" };
 import {
   checkAssetOnlyKeys,
   checkBuiltIn,
@@ -13,6 +12,7 @@ import {
   checkTypeMenu,
   makeChecker,
 } from "./checks";
+import { source } from "./source";
 import { profileShapeSchema } from "./types";
 
 export const profileSchema = profileShapeSchema.superRefine((p, ctx) => {
@@ -42,4 +42,4 @@ export function loadProfile(raw: unknown): Profile {
   return result.data;
 }
 
-export const profile = loadProfile(qdic);
+export const profile = loadProfile(source);

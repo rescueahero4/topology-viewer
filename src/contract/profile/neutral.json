@@ -1,0 +1,370 @@
+{
+  "categoryOrder": [
+    "Structure",
+    "Lineage",
+    "Reference",
+    "Annotation",
+    "Ownership & Access",
+    "Other"
+  ],
+  "typeMenuCategories": {
+    "order": [],
+    "source": {
+      "doc": "PRD",
+      "section": "neutral"
+    }
+  },
+  "nodeTypes": {},
+  "predicates": {
+    "contains": {
+      "category": "Structure",
+      "inverse": "partOf",
+      "direction": "out",
+      "isSystem": true,
+      "role": "containment",
+      "layoutRole": "structure",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "broader": {
+      "category": "Structure",
+      "inverse": "narrower",
+      "direction": "out",
+      "isSystem": true,
+      "layoutRole": "structure",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "derivedFrom": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "layoutRole": "lineage",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "definedBy": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "layoutRole": "lineage",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "dependsOn": {
+      "category": "Lineage",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "layoutRole": "lineage",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "mapsTo": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "layoutRole": "lineage",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "sharedWith": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "representsConcept": {
+      "category": "Reference",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "status": "proposed",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "taggedWith": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "enrichedWith": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "relatedTo": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "both",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "synonymOf": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "both",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "classifiedAs": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "governedBy": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "calculatedFrom": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "sourcedFrom": {
+      "category": "Annotation",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": false,
+      "builtIn": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "ownedBy": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "groupedIn": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "memberOf": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "in",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "permissionedTo": {
+      "category": "Ownership & Access",
+      "inverse": null,
+      "direction": "out",
+      "isSystem": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "precededBy": {
+      "category": "Other",
+      "inverse": "follows",
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "produces": {
+      "category": "Other",
+      "inverse": "producedBy",
+      "direction": "out",
+      "isSystem": false,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    }
+  },
+  "inverses": {
+    "partOf": {
+      "predicate": "contains",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "narrower": {
+      "predicate": "broader",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "follows": {
+      "predicate": "precededBy",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    "producedBy": {
+      "predicate": "produces",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    }
+  },
+  "pairings": [],
+  "writeRules": [],
+  "attributeSets": {},
+  "notYetIncluded": [],
+  "slots": [],
+  "shapeHeuristics": [
+    {
+      "kind": "rows",
+      "columns": [
+        "source",
+        "target"
+      ],
+      "predicate": "relatedTo",
+      "hintDefault": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": [
+        "from",
+        "to"
+      ],
+      "predicate": "relatedTo",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": [
+        "parent",
+        "child"
+      ],
+      "predicate": "contains",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": [
+        "subject",
+        "object"
+      ],
+      "predicate": "relatedTo",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    {
+      "kind": "rows",
+      "columns": [
+        "*_id"
+      ],
+      "predicate": "relatedTo",
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    },
+    {
+      "kind": "tree",
+      "columns": [
+        "children",
+        "items"
+      ],
+      "predicate": "contains",
+      "labelKeys": [
+        "name",
+        "label",
+        "title"
+      ],
+      "hintDefault": true,
+      "source": {
+        "doc": "PRD",
+        "section": "neutral"
+      }
+    }
+  ],
+  "globalIdPrefixes": {}
+}

@@ -1,3 +1,4 @@
+import { targetOf } from "./eventScope";
 import type { EditCode, Lang } from "#engine";
 import type { ComponentChildren } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
@@ -143,7 +144,7 @@ function usePressOutside(box: { current: HTMLElement | null }, go: () => void) {
   useEffect(() => {
     const doc = box.current?.ownerDocument;
     const onPress = (event: Event) => {
-      const target = event.target;
+      const target = targetOf(event);
       if (target instanceof Node && box.current?.contains(target)) return;
       latest.current();
     };

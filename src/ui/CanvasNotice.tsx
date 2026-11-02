@@ -92,7 +92,7 @@ function Sections({ entry }: { entry: NoticeEntry }) {
         <div class="notice-sect notice-ai">
           <p class="notice-h">
             <span class="ic">
-              <UiIcon name="bot" />
+              <UiIcon name="info" />
             </span>
             {t(ui, "notice.ai")}
           </p>

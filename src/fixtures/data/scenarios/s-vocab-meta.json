@@ -2,7 +2,7 @@
   "key": "s-vocab-meta",
   "group": "Data shape",
   "label": "Metadata in other vocabularies",
-  "tests": "Catalog fields found under Graph Vocabulary / alias names (comment_on_ddl, service_name, updated_at, owner), owners and tags from edges, path and data source from the containment chain; AI client labels unknown keys and maps steward_email to Owners via `fields`",
+  "tests": "Catalog fields found under Graph Vocabulary / alias names (comment_on_ddl, service_name, updated_at, owner), owners and tags from edges, path and data source from the containment chain; data provider labels unknown keys and maps steward_email to Owners via `fields`",
   "graph": {
     "nodes": [
       { "id": "ds", "type": "data_source", "label": "BigQuery · acme-dw" },

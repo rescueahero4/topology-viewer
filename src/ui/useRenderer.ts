@@ -57,9 +57,16 @@ function make(parent: HTMLElement, start: Start, lang: Lang) {
 
 // why: rule 5 — the five events feed `state.ts`; STORY-006-03 rule 4 — each `settle` also goes to
 // the `onSettle` prop
-function listen(made: Canvas, onSettle: { current: AppProps["onSettle"] }) {
+function listen(
+  made: Canvas,
+  onSettle: { current: AppProps["onSettle"] },
+  onSelect: { current: AppProps["onSelect"] },
+) {
   return [
-    made.on("select", feed.select),
+    made.on("select", (e) => {
+      feed.select(e);
+      onSelect.current?.(e.selection);
+    }),
     made.on("explore", feed.explore),
     made.on("drag-end", feed["drag-end"]),
     made.on("settle", (e) => {
@@ -76,7 +83,7 @@ function listen(made: Canvas, onSettle: { current: AppProps["onSettle"] }) {
 export function useRenderer(
   input: AppInput,
   lang: Lang,
-  from: Pick<AppProps, "onSettle" | "start"> = {},
+  from: Pick<AppProps, "onSettle" | "onSelect" | "start"> = {},
 ) {
   const host = useRef<HTMLDivElement>(null);
   const [canvas, setCanvas] = useState<Canvas | null>(null);
@@ -84,6 +91,8 @@ export function useRenderer(
   const [sized, setSized] = useState(0);
   const onSettle = useRef(from.onSettle);
   onSettle.current = from.onSettle;
+  const onSelect = useRef(from.onSelect);
+  onSelect.current = from.onSelect;
   // why: STORY-006-03 rule 4 — the `start` that comes with an input belongs to that input only
   const prop = useMemo<Start>(() => ({ input, ...from.start }), [input]);
   const [again, setAgain] = useState<Again | null>(null);
@@ -106,7 +115,7 @@ export function useRenderer(
     setFailed(built === "failed");
     if (built === null || built === "failed") return;
     const { made, container } = built;
-    const off = listen(made, onSettle);
+    const off = listen(made, onSettle, onSelect);
     setCanvas(made);
     return () => {
       for (const stop of off) stop();

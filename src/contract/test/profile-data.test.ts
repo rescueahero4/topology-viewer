@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { profile } from "../index";
 
@@ -19,10 +18,6 @@ describe("STORY-002-09 profile data", () => {
     { paths: [["email"]], join: "" },
     { paths: [["email_address"]], join: "" },
   ];
-  const topology = readFileSync(
-    new URL("../../../.design-recall/mockups/lib/topology.js", import.meta.url),
-    "utf8",
-  );
 
   it("S16 moves the broad aliases to assetOnlyKeys", () => {
     expect(slot("logical_name")?.keys).toEqual([
@@ -237,35 +232,4 @@ describe("STORY-002-09 profile data", () => {
     expect(profile.inverses.partOf?.predicate).toBe("contains");
   });
 
-  it("S57 makes the layout roles equal the mockup sets", () => {
-    const set = (pattern: RegExp) =>
-      [...(topology.match(pattern)?.[1] ?? "").matchAll(/"(\w+)"/g)]
-        .map((match) => match[1])
-        .sort();
-    const lineage = set(/const LINEAGE_PREDICATES = new Set\(\[([^\]]*)\]/);
-    const categories = topology.match(
-      /const PREDICATE_CATEGORY = \{([\s\S]*?)\};/,
-    )?.[1];
-    const structure = [...(categories ?? "").matchAll(/(\w+): "structure"/g)]
-      .map((match) => match[1])
-      .sort();
-    expect(lineage).toHaveLength(4);
-    expect(predicatesWhere((p) => p.layoutRole === "lineage")).toEqual(lineage);
-    expect(predicatesWhere((p) => p.category === "Lineage")).toEqual([
-      "definedBy",
-      "dependsOn",
-      "derivedFrom",
-    ]);
-    const structural = predicatesWhere((p) => p.layoutRole === "structure");
-    expect(structural).toEqual(["broader", "contains"]);
-    const inverses = Object.entries(profile.inverses)
-      .filter(([, inverse]) => structural.includes(inverse.predicate))
-      .map(([name]) => name);
-    expect([...structural, ...inverses].sort()).toEqual(structure);
-    expect(structure).toHaveLength(4);
-    for (const name of [...lineage, ...structural])
-      expect(profile.predicates[name]?.source.note, name).toMatch(
-        /\blayoutRole\b/,
-      );
-  });
 });

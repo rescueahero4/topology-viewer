@@ -1,3 +1,4 @@
+import { targetOf } from "./eventScope";
 import { signal } from "@preact/signals";
 import type { ComponentChildren, JSX, RefObject } from "preact";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
@@ -44,7 +45,7 @@ function useOpenMenu(
     list.current?.querySelector<HTMLElement>(FIRST)?.focus();
     const doc = list.current?.ownerDocument;
     const outside = (event: Event) => {
-      const target = event.target as Node;
+      const target = targetOf(event) as Node;
       if (button.current?.contains(target) || list.current?.contains(target))
         return;
       close();

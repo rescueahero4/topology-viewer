@@ -103,7 +103,7 @@ describe("S6 the Physical name slot from each source (SA §6 row 14)", () => {
     const mark = mapped.querySelector(".ai-mark");
     expect(mark).not.toBeNull();
     expect(tipOf(root, mark as Element)).toBe(
-      "Field matched by the AI client: header",
+      "Field matched by the data provider: header",
     );
     expect(read("p1").querySelector(".ai-mark")).toBeNull();
   });
@@ -168,7 +168,7 @@ describe("S7 Other attributes", () => {
     const marked = dts.filter((dt) => dt.querySelector(".ai-mark") !== null);
     expect(marked.map((dt) => dt.firstChild?.textContent)).toEqual(["U one"]);
     expect(tipOf(root, marked[0].querySelector(".ai-mark") as Element)).toBe(
-      "Label from the AI client: column header",
+      "Label from the data provider: column header",
     );
     expect(text(card(root))).not.toContain("function");
     // why: rule 1 — the card shows a focused node at once, before the motion that draws it ends
@@ -222,7 +222,7 @@ describe("S10 and S11 type description, built-in, retired and writability", () =
     expect(text(card(root).querySelector(".insp-title strong"))).toBe("ORDERS");
     expect(names(lists(root)[0]).slice(0, 2)).toEqual(["Type", "Write access"]);
     expect(text(cell(lists(root)[0], "Write access"))).toBe(
-      "read-only in QDIC",
+      "read-only",
     );
     run(() => canvas().focus("node-class-pii"));
     expect(text(cell(lists(root)[0], "Write access"))).toBe("writable");
@@ -267,14 +267,14 @@ describe("S12 generic mode", () => {
     ]);
     const label = list().querySelectorAll("dt")[1].querySelector(".ai-mark");
     expect(tipOf(root, label as Element)).toBe(
-      "Label from the AI client: column header",
+      "Label from the data provider: column header",
     );
     expect(lists(root)).toHaveLength(1);
     const blurb = card(root).querySelector(".blurb");
     expect(blurb?.lastChild?.textContent).toBe("A supplier");
     const mark = blurb?.querySelector(".ai-mark");
     expect(tipOf(root, mark as Element)).toBe(
-      "Inferred by the AI client: summarised",
+      "Inferred by the data provider: summarised",
     );
   });
 
@@ -284,7 +284,7 @@ describe("S12 generic mode", () => {
     const owners = cell(lists(root)[0], "Owners");
     expect(values(owners)).toEqual(["x@acme.example"]);
     expect(tipOf(root, owners.querySelector(".ai-mark") as Element)).toBe(
-      "Field matched by the AI client: Mapped to this field by the AI client",
+      "Field matched by the data provider: Mapped to this field by the data provider",
     );
   });
 });

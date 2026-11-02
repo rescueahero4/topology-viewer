@@ -78,7 +78,7 @@ describe("S9 the AI mark reason on hover, focus and touch", () => {
     const name = root.querySelector(
       `#${CSS.escape(mark.getAttribute("aria-labelledby") ?? "")}`,
     );
-    expect(text(name)).toBe("Inferred by the AI client");
+    expect(text(name)).toBe("Inferred by the data provider");
     const shows = () => {
       const found = tip(root);
       expect(found?.firstChild?.nodeType).toBe(Node.TEXT_NODE);

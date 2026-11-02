@@ -19,15 +19,13 @@ import { afterAll, describe, expect, it } from "vitest";
 import type { SceneNode, SceneVisual } from "./scene";
 import { drawSymbols, iconMetrics, spriteColours, symbolOf } from "./sprite";
 
-const REPO = path.resolve(import.meta.dirname, "../../..");
+const REPO = path.resolve(import.meta.dirname, "../..");
 const RAW = path.join(REPO, "assets", "figma-raw");
 const SCRIPT = path.join(REPO, "scripts", "build-icons.mjs");
-const SPRITE = path.join(REPO, "packages", "renderer", "src", "sprite.json");
+const SPRITE = path.join(REPO, "src", "renderer", "sprite.json");
 const METRICS = path.join(
   REPO,
-  "packages",
-  "engine",
-  "src",
+  "src", "engine",
   "layout",
   "icon-metrics.test.json",
 );
@@ -77,7 +75,7 @@ function tree(withSprite: boolean): string {
   mkdirSync(raw, { recursive: true });
   for (const name of NAMES)
     copyFileSync(path.join(RAW, `${name}.svg`), path.join(raw, `${name}.svg`));
-  const src = path.join(root, "packages", "renderer", "src");
+  const src = path.join(root, "src", "renderer");
   mkdirSync(src, { recursive: true });
   if (withSprite) copyFileSync(SPRITE, path.join(src, "sprite.json"));
   return root;
@@ -117,7 +115,7 @@ describe("S2 sprite build", () => {
   const root = tree(false);
   const result = run("--root", root);
   const built = readFileSync(
-    path.join(root, "packages", "renderer", "src", "sprite.json"),
+    path.join(root, "src", "renderer", "sprite.json"),
     "utf8",
   );
   const sprite = JSON.parse(built) as Record<string, Icon>;
@@ -160,7 +158,7 @@ describe("S3 --check", () => {
     const bytes = readFileSync(SPRITE);
     expect(run("--check").status).toBe(0);
     const root = tree(true);
-    const copy = path.join(root, "packages", "renderer", "src", "sprite.json");
+    const copy = path.join(root, "src", "renderer", "sprite.json");
     const changed = Buffer.from(readFileSync(copy));
     changed[2] = changed[2] === 0x61 ? 0x62 : 0x61;
     writeFileSync(copy, changed);
@@ -204,7 +202,7 @@ describe("S4 allow-list", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("table.svg");
     expect(result.stderr).toContain(name);
-    const out = path.join(root, "packages", "renderer", "src", "sprite.json");
+    const out = path.join(root, "src", "renderer", "sprite.json");
     expect(existsSync(out)).toBe(false);
   });
 });

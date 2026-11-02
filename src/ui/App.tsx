@@ -4,6 +4,7 @@ import type {
   Lang,
   Normalized,
   Profile,
+  Selection,
   warningEntries,
 } from "#engine";
 import { useLayoutEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -38,18 +39,6 @@ import { useRenderer } from "./useRenderer";
 import { SplitHandle } from "./SplitHandle";
 import { useStackPlace } from "./stackPlace";
 import { Workbench } from "./Workbench";
-import "./tokens.css";
-import "./shell-frame.css";
-import "./shell-controls.css";
-import "./shell-menus.css";
-import "./shell-inspector.css";
-import "./shell-relations.css";
-import "./shell-panels.css";
-import "./shell-workbench.css";
-import "./shell-edit.css";
-import "./shell-notices.css";
-import "./shell-narrow.css";
-import "./shell-embedded.css";
 
 type NormalizedOk = Extract<Normalized, { ok: true }>;
 
@@ -81,6 +70,7 @@ export type AppProps = {
   // why: STORY-006-03 rule 4 (EPIC-004 P6-3) — the widget keeps the state and the camera of each
   // `settle` and gives them back with the input of a theme or locale change
   onSettle?: (state: CanvasState, camera: Camera) => void;
+  onSelect?: (selection: Selection) => void;
   start?: { state: CanvasState; camera: Camera };
   // why: STORY-007-03 rules 1, 2 (SA §3, §4.3 addendum) — only the MCP widget entry gives
   // `embedded`; the widget gives the checked host display mode. STORY-007-04 rule 2 — and the

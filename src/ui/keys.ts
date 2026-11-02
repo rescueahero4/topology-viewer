@@ -1,3 +1,4 @@
+import { inKeyScope, targetOf } from "./eventScope";
 import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
 import type { Actions } from "./actions";
@@ -18,7 +19,8 @@ export function useEscapeKey(
     if (doc === undefined || actions === null) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape" || event.defaultPrevented) return;
-      if (isField(event.target) || closeMenu() || closeTips()) return;
+      if (!inKeyScope(event)) return;
+      if (isField(targetOf(event)) || closeMenu() || closeTips()) return;
       actions.select(null);
     };
     doc.addEventListener("keydown", onKey);

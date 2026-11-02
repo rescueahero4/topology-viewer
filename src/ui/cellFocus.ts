@@ -140,9 +140,12 @@ function useLater(cell: RefObject<HTMLTableCellElement>) {
   return () => {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      const doc = cell.current?.ownerDocument;
-      const now = doc?.activeElement ?? null;
-      if (now === null || now === doc?.body)
+      // why: in a shadow tree, the `activeElement` of the document is the host
+      const root = cell.current?.getRootNode() as
+        | DocumentOrShadowRoot
+        | undefined;
+      const now = root?.activeElement ?? null;
+      if (now === null || now === cell.current?.ownerDocument.body)
         cell.current?.focus({ preventScroll: true });
     }, 0);
   };

@@ -35,7 +35,7 @@ function withInherited() {
 }
 
 describe("the own-key reads of the fields and _inferred maps", () => {
-  it("takes no label and no AI mark from an inherited key", () => {
+  it("takes no label and no inferred mark from an inherited key", () => {
     const rows = genericRows("en", withInherited(), "u_0");
     const secret = rows.find(
       (row) => row.kind === "attribute" && row.key === "secret",

@@ -245,7 +245,7 @@ describe("S4 and S5 the AI marks and the link of s-vocab-meta", () => {
     const marks = logical.querySelectorAll(".ai-mark");
     expect(marks).toHaveLength(1);
     expect(tipOf(root, marks[0])).toBe(
-      "Inferred by the AI client: Named from the table and its schema",
+      "Inferred by the data provider: Named from the table and its schema",
     );
     const owners = cell(list, "Owners");
     expect(values(owners)).toEqual(["Aiko Tanaka", "mika.sato@acme.example"]);
@@ -255,7 +255,7 @@ describe("S4 and S5 the AI marks and the link of s-vocab-meta", () => {
       "mika.sato@acme.example",
     );
     expect(tipOf(root, mapped[0])).toBe(
-      "Field matched by the AI client: An e-mail of the person responsible reads as the steward",
+      "Field matched by the data provider: An e-mail of the person responsible reads as the steward",
     );
     const ddl = cell(list, "DDL comment");
     expect(text(ddl.querySelector(".src"))).toBe("from the source system");

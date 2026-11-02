@@ -132,7 +132,7 @@ describe("S7 the copy feedback", () => {
       });
     }
     expect(text(copy())).toBe(label);
-    expect(t("en", "copy.sent")).toBe("Sent to the AI client");
+    expect(t("en", "copy.sent")).toBe("Copied");
     expect(frame.calls).toEqual([]);
   });
 });

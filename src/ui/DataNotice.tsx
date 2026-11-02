@@ -73,7 +73,7 @@ export function chipHeader(entries: Entries, ui: Lang): string {
 }
 
 // why: rule 4 (mockup copy handler, app.js lines 227-230) — catalog text with counts and tokens
-// only; each "For the AI client" text once (epic question 2)
+// only; each "For the data provider" text once (epic question 2)
 export function chipCopy(lines: readonly ChipLine[], ui: Lang): string {
   const ai = aiTexts(lines);
   return [
@@ -97,7 +97,7 @@ function Body({ host, lines }: { host: ShellHost; lines: ChipLine[] }) {
       <div class="notice-ai">
         <p class="notice-h">
           <span class="ic">
-            <UiIcon name="bot" />
+            <UiIcon name="info" />
           </span>
           {t(ui, "notice.ai")}
         </p>

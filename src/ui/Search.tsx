@@ -1,3 +1,4 @@
+import { inKeyScope, targetOf } from "./eventScope";
 import { canvasLookup, matchEntities } from "#engine";
 import type { ComponentChildren, RefObject } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
@@ -21,7 +22,8 @@ function useSlashKey(input: RefObject<HTMLInputElement>): void {
   useEffect(() => {
     const doc = input.current?.ownerDocument;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "/" || isField(event.target)) return;
+      if (event.key !== "/" || !inKeyScope(event)) return;
+      if (isField(targetOf(event))) return;
       event.preventDefault();
       input.current?.focus();
     };

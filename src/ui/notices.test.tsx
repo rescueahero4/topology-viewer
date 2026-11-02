@@ -108,7 +108,7 @@ function step(work: () => void): void {
     });
 }
 
-// why: rule 2 — the one layout: title, body, "What you can do", "For the AI client" only for a
+// why: rule 2 — the one layout: title, body, "What you can do", "For the data provider" only for a
 // text, the code in "Technical details", the catalog actions
 function expectNotice(root: Element, code: string, info: Info, lang: Lang) {
   const entry = noticeText(code, info, lang);

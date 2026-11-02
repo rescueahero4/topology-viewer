@@ -294,7 +294,7 @@ describe("S4 a Name edit of a hidden node", () => {
 });
 
 describe("S14 an edit removes the AI mark of its field", () => {
-  it("shows the Description with no AI mark after the edit", async () => {
+  it("shows the Description with no inferred mark after the edit", async () => {
     const { root } = await catalog();
     const id = "t_DIM_CUSTOMER";
     run(() => canvas().focus(id));

@@ -33,7 +33,7 @@ const EN: Labels = {
   "reset-view": "Reset to first view",
   retry: "Try again",
   table: "Open Dataset table",
-  copy: "Copy details for the AI client",
+  copy: "Copy details",
 };
 
 const JA: Labels = {
@@ -41,7 +41,7 @@ const JA: Labels = {
   "reset-view": "最初の表示に戻す",
   retry: "再試行",
   table: "データセット表を開く",
-  copy: "AI クライアント向けの詳細をコピー",
+  copy: "詳細をコピー",
 };
 
 function table(labels: Labels) {
@@ -59,6 +59,6 @@ export const actions = { en: table(EN), ja: table(JA) };
 
 // why: ddr-0052 — the message of the mockup `noticeText`, with one placeholder per part
 export const copyMessage = {
-  en: "The Quollio topology chart couldn't show your last result: {title}.\n{body}\nHow to fix it: {ai}\nDetails: {detail}",
-  ja: "Quollio トポロジーチャートは前回の結果を表示できませんでした: {title}。\n{body}\n修正方法: {ai}\n詳細: {detail}",
+  en: "The topology chart couldn't show your last result: {title}.\n{body}\nHow to fix it: {ai}\nDetails: {detail}",
+  ja: "トポロジーチャートは前回の結果を表示できませんでした: {title}。\n{body}\n修正方法: {ai}\n詳細: {detail}",
 };

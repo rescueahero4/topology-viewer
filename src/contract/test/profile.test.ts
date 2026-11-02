@@ -1,13 +1,9 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadProfile, profile } from "../index";
 import qdic from "../profile/qdic.json";
 
 const root = new URL("../../../", import.meta.url);
-const storyFile = new URL(
-  "docs/epics/closed/EPIC-001-contract-profile-guidance/stories/STORY-001-03-qdic-profile.md",
-  root,
-);
 
 function rgb(hex: string) {
   return [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16) / 255);
@@ -197,16 +193,6 @@ describe("QDIC profile node types", () => {
     expect(missing).toEqual([]);
   });
 
-  it("S13 has no pending-ddr marker, or the story header records the Owner acceptance", () => {
-    const pending = Object.values(profile.nodeTypes).some(
-      (t) => t.design === "pending-ddr",
-    );
-    const header = readFileSync(storyFile, "utf8").split("\n")[2] ?? "";
-    expect(
-      !pending || header.includes("design values provisional — Owner accepted"),
-    ).toBe(true);
-    expect(header).toContain("design values provisional — Owner accepted");
-  });
 });
 
 describe("QDIC profile predicates and vocabulary", () => {

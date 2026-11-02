@@ -12,6 +12,15 @@ const TABLES: Readonly<Record<Lang, Readonly<Record<Key, Text>>>> = { en, ja };
 export const MISSING = "—";
 const PLACEHOLDER = /\{(\w+)\}/g;
 const numbers = new Map<Lang, Intl.NumberFormat>();
+const overrides: Partial<Record<Lang, Readonly<Record<string, string>>>> = {};
+
+// A viewer on a page can replace interface text by key, for the language that it shows.
+export function overrideStrings(
+  lang: Lang,
+  strings: Readonly<Record<string, string>> | undefined,
+): void {
+  overrides[lang] = strings;
+}
 
 export function formatted(lang: Lang, value: number): string {
   let format = numbers.get(lang);
@@ -30,7 +39,7 @@ export function isKey(key: string): key is Key {
 // why: rule 6 — `one` for the count 1 and `other` for every other count; numbers in the format of
 // the UI language; the template is read once, so a value that holds `{x}` stays as it is
 function templateOf(lang: Lang, key: Key, values: Values): string {
-  const text = TABLES[lang][key];
+  const text = overrides[lang]?.[key] ?? TABLES[lang][key];
   if (typeof text === "string") return text;
   return Object.hasOwn(values, "count") && values.count === 1
     ? text.one

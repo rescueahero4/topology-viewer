@@ -1,3 +1,4 @@
+import { inKeyScope, targetOf } from "./eventScope";
 import { batch, signal } from "@preact/signals";
 import type { RefObject } from "preact";
 import { useEffect, useLayoutEffect } from "preact/hooks";
@@ -139,7 +140,7 @@ export function stepRatio(tableLarger: boolean): void {
 // toggles the Workbench on every platform; `[` makes the table smaller and `]` larger while it
 // is open. In a text field each key types its character
 function onSplitKey(event: KeyboardEvent): void {
-  if (isField(event.target)) return;
+  if (!inKeyScope(event) || isField(targetOf(event))) return;
   if (event.key === "." && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
     toggleWorkbench();

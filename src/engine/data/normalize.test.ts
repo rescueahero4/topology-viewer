@@ -214,7 +214,7 @@ describe("S4 the QDIC and alias forms", () => {
     ],
   };
 
-  it("maps the QDIC names and keeps the record fields", () => {
+  it("maps the catalog names and keeps the record fields", () => {
     const base = run(canonical).graph;
     const graph = run(qdic).graph;
     expect(graph.records.map((r) => r.idSource)).toEqual([
