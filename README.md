@@ -62,7 +62,7 @@ The smallest payload is a list of nodes and a list of edges:
 
 All fields are optional. The viewer also reads:
 
-- `types`: the look of each node type (`label`, `rank`, `shape`, `color`, `abbr`, `glyph`).
+- `types`: the look of each node type (`label`, `rank`, `shape`, `color`, `abbr`, `glyph`). Each shape belongs to one rank. If `rank` and `shape` disagree, `rank` decides.
 - `predicates`: the look of each edge type (`label`, `category`, `inverse`, `role`).
 - `view`: the first view (`root`, `layout`, `budget`, `approach`, `reveal`).
 - `links`, `neighborhood`, tuples, and `shape` hints for rows and trees.

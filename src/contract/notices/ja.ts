@@ -7,7 +7,7 @@ const SKIP_AI =
   "すべてのノードに一意の `id` を付けてください。また、エッジの `source` または `target` が指すすべてのノードを含めてください。";
 
 const RESEND =
-  "詳細をコピーしてチャットに貼り付けると、データ提供元は何を修正すればよいかがわかります。";
+  "詳細をコピーしてデータ提供元に送ると、何を修正すればよいかが伝わります。";
 
 const HINTS =
   'フラットな行のリストには `{ kind: "rows", subject, object, predicate?, type? }`、ネストしたオブジェクトには `{ kind: "tree", children, label, id? }` を使います。各値はデータ内のキーの名前です';

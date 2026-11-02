@@ -9,7 +9,7 @@ const SKIP_AI =
   "Give every node a unique `id`, and include every node an edge's `source` or `target` points at.";
 
 const RESEND =
-  "Copy the details and paste them into the chat so it knows what to fix.";
+  "Copy the details and send them to the data provider, so that it knows what to fix.";
 
 const HINTS =
   '`{ kind: "rows", subject, object, predicate?, type? }` for a list of flat rows, or `{ kind: "tree", children, label, id? }` for a nested object; each value is the name of a key in your data';

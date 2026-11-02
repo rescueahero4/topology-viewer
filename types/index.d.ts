@@ -31,7 +31,7 @@ export type TopologyPayload = {
   nodes?: readonly (TopologyNode | readonly unknown[])[];
   edges?: readonly (TopologyEdge | readonly unknown[])[];
   links?: readonly (TopologyEdge | readonly unknown[])[];
-  /** The look of each node type: `label`, `rank`, `shape`, `color`, `abbr`, `glyph`, `level`, `role`. */
+  /** The look of each node type: `label`, `rank`, `shape`, `color`, `abbr`, `glyph`, `level`, `role`. If `rank` and `shape` disagree, `rank` decides. */
   types?: Record<string, Record<string, unknown>>;
   /** The look of each predicate: `label`, `category`, `inverse`, `role`. */
   predicates?: Record<string, Record<string, unknown>>;
