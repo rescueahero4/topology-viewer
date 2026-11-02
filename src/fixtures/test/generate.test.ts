@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generate } from "../src";
-import type { TreeObject } from "../src/generate";
+import { generate } from "..";
+import type { TreeObject } from "../generate";
 
 // why: an explicit stack, because a recursive walk of 10,000 levels overflows
 function walk(root: TreeObject): [number, string | TreeObject[]][] {

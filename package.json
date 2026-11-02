@@ -1,0 +1,47 @@
+{
+  "name": "topology-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A UI library that renders a graph payload from an external API: canvas, inspector, search and an editable table.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#contract": "./src/contract/index.ts",
+    "#engine": "./src/engine/index.ts",
+    "#fixtures": "./src/fixtures/index.ts",
+    "#renderer": "./src/renderer/index.ts",
+    "#ui": "./src/ui/index.ts",
+    "#ui/canvas": "./src/ui/canvas/index.ts",
+    "#ui/testFrame": "./src/ui/testFrame.ts"
+  },
+  "scripts": {
+    "test": "vitest run --maxWorkers=2",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@preact/signals": "2.11.3",
+    "@types/d3-drag": "3.0.7",
+    "@types/d3-ease": "3.0.2",
+    "@types/d3-force": "3.0.10",
+    "@types/d3-hierarchy": "3.1.7",
+    "@types/d3-selection": "3.0.12",
+    "@types/d3-timer": "3.0.2",
+    "@types/d3-zoom": "3.0.8",
+    "@types/node": "24.19.2",
+    "d3-drag": "3.0.0",
+    "d3-ease": "3.0.1",
+    "d3-force": "3.0.0",
+    "d3-hierarchy": "3.1.2",
+    "d3-selection": "3.0.0",
+    "d3-timer": "3.0.1",
+    "d3-zoom": "3.0.0",
+    "jsdom": "30.1.2",
+    "preact": "10.29.8",
+    "typescript": "6.0.3",
+    "vite": "8.3.4",
+    "vitest": "5.0.4",
+    "zod": "4.6.7"
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { copyBytes, parseRenderInput } from "../src/index";
+import { copyBytes, parseRenderInput } from "../index";
 
 function list<T>(length: number, item: (i: number) => T): T[] {
   return Array.from({ length }, (_, i) => item(i));

@@ -4,7 +4,7 @@ import {
   notices,
   parseRenderInput,
   warningEntrySchema,
-} from "../src/index";
+} from "../index";
 
 const S33_CODE = "layout-rejected";
 

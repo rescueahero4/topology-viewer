@@ -1,6 +1,6 @@
-import { checkCounts, parseRenderInput } from "@qdic-topology/contract";
+import { checkCounts, parseRenderInput } from "#contract";
 import { describe, expect, it } from "vitest";
-import { fixtures, loadFixture } from "../src";
+import { fixtures, loadFixture } from "..";
 import { edgesOf, nodesOf } from "./payload";
 
 const all = Object.keys(fixtures);

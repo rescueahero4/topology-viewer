@@ -6,8 +6,8 @@ import {
   checkSize,
   notices,
   parseRenderInput,
-} from "../src/index";
-import { edgeSchema, nodeSchema } from "../src/input";
+} from "../index";
+import { edgeSchema, nodeSchema } from "../input";
 
 const LABEL = "顧客マスタ";
 

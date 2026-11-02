@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { profile } from "../src/index";
+import { profile } from "../index";
 
 describe("STORY-002-09 profile data", () => {
   const slot = (id: string) => profile.slots.find((s) => s.slot === id);

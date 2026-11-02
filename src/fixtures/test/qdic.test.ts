@@ -1,6 +1,6 @@
-import { profile } from "@qdic-topology/contract";
+import { profile } from "#contract";
 import { describe, expect, it } from "vitest";
-import { loadFixture } from "../src";
+import { loadFixture } from "..";
 import { edgesOf, isRecord, nodeId, nodesOf, skipCounts } from "./payload";
 
 function typesOf(input: unknown): Map<string, string> {

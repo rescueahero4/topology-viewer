@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseRenderInput } from "../src/index";
+import { parseRenderInput } from "../index";
 
 const KEYS = ["__proto__", "constructor", "prototype"];
 

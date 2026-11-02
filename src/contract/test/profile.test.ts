@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { loadProfile, profile } from "../src/index";
-import qdic from "../src/profile/qdic.json";
+import { loadProfile, profile } from "../index";
+import qdic from "../profile/qdic.json";
 
 const root = new URL("../../../", import.meta.url);
 const storyFile = new URL(

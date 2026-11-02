@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { parseRenderInput } from "../src/index";
+import { parseRenderInput } from "../index";
 
 const vocabMeta = {
   title: "Metadata in other vocabularies",

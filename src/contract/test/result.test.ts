@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { structuredContentSchema, warningEntrySchema } from "../src/index";
+import { structuredContentSchema, warningEntrySchema } from "../index";
 
 describe("tool result", () => {
   it("S26 validates the counts and a warning entry and refuses an extra key", () => {

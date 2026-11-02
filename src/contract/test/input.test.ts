@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { checkSize, parseRenderInput, renderInputSchema } from "../src/index";
+import { checkSize, parseRenderInput, renderInputSchema } from "../index";
 
 function parsed(raw: unknown) {
   const result = parseRenderInput(raw);

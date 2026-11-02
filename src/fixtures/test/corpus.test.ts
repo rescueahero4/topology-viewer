@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { notices, type NoticeCode } from "@qdic-topology/contract";
+import { notices, type NoticeCode } from "#contract";
 import { describe, expect, it } from "vitest";
-import { createCorpus, datasets, fixtures, loadFixture } from "../src";
-import { datasetFiles, qdicFiles, scenarioFiles } from "../src/files";
+import { createCorpus, datasets, fixtures, loadFixture } from "..";
+import { datasetFiles, qdicFiles, scenarioFiles } from "../files";
 import {
   constraintViolationCount,
   firstPaintOf,

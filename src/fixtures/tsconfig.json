@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "types": ["node"],
-    "resolveJsonModule": true
-  },
-  "include": ["src", "data/**/*.json", "test"],
-  "references": [{ "path": "../contract" }]
-}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generate } from "../src";
-import { datasetFiles, qdicFiles, scenarioFiles } from "../src/files";
+import { generate } from "..";
+import { datasetFiles, qdicFiles, scenarioFiles } from "../files";
 
 const EMAIL = /[\w.+-]+@([\w-]+(?:\.[\w-]+)+)/g;
 const URL_HOST = /\b(?:https?:\/\/|www\.)([\w-]+(?:\.[\w-]+)+)/gi;

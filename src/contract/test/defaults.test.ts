@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { notices, parseRenderInput } from "../src/index";
+import { notices, parseRenderInput } from "../index";
 
 function parsed(raw: unknown) {
   const result = parseRenderInput(raw);

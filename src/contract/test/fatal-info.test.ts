@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { fatalInfoSchema, notices, shapedKindSchema } from "../src/index";
+import { fatalInfoSchema, notices, shapedKindSchema } from "../index";
 
 const PLACEHOLDER = /\{(\w+)\}/g;
 const LANGUAGES = ["en", "ja"] as const;

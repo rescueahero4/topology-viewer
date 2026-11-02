@@ -6,7 +6,7 @@ import {
   matchShapeHeuristic,
   parseRenderInput,
   rawCounts,
-} from "../src/index";
+} from "../index";
 
 const OVER = 2001;
 const TOO_LARGE_NODES = {

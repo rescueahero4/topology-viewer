@@ -1,4 +1,4 @@
-import { profile } from "@qdic-topology/contract";
+import { profile } from "#contract";
 
 export type Raw = Record<string, unknown>;
 

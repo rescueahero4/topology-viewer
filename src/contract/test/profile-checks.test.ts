@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { loadProfile } from "../src/index";
-import qdic from "../src/profile/qdic.json";
+import { loadProfile } from "../index";
+import qdic from "../profile/qdic.json";
 
 type Draft = {
   nodeTypes: Record<string, Record<string, unknown>>;
