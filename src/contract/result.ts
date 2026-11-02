@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { approachSchema } from "./input";
 import { warningCodeSchema } from "./notices/codes";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
-const count = z.number().int().min(0);
+const count = z.number().check(z.int(), z.minimum(0));
 
 // why: SA §4.2 and D4 — ChatGPT shows `structuredContent` to the model, so it holds counts only
 export const structuredContentSchema = z.strictObject({

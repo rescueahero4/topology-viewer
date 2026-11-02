@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { issueCodeSchema, type IssueCode } from "./notices/codes";
 import { SCHEMA_VERSION } from "./schemaVersion";
 
 // why: SA §4.1 field-level rule — a bad value falls back and never fails the schema;
 // a static fallback keeps z.toJSONSchema() working (SA §4.7)
-function optional<T extends z.ZodType>(schema: T) {
-  return schema.optional().catch(undefined);
+function optional<T extends z.core.SomeType>(schema: T) {
+  return z.catch(z.optional(schema), undefined as never);
 }
 
 export const text = z.string();
@@ -18,7 +18,7 @@ const GLYPH = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-eE]+$/;
 
 export const typeFields = {
   label: text,
-  rank: z.number().int().min(0).max(6),
+  rank: z.number().check(z.int(), z.minimum(0), z.maximum(6)),
   shape: z.enum([
     "circle",
     "triangle",
@@ -29,10 +29,10 @@ export const typeFields = {
     "heptagon",
     "octagon",
   ]),
-  color: z.string().max(64),
-  abbr: z.string().max(2),
-  glyph: z.string().max(512).regex(GLYPH),
-  level: z.number().int().min(0),
+  color: z.string().check(z.maxLength(64)),
+  abbr: z.string().check(z.maxLength(2)),
+  glyph: z.string().check(z.maxLength(512), z.regex(GLYPH)),
+  level: z.number().check(z.int(), z.minimum(0)),
   role: z.enum(["structure", "attribute", "curation"]),
 };
 
@@ -49,7 +49,7 @@ export const TYPE_FIELD_CODES = {
 
 export const typeSchema = z.object({
   label: optional(typeFields.label),
-  rank: typeFields.rank.optional().catch(0),
+  rank: z.catch(z.optional(typeFields.rank), 0),
   shape: optional(typeFields.shape),
   color: optional(typeFields.color),
   abbr: optional(typeFields.abbr),
@@ -62,7 +62,7 @@ export const predicateFields = {
   label: text,
   category: text,
   inverse: text,
-  role: z.literal("containment").nullable(),
+  role: z.nullable(z.literal("containment")),
 };
 
 export const predicateSchema = z.object({
@@ -84,7 +84,7 @@ export const vocabularyRowFields = {
   name: text,
   description: text,
   category: text,
-  inverse_predicate: text.nullable(),
+  inverse_predicate: z.nullable(text),
   is_system: z.boolean(),
   is_active: z.boolean(),
 };
@@ -136,23 +136,23 @@ export const viewSchema = z.object({
   budget: optional(viewFields.budget),
 });
 
-export const shapeHint = z
-  .discriminatedUnion("kind", [
+export const shapeHint = z.nullable(
+  z.discriminatedUnion("kind", [
     z.object({
       kind: z.literal("rows"),
       subject: text,
       object: text,
-      predicate: text.optional(),
-      type: text.optional(),
+      predicate: z.optional(text),
+      type: z.optional(text),
     }),
     z.object({
       kind: z.literal("tree"),
       children: text,
       label: text,
-      id: text.optional(),
+      id: z.optional(text),
     }),
-  ])
-  .nullable();
+  ]),
+);
 
 export const inferredField = z.record(z.string(), text);
 
@@ -212,30 +212,34 @@ const edgeObject = z.looseObject({
 
 // why: PRD FR-DATA-3 — a record that is neither an object nor a tuple is a record without
 // an id; `normalize` skips and counts it, so the element falls back to null
-export const nodeSchema = z
-  .union([
-    nodeObject,
-    z.tuple([text, optional(text), optional(text), optional(attrs)]),
-  ])
-  .nullable()
-  .catch(null);
+export const nodeSchema = z.catch(
+  z.nullable(
+    z.union([
+      nodeObject,
+      z.tuple([text, optional(text), optional(text), optional(attrs)]),
+    ]),
+  ),
+  null,
+);
 
-export const edgeSchema = z
-  .union([edgeObject, z.tuple([text, text, text, optional(attrs)])])
-  .nullable()
-  .catch(null);
+export const edgeSchema = z.catch(
+  z.nullable(
+    z.union([edgeObject, z.tuple([text, text, text, optional(attrs)])]),
+  ),
+  null,
+);
 
 export const renderInputSchema = z.looseObject({
-  schemaVersion: z.literal(SCHEMA_VERSION).optional().catch(SCHEMA_VERSION),
-  nodes: z.array(nodeSchema).optional(),
-  edges: z.array(edgeSchema).optional(),
-  links: z.array(edgeSchema).optional(),
-  neighborhood: z
-    .looseObject({
-      nodes: z.array(nodeSchema).optional(),
-      edges: z.array(edgeSchema).optional(),
-    })
-    .optional(),
+  schemaVersion: z.catch(z.optional(z.literal(SCHEMA_VERSION)), SCHEMA_VERSION),
+  nodes: z.optional(z.array(nodeSchema)),
+  edges: z.optional(z.array(edgeSchema)),
+  links: z.optional(z.array(edgeSchema)),
+  neighborhood: z.optional(
+    z.looseObject({
+      nodes: z.optional(z.array(nodeSchema)),
+      edges: z.optional(z.array(edgeSchema)),
+    }),
+  ),
   defaults: optional(defaultsSchema),
   types: optional(z.record(z.string(), optional(typeSchema))),
   predicates: optional(z.record(z.string(), optional(predicateSchema))),

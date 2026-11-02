@@ -47,7 +47,7 @@ describe("S21 normalize stops a value deeper than 256 levels", () => {
     const result = normalize(PLACES[0][1](257), NOW);
     const info = result.ok ? {} : (result.fatal as typeof FATAL).info;
     expect(copyMessage("too-large", info, "en", "too-large")).toBe(
-      "The topology chart couldn't show your last result: This result is too large to draw.\nThis result has 257 levels of nesting, more than the limit of 256 levels of nesting, so nothing is drawn.\nHow to fix it: Send at most 2,000 nodes, 4,000 edges and 256 KB of JSON in one call. Send a smaller result: filter it to the part that answers the question, or send the most relevant part first.\nDetails: too-large",
+      "The topology chart couldn't show your last result: This result is too large to draw.\nThis result has 257 levels of nesting, more than the limit of 256 levels of nesting, so nothing is drawn.\nHow to fix it: Send at most 2,000 nodes, 4,000 edges and 8 MB of JSON in one call. Send a smaller result: filter it to the part that answers the question, or send the most relevant part first.\nDetails: too-large",
     );
     const ja = copyMessage("too-large", info, "ja", "too-large");
     expect(ja).toContain("257 階層のネスト");

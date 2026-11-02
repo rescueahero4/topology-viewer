@@ -1,4 +1,5 @@
-import { z } from "zod";
+import { z } from "zod/mini";
+import { en } from "zod/locales";
 import {
   checkAssetOnlyKeys,
   checkBuiltIn,
@@ -15,7 +16,8 @@ import {
 import { source } from "./source";
 import { profileShapeSchema } from "./types";
 
-export const profileSchema = profileShapeSchema.superRefine((p, ctx) => {
+export const profileSchema = profileShapeSchema.check((ctx) => {
+  const p = ctx.value;
   const checker = makeChecker(p, ctx);
   checkNodeTypes(p, checker);
   checkPredicates(p, checker);
@@ -32,7 +34,8 @@ export const profileSchema = profileShapeSchema.superRefine((p, ctx) => {
 export type Profile = z.infer<typeof profileSchema>;
 
 export function loadProfile(raw: unknown): Profile {
-  const result = profileSchema.safeParse(raw);
+  // why: zod/mini loads no locale, so the built-in messages come from here
+  const result = profileSchema.safeParse(raw, { error: en().localeError });
   if (!result.success) {
     const lines = result.error.issues.map(
       (i) => `${i.path.join(".")}: ${i.message}`,

@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 import type { NoticeCode, NoticeText } from "./codes";
 import { AI_SHAPE } from "./en";
 import type { valueTextsSchema } from "./values";
@@ -183,7 +183,7 @@ export const ja = {
     user: [
       `質問に答える部分だけの、より小さい結果を データ提供元に依頼してください。${RESEND}`,
     ],
-    ai: "1 回の呼び出しで送信できるのは、最大 2,000 ノード、4,000 エッジ、256 KB の JSON です。より小さい結果を送信してください。質問に答える部分に絞り込むか、最も関連性の高い部分を先に送信してください。",
+    ai: "1 回の呼び出しで送信できるのは、最大 2,000 ノード、4,000 エッジ、8 MB の JSON です。より小さい結果を送信してください。質問に答える部分に絞り込むか、最も関連性の高い部分を先に送信してください。",
   },
   "not-a-graph": {
     title: "このデータはグラフとして読み取れません",

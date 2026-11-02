@@ -1,7 +1,8 @@
-import { z } from "zod";
+import { z } from "zod/mini";
+import { en } from "zod/locales";
 import { notices, type NoticeCode, type WarningCode } from "../notices";
 
-const text = z.string().min(1);
+const text = z.string().check(z.minLength(1));
 
 function isCode(value: string): value is NoticeCode {
   return notices.codes.some((code) => code === value);
@@ -16,15 +17,29 @@ const unknownCode = (what: string) => ({
     `${JSON.stringify(issue.input)} is not ${what}`,
 });
 
-const noticeCode = z.string().refine(isCode, unknownCode("a notice code"));
-const warningCode = z.string().refine(isWarning, unknownCode("a warning code"));
+// why: the type guard keeps the narrow output type that the refine of classic zod gave
+const codeOf = <T extends string>(
+  guard: (value: string) => value is T,
+  what: string,
+) =>
+  z
+    .string()
+    .check(z.refine(guard, unknownCode(what))) as unknown as z.ZodMiniType<
+    T,
+    string
+  >;
+
+const noticeCode = codeOf(isCode, "a notice code");
+const warningCode = codeOf(isWarning, "a warning code");
 const schemaVerdict = z
   .string()
-  .refine(
-    (value) =>
-      value === "pass" ||
-      (isCode(value) && notices.severity[value] === "fatal"),
-    unknownCode('"pass" or a fatal code'),
+  .check(
+    z.refine(
+      (value) =>
+        value === "pass" ||
+        (isCode(value) && notices.severity[value] === "fatal"),
+      unknownCode('"pass" or a fatal code'),
+    ),
   );
 
 export const storySchema = z.strictObject({ prompt: text, text });
@@ -32,17 +47,25 @@ export const storySchema = z.strictObject({ prompt: text, text });
 export const firstPaintSchema = z
   .strictObject({
     approach: z.enum(["active", "passive"]),
-    selected: z.string().nullable(),
+    selected: z.nullable(z.string()),
   })
-  .refine((paint) => paint.approach === "active" || paint.selected === null, {
-    error: "a passive first paint selects nothing",
-  });
+  .check(
+    z.refine(
+      (paint) => paint.approach === "active" || paint.selected === null,
+      {
+        error: "a passive first paint selects nothing",
+      },
+    ),
+  );
 
 export const expectSchema = z.strictObject({
   schema: schemaVerdict,
   firstPaint: firstPaintSchema,
-  notice: noticeCode.nullable(),
-  warnings: z.partialRecord(warningCode, z.number().int().min(1)),
+  notice: z.nullable(noticeCode),
+  warnings: z.partialRecord(
+    warningCode,
+    z.number().check(z.int(), z.minimum(1)),
+  ),
 });
 
 export const fixtureFileSchema = z
@@ -51,22 +74,21 @@ export const fixtureFileSchema = z
     group: text,
     label: text,
     tests: text,
-    story: storySchema.nullable(),
+    story: z.nullable(storySchema),
     expect: expectSchema,
-    graph: z.unknown().optional(),
-    dataset: text.optional(),
-    view: z.unknown().optional(),
+    graph: z.optional(z.unknown()),
+    dataset: z.optional(text),
+    view: z.optional(z.unknown()),
   })
-  .superRefine((file, ctx) => {
+  .check((ctx) => {
+    const file = ctx.value;
+    const fail = (message: string) =>
+      ctx.issues.push({ code: "custom", message, input: file });
     const hasGraph = "graph" in file;
     const hasDataset = file.dataset !== undefined;
     if (hasGraph === hasDataset)
-      ctx.addIssue({
-        code: "custom",
-        message: 'exactly one of "graph" or "dataset" is required',
-      });
-    if ("view" in file && !hasDataset)
-      ctx.addIssue({ code: "custom", message: '"view" needs "dataset"' });
+      fail('exactly one of "graph" or "dataset" is required');
+    if ("view" in file && !hasDataset) fail('"view" needs "dataset"');
   });
 
 export const datasetFileSchema = z.strictObject({
@@ -74,7 +96,7 @@ export const datasetFileSchema = z.strictObject({
   label: text,
   description: text,
   graph: z.record(z.string(), z.unknown()),
-  story: storySchema.nullable(),
+  story: z.nullable(storySchema),
 });
 
 export type Story = z.infer<typeof storySchema>;
@@ -83,8 +105,9 @@ export type Expect = z.infer<typeof expectSchema>;
 export type FixtureFile = z.infer<typeof fixtureFileSchema>;
 export type DatasetFile = z.infer<typeof datasetFileSchema>;
 
-function load<T>(schema: z.ZodType<T>, raw: unknown, what: string): T {
-  const result = schema.safeParse(raw);
+function load<T>(schema: z.ZodMiniType<T>, raw: unknown, what: string): T {
+  // why: zod/mini loads no locale, so the built-in messages come from here
+  const result = schema.safeParse(raw, { error: en().localeError });
   if (!result.success) {
     const lines = result.error.issues.map(
       (i) => `${i.path.join(".")}: ${i.message}`,

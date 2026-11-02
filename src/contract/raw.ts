@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 import type { attrs, issueSchema } from "./input";
 
 export type Path = z.infer<typeof issueSchema>["path"];

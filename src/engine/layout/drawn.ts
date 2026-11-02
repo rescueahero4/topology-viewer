@@ -1,3 +1,4 @@
+import { profile } from "#contract";
 import { byCodePoint } from "../data/hash";
 import type { DrawnId } from "../state/canvasState";
 import type { DrawnNode, Frontier } from "../view/frontier";
@@ -37,7 +38,13 @@ export type Drawn = {
 export const LABEL_CHARS = 22;
 
 // why: mockup `iconFor` (lib/topology.js line 306) — a type outside the sprite is a rank-0 circle
-const RANK_ZERO: Box = { w: 20, h: 20, tier: "leaf" };
+// A leaf hides its label at the middle zoom. With no node types in the profile, nothing says that a
+// type is a leaf, so each type keeps its label.
+const hasTypes = Object.keys(profile.nodeTypes).length > 0;
+export const tierOfRank = (rank: number): "leaf" | "node" =>
+  rank === 0 && hasTypes ? "leaf" : "node";
+
+const RANK_ZERO: Box = { w: 20, h: 20, tier: tierOfRank(0) };
 
 // why: lead decisions D23, D27 — an own `metrics` entry, else the STORY-002-03 size of the type
 export function boxOf(
@@ -53,7 +60,7 @@ export function boxOf(
   return {
     w: visual.size,
     h: visual.size,
-    tier: visual.rank === 0 ? "leaf" : "node",
+    tier: tierOfRank(visual.rank),
   };
 }
 

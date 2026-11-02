@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 import {
   approachSchema,
   attrs,
@@ -27,10 +27,10 @@ import {
   type Raw,
 } from "./raw";
 
-type Fields = Record<string, z.ZodType>;
+type Fields = Record<string, z.ZodMiniType>;
 type Tuple = {
   valid: (items: unknown[]) => boolean;
-  items: [number, z.ZodType][];
+  items: [number, z.ZodMiniType][];
 };
 
 const NODE_TUPLE: Tuple = {
@@ -47,7 +47,7 @@ const EDGE_TUPLE: Tuple = {
     items.slice(0, 3).every((item) => typeof item === "string"),
   items: [[3, attrs]],
 };
-const ENTRIES: [string, z.ZodObject, Fields][] = [
+const ENTRIES: [string, z.ZodMiniObject, Fields][] = [
   ["types", typeSchema, { label: typeFields.label }],
   ["predicates", predicateSchema, predicateFields],
   ["fields", fieldSchema, fieldFields],
@@ -67,7 +67,7 @@ function rejected(path: Path): Issue {
   return { code: "field-rejected", path };
 }
 
-function isBad(schema: z.ZodType, value: unknown): boolean {
+function isBad(schema: z.ZodMiniType, value: unknown): boolean {
   return value !== undefined && !schema.safeParse(value).success;
 }
 

@@ -418,6 +418,5 @@ export const ja: { readonly [K in keyof typeof en]: string } = {
   "load.network": "サーバーに接続できません。",
   "load.http": "サーバーがステータス {status} を返しました。",
   "load.parse": "サーバーの応答は有効な JSON ではありません。",
-  "load.select": "アプリがサーバーの応答を読み取れませんでした。",
   "load.load": "アプリがデータを取得できませんでした。",
 };

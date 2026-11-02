@@ -1,4 +1,28 @@
+# Dependencies and build output
 node_modules/
 dist/
 *.tgz
 *.tsbuildinfo
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Secrets
+.env
+.env.*
+!.env.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local noise
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

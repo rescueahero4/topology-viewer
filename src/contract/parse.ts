@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { CAPS, checkCounts } from "./caps";
 import { copyBytes } from "./copyBytes";
 import { fieldIssues } from "./fieldIssues";
@@ -81,7 +81,7 @@ function checkStructure(raw: Raw): Issue | null {
 }
 
 function rejected(
-  schema: z.ZodType,
+  schema: z.ZodMiniType,
   owner: Raw,
   key: string,
   prefix: Path,

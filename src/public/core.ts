@@ -14,8 +14,9 @@ import {
 import { effect } from "@preact/signals";
 import { h, render } from "preact";
 import type {
-  TopologyEdits,
-  TopologyLoadErrorKind,
+  TopologyCellChange,
+  TopologyLoadError,
+  TopologyOptions,
   TopologySelection,
 } from "../../types/index";
 import { editedGraph, editHistory, editStep } from "../ui/state";
@@ -29,33 +30,20 @@ const DEFAULT_STRINGS: Record<string, string> = noTypes
   ? { "group.Custom": "" }
   : {};
 
-export type CoreConfig = { profile?: unknown };
-
-export type CoreCallbacks = {
-  onSelect?: (selection: TopologySelection) => void;
-  onEditsChange?: (edits: TopologyEdits) => void;
-  onEditsSave?: (edits: TopologyEdits) => void;
-  onOpenLink?: (url: string) => void;
-  onCopyDetails?: (text: string) => void | boolean | Promise<void | boolean>;
-};
-
 export type CoreView =
-  | { state: "loading" }
-  | { state: "empty" }
+  | { state: "loading" | "empty" }
   | {
       state: "failed";
-      kind: TopologyLoadErrorKind;
+      kind: TopologyLoadError["kind"];
       status?: number;
       onRetry: () => void;
     }
   | { state: "data"; payload: unknown };
 
-export type CoreProps = {
-  view: CoreView;
-  lang?: "en" | "ja";
-  strings?: Record<string, string>;
-  callbacks: CoreCallbacks;
-};
+export type CoreProps = Pick<
+  TopologyOptions,
+  "lang" | "strings" | "onSelect" | "onSave"
+> & { view: CoreView };
 
 export type CoreViewer = {
   show(props: CoreProps): void;
@@ -70,17 +58,6 @@ export type CoreApi = {
     variant: "widget" | "page",
   ): CoreViewer;
 };
-
-// The kinds of the engine are plain strings of the same shape as the public types.
-function changesOf(): TopologyEdits {
-  const { history } = editHistory.peek();
-  return {
-    changes: history
-      .active()
-      .flatMap((edit) => edit.changes) as TopologyEdits["changes"],
-    unsaved: history.dirty(),
-  };
-}
 
 function nodeOf(drawn: string): TopologySelection {
   const id = entityOfDrawnId(drawn);
@@ -113,68 +90,49 @@ function selectionOf(selection: Selection): TopologySelection {
   };
 }
 
-async function copyText(text: string): Promise<"sent" | "failed"> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return "sent";
-  } catch {
-    return "failed";
-  }
-}
-
-function hostOf(
-  hostElement: HTMLElement,
-  callbacks: () => CoreCallbacks,
-): ShellHost {
+function hostOf(element: HTMLElement): ShellHost {
+  const doc = element.ownerDocument;
   return {
-    async copyForAi(text) {
-      const own = callbacks().onCopyDetails;
-      if (own === undefined) return copyText(text);
-      return (await own(text)) === false ? "failed" : "sent";
-    },
+    copyForAi: (text) =>
+      navigator.clipboard.writeText(text).then(
+        () => "sent" as const,
+        () => "failed" as const,
+      ),
     async openLink(url) {
       const href = linkOf(url);
-      if (href === null) return;
-      const own = callbacks().onOpenLink;
-      if (own !== undefined) own(href);
-      else window.open(href, "_blank", "noopener,noreferrer");
+      if (href !== null) window.open(href, "_blank", "noopener,noreferrer");
     },
     async requestDisplayMode(mode) {
-      const doc = hostElement.ownerDocument;
-      if (mode === "fullscreen") await hostElement.requestFullscreen();
-      else if (doc.fullscreenElement === hostElement)
-        await doc.exitFullscreen();
+      if (mode === "fullscreen") await element.requestFullscreen();
+      else if (doc.fullscreenElement === element) await doc.exitFullscreen();
     },
   };
 }
 
-function viewerApi(
+function createViewer(
   mountPoint: HTMLElement,
-  hostElement: HTMLElement,
+  element: HTMLElement,
   variant: "widget" | "page",
 ): CoreViewer {
-  const doc = hostElement.ownerDocument;
+  const doc = element.ownerDocument;
   const embedded = variant === "widget";
+  const host = hostOf(element);
   let last: CoreProps | null = null;
-  let shownPayload: unknown;
+  let payload: unknown;
   let input: AppInput | null = null;
-  const callbacks = () => last?.callbacks ?? {};
-  const host = hostOf(hostElement, callbacks);
 
-  // A shortcut of the viewer works only while the pointer or the focus is in the viewer. The page
-  // around it keeps its own keys.
+  // A shortcut works only while the pointer or the focus is in the viewer.
   setKeyScope(
-    (event) =>
-      event.composedPath().includes(hostElement) ||
-      hostElement.matches(":hover"),
+    (event) => event.composedPath().includes(element) || element.matches(":hover"),
   );
 
   const stopEdits = effect(() => {
-    const step = editStep.value;
-    if (step === null) return;
-    const edits = changesOf();
-    callbacks().onEditsChange?.(edits);
-    if (step.kind === "saved") callbacks().onEditsSave?.(edits);
+    if (editStep.value?.kind !== "saved") return;
+    const changes = editHistory
+      .peek()
+      .history.active()
+      .flatMap((edit) => edit.changes);
+    last?.onSave?.(changes as readonly TopologyCellChange[]);
   });
 
   const draw = () => {
@@ -183,15 +141,14 @@ function viewerApi(
     const lang: Lang = last.lang ?? langOf(navigator.language);
     if (view.state !== "data") {
       input = null;
-      shownPayload = undefined;
       render(h(Status, { ...view, lang, embedded }), mountPoint);
       return;
     }
-    if (input === null || view.payload !== shownPayload) {
+    if (input === null || view.payload !== payload) {
       input = toInput(view.payload);
-      shownPayload = view.payload;
+      payload = view.payload;
     }
-    const full = doc.fullscreenElement === hostElement;
+    const full = doc.fullscreenElement === element;
     render(
       h(App, {
         input,
@@ -200,17 +157,13 @@ function viewerApi(
         theme: "light",
         host,
         onSelect: (selection: Selection) =>
-          callbacks().onSelect?.(selectionOf(selection)),
-        ...(embedded
-          ? {
-              embedded: true,
-              displayMode: full ? "fullscreen" : "inline",
-              availableDisplayModes: doc.fullscreenEnabled
-                ? ["inline", "fullscreen"]
-                : ["inline"],
-            }
-          : {}),
-      } as Parameters<typeof App>[0]),
+          last?.onSelect?.(selectionOf(selection)),
+        embedded,
+        displayMode: full ? "fullscreen" : "inline",
+        availableDisplayModes: doc.fullscreenEnabled
+          ? ["inline", "fullscreen"]
+          : ["inline"],
+      }),
       mountPoint,
     );
   };
@@ -229,7 +182,7 @@ function viewerApi(
     destroy() {
       doc.removeEventListener("fullscreenchange", draw);
       stopEdits();
-      if (doc.fullscreenElement === hostElement) void doc.exitFullscreen();
+      if (doc.fullscreenElement === element) void doc.exitFullscreen();
       render(null, mountPoint);
     },
   };
@@ -237,5 +190,5 @@ function viewerApi(
 
 export const api: CoreApi = {
   styleText: noTypes ? `${styleText}\n${NO_TYPES_RULE}` : styleText,
-  createViewer: viewerApi,
+  createViewer,
 };

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>topology-viewer demo</title>
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { font: 14px system-ui, sans-serif; color: #18181b; background: #fff; }
+      .page { display: flex; flex-direction: column; height: 100%; }
+      .bar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #e4e4e7; }
+      .bar h1 { font-size: 15px; margin: 0; }
+      .bar code { color: #52525b; }
+      .main { flex: 1; min-height: 0; display: flex; }
+      .graph { flex: 1; min-width: 0; }
+      .log { width: 300px; overflow: auto; border-left: 1px solid #e4e4e7; padding: 10px; font: 11px ui-monospace, monospace; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 
-const text = z.string().min(1);
-const count = z.number().int().min(0);
+const text = z.string().check(z.minLength(1));
+const count = z.number().check(z.int(), z.minimum(0));
 
 // why: STORY-002-09 T1 — the tokens follow the mockup `kindOf` order (lib/topology.js line 336)
 export const gotTokenSchema = z.enum([

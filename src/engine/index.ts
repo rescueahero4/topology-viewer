@@ -110,7 +110,7 @@ export {
 export { canvasLookup, entityOfRecord, type CanvasLookup } from "./view/lookup";
 export { matchEntities } from "./view/search";
 export { bubbleRooms, type Bubble } from "./layout/bubbles";
-export { LABEL_CHARS } from "./layout/drawn";
+export { LABEL_CHARS, tierOfRank } from "./layout/drawn";
 export type { IconMetrics, Tier } from "./layout/drawn";
 export { forceConfig, type ForceConfig } from "./layout/force";
 export {

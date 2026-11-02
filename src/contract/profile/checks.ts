@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 import type { profileShapeSchema } from "./types";
 
 type Shape = z.infer<typeof profileShapeSchema>;
@@ -15,14 +15,17 @@ export type Checker = {
 
 const ANY = "any";
 
-export function makeChecker(p: Shape, ctx: z.RefinementCtx): Checker {
+export function makeChecker(
+  p: Shape,
+  ctx: z.core.ParsePayload<Shape>,
+): Checker {
   const types = new Set(Object.keys(p.nodeTypes));
   const predicates = new Set([
     ...Object.keys(p.predicates),
     ...Object.keys(p.inverses),
   ]);
   const fail: Fail = (path, message) =>
-    ctx.addIssue({ code: "custom", path, message });
+    ctx.issues.push({ code: "custom", path, message, input: ctx.value });
   return {
     fail,
     needType: (path, name, allowAny = false) => {

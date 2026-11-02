@@ -7,8 +7,7 @@ const TOO_LARGE = "too-large";
 export const CAPS = Object.freeze({
   nodes: 2000,
   edges: 4000,
-  bytes: 262144,
-  pasteBytes: 1048576,
+  bytes: 8388608,
   depth: 256,
 });
 

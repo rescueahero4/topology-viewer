@@ -11,8 +11,8 @@
   "files": [
     "dist",
     "types",
-    "THIRD-PARTY-NOTICES.txt",
-    "README.md"
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.txt"
   ],
   "exports": {
     ".": {
@@ -41,7 +41,9 @@
     "build": "vite build --config vite.core.config.ts && vite build",
     "prepare": "npm run build",
     "test": "vitest run --maxWorkers=2",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "check": "node scripts/check.mjs",
+    "demo": "npm run build && npm --prefix demo install && npm --prefix demo run dev"
   },
   "peerDependencies": {
     "react": ">=18"

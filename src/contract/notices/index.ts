@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { actions, copyMessage } from "./actions";
 import {
   noticeCodeSchema,
@@ -13,7 +13,7 @@ import { en, enValues } from "./en";
 import { ja, jaValues } from "./ja";
 import { valueTextsSchema } from "./values";
 
-const noticeSchema = noticeMetaSchema.extend(noticeTextSchema.shape);
+const noticeSchema = z.extend(noticeMetaSchema, noticeTextSchema.shape);
 const noticeTableSchema = z.record(noticeCodeSchema, noticeSchema);
 
 const codes = noticeCodeSchema.options;

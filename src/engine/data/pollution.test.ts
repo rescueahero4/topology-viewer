@@ -92,10 +92,12 @@ describe("S36 defaults values", () => {
   it("(c) refuses the copy above the byte cap before any merge", () => {
     const input = {
       nodes: Array.from({ length: 2000 }, (_, k) => [`n${k}`]),
-      defaults: { type: "t".repeat(243220) },
+      defaults: { type: "t".repeat(8369684) },
     };
-    expect(new TextEncoder().encode(JSON.stringify(input)).length).toBe(262144);
-    expect(copyBytes(input).sum).toBe(486444000);
+    expect(new TextEncoder().encode(JSON.stringify(input)).length).toBe(
+      8388608,
+    );
+    expect(copyBytes(input).sum).toBe(16739372000);
     const result = normalize(input, NOW);
     expect(result).toStrictEqual({
       ok: false,
@@ -104,15 +106,15 @@ describe("S36 defaults values", () => {
         path: ["defaults", "type"],
         info: {
           code: "too-large",
-          got: { unit: "kb", count: 475043 },
-          limit: { unit: "kb", count: 256 },
+          got: { unit: "kb", count: 16347043 },
+          limit: { unit: "kb", count: 8192 },
         },
       },
     });
     expect(merge).toHaveBeenCalledTimes(0);
     const info = !result.ok && "info" in result.fatal ? result.fatal.info : {};
     expect(noticeText("too-large", info, "en").body).toBe(
-      "This result has 475,043 KB, more than the limit of 256 KB, so nothing is drawn.",
+      "This result has 16,347,043 KB, more than the limit of 8,192 KB, so nothing is drawn.",
     );
   });
 

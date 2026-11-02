@@ -43,7 +43,7 @@ describe("copy bound of defaults and hint literals", () => {
       ...list(325, (i) => [`e${i}`, "t"]),
     ];
     expect(atLimit).toHaveLength(2000);
-    expect(accepted({ nodes: atLimit, defaults: { type: x(254) } })).toEqual(
+    expect(accepted({ nodes: atLimit, defaults: { type: x(8190) } })).toEqual(
       [],
     );
     const above = [
@@ -54,11 +54,11 @@ describe("copy bound of defaults and hint literals", () => {
     expect(above).toHaveLength(481);
     const result = parseRenderInput({
       nodes: above,
-      defaults: { type: x(543) },
+      defaults: { type: x(17438) },
     });
     expect(result).toEqual(tooLarge("defaults", "type"));
     expect(JSON.stringify(result)).not.toContain("xxxx");
-    accepted({ nodes: fromTo, defaults: { type: x(543) } });
+    accepted({ nodes: fromTo, defaults: { type: x(17438) } });
   });
 
   it("S50 counts the edge objects that take defaults.predicate", () => {
@@ -76,7 +76,7 @@ describe("copy bound of defaults and hint literals", () => {
         edges: bare,
         links: bare,
         neighborhood,
-        defaults: { predicate: y(126) },
+        defaults: { predicate: y(4094) },
       }),
     ).toEqual([]);
     const edges = list(109, (i) =>
@@ -85,48 +85,48 @@ describe("copy bound of defaults and hint literals", () => {
         : { subject: "a", object: "b" },
     );
     expect(
-      parseRenderInput({ nodes, edges, defaults: { predicate: y(2403) } }),
+      parseRenderInput({ nodes, edges, defaults: { predicate: y(76958) } }),
     ).toEqual(tooLarge("defaults", "predicate"));
   });
 
   it("S51 bounds a type literal by min(2 × rows, 2,000)", () => {
-    accepted({ nodes: rows(512), shape: hint({ type: x(254) }) });
+    accepted({ nodes: rows(512), shape: hint({ type: x(8190) }) });
     expect(
-      parseRenderInput({ nodes: rows(3), shape: hint({ type: x(43689) }) }),
+      parseRenderInput({ nodes: rows(3), shape: hint({ type: x(1398100) }) }),
     ).toEqual(tooLarge("shape", "type"));
-    accepted({ nodes: rows(1500), shape: hint({ type: x(129) }) });
-    const key = x(43689);
+    accepted({ nodes: rows(1500), shape: hint({ type: x(4192) }) });
+    const key = x(1398100);
     const keyed = rows(3).map((row) => ({ ...row, [key]: "t" }));
     accepted({ nodes: keyed, shape: hint({ type: key }) });
   });
 
   it("S52 bounds a predicate literal by min(rows, 4,000)", () => {
-    accepted({ nodes: rows(2048), shape: hint({ predicate: y(126) }) });
+    accepted({ nodes: rows(2048), shape: hint({ predicate: y(4094) }) });
     expect(
       parseRenderInput({
         nodes: rows(109),
-        shape: hint({ predicate: y(2403) }),
+        shape: hint({ predicate: y(76958) }),
       }),
     ).toEqual(tooLarge("shape", "predicate"));
-    const key = y(2403);
+    const key = y(76958);
     const keyed = rows(109).map((row) => ({ ...row, [key]: "p" }));
     accepted({ nodes: keyed, shape: hint({ predicate: key }) });
-    accepted({ nodes: rows(4100), shape: hint({ predicate: y(63) }) });
+    accepted({ nodes: rows(4100), shape: hint({ predicate: y(2095) }) });
   });
 
   it("S53 refuses one sum per render at the path of the largest term", () => {
     const both = (predicate: string) => ({
       nodes: untypedNodes(1024),
       edges: bareEdges(1024),
-      defaults: { type: x(128), predicate },
+      defaults: { type: x(4095), predicate },
     });
-    expect(parseRenderInput(both(y(128)))).toEqual(
+    expect(parseRenderInput(both(y(4095)))).toEqual(
       tooLarge("defaults", "type"),
     );
-    expect(parseRenderInput(both(y(129)))).toEqual(
+    expect(parseRenderInput(both(y(4096)))).toEqual(
       tooLarge("defaults", "predicate"),
     );
-    const wide = { type: "表".repeat(342) };
+    const wide = { type: "表".repeat(10923) };
     accepted({ nodes: untypedNodes(255), defaults: wide });
     expect(
       parseRenderInput({ nodes: untypedNodes(256), defaults: wide }),
@@ -134,9 +134,9 @@ describe("copy bound of defaults and hint literals", () => {
     expect(
       parseRenderInput({
         nodes: rows(512),
-        shape: hint({ type: x(126) }),
+        shape: hint({ type: x(4094) }),
         neighborhood: { nodes: untypedNodes(1024) },
-        defaults: { type: "z".repeat(127) },
+        defaults: { type: "z".repeat(4095) },
       }),
     ).toEqual(tooLarge("defaults", "type"));
   });
@@ -145,17 +145,17 @@ describe("copy bound of defaults and hint literals", () => {
     const s53 = {
       nodes: untypedNodes(1024),
       edges: bareEdges(1024),
-      defaults: { type: x(128), predicate: y(128) },
+      defaults: { type: x(4095), predicate: y(4095) },
     };
     const sum = copyBytes(s53);
-    expect(sum).toEqual({ sum: 266240, path: ["defaults", "type"] });
-    expect(Math.ceil(sum.sum / 1024)).toBe(260);
+    expect(sum).toEqual({ sum: 8390656, path: ["defaults", "type"] });
+    expect(Math.ceil(sum.sum / 1024)).toBe(8194);
     for (const raw of [{ nodes: [{ id: "a" }] }, [], "x", null])
       expect(copyBytes(raw)).toEqual({ sum: 0, path: null });
     expect(
       parseRenderInput({
         nodes: untypedNodes(2001),
-        defaults: { type: x(543) },
+        defaults: { type: x(17438) },
       }),
     ).toEqual(tooLarge("nodes"));
     const polluting: unknown = JSON.parse(

@@ -64,18 +64,18 @@ describe("caps", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it("S14 counts UTF-8 bytes: 262,145 bytes of CJK text is too large, with no JSON.parse", () => {
-    const text = textOfBytes(262_145);
-    expect(new TextEncoder().encode(text).length).toBe(262_145);
+  it("S14 counts UTF-8 bytes: 8,388,609 bytes of CJK text is too large, with no JSON.parse", () => {
+    const text = textOfBytes(8_388_609);
+    expect(new TextEncoder().encode(text).length).toBe(8_388_609);
     expect(text.length).toBeLessThan(CAPS.bytes);
     const parse = vi.spyOn(JSON, "parse");
     expect(checkSize(text)).toEqual({ code: "too-large", path: [] });
     expect(parse).not.toHaveBeenCalled();
   });
 
-  it("S15 accepts exactly 262,144 bytes of CJK text", () => {
-    const text = textOfBytes(262_144);
-    expect(new TextEncoder().encode(text).length).toBe(262_144);
+  it("S15 accepts exactly 8,388,608 bytes of CJK text", () => {
+    const text = textOfBytes(8_388_608);
+    expect(new TextEncoder().encode(text).length).toBe(8_388_608);
     expect(checkSize(text)).toBeNull();
   });
 
@@ -83,8 +83,7 @@ describe("caps", () => {
     expect(CAPS).toEqual({
       nodes: 2000,
       edges: 4000,
-      bytes: 262144,
-      pasteBytes: 1048576,
+      bytes: 8388608,
       depth: 256,
     });
     expect(Object.isFrozen(CAPS)).toBe(true);

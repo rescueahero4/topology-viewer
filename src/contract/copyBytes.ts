@@ -74,7 +74,7 @@ function bytes({ value, records }: Term): number {
   return encoder.encode(JSON.stringify(value)).length * records;
 }
 
-// why: PRD FR-DATA-8 and SA §4.1 — 256 KB of canonical JSON per render also bounds each value
+// why: PRD FR-DATA-8 and SA §4.1 — 8 MiB of canonical JSON per render also bounds each value
 // that the engine copies into many records (lead decision D10, SA ruling S4, PO ruling P7)
 export function copyBytes(raw: unknown): { sum: number; path: Path | null } {
   if (!isRecord(raw)) return { sum: 0, path: null };

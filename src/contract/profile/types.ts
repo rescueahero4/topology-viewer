@@ -1,49 +1,50 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 
-const text = z.string().min(1);
+const text = z.string().check(z.minLength(1));
+
+const nonEmpty = <T extends z.core.SomeType>(item: T) =>
+  z.array(item).check(z.minLength(1));
 
 const sourceSchema = z.strictObject({
   doc: z.enum(["GV", "SA-Intro", "PRD"]),
   section: text,
-  note: text.optional(),
+  note: z.optional(text),
 });
 
 const designSchema = z
   .string()
-  .regex(/^(pending-ddr|owner-accepted-\d{4}-\d{2}-\d{2}|ddr-[A-Za-z0-9-]+)$/);
+  .check(
+    z.regex(
+      /^(pending-ddr|owner-accepted-\d{4}-\d{2}-\d{2}|ddr-[A-Za-z0-9-]+)$/,
+    ),
+  );
 
 const nodeTypeSchema = z.strictObject({
   category: text,
   label: text,
   isSystem: z.boolean(),
   treeRole: z.enum(["structure", "attribute", "curation"]),
-  level: z.number().int().min(0).optional(),
-  attributeSet: text.nullable(),
+  level: z.optional(z.number().check(z.int(), z.minimum(0))),
+  attributeSet: z.nullable(text),
   attributes: z.array(text),
-  icon: text.optional(),
-  rank: z.number().int().min(0).max(6).optional(),
-  color: z
-    .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/)
-    .optional(),
-  abbr: z
-    .string()
-    .regex(/^[A-Z]{2}$/)
-    .optional(),
-  design: designSchema.optional(),
-  builtIn: z.literal(true).optional(),
+  icon: z.optional(text),
+  rank: z.optional(z.number().check(z.int(), z.minimum(0), z.maximum(6))),
+  color: z.optional(z.string().check(z.regex(/^#[0-9A-Fa-f]{6}$/))),
+  abbr: z.optional(z.string().check(z.regex(/^[A-Z]{2}$/))),
+  design: z.optional(designSchema),
+  builtIn: z.optional(z.literal(true)),
   source: sourceSchema,
 });
 
 const predicateSchema = z.strictObject({
   category: text,
-  inverse: text.nullable(),
+  inverse: z.nullable(text),
   direction: z.enum(["out", "in", "both"]),
   isSystem: z.boolean(),
-  status: z.literal("proposed").optional(),
-  builtIn: z.literal(true).optional(),
-  role: z.literal("containment").optional(),
-  layoutRole: z.enum(["lineage", "structure"]).optional(),
+  status: z.optional(z.literal("proposed")),
+  builtIn: z.optional(z.literal(true)),
+  role: z.optional(z.literal("containment")),
+  layoutRole: z.optional(z.enum(["lineage", "structure"])),
   source: sourceSchema,
 });
 
@@ -57,8 +58,8 @@ const pairingSchema = z.strictObject({
   subject: text,
   object: text,
   owner: text,
-  status: z.literal("proposed").nullable(),
-  note: text.optional(),
+  status: z.nullable(z.literal("proposed")),
+  note: z.optional(text),
   source: sourceSchema,
 });
 
@@ -69,44 +70,44 @@ const writeRuleSchema = z.strictObject({
 
 const attributeSchema = z.strictObject({
   key: text,
-  resolves: z.array(z.tuple([text, text])).optional(),
-  lost: z.literal(true).optional(),
+  resolves: z.optional(z.array(z.tuple([text, text]))),
+  lost: z.optional(z.literal(true)),
   source: sourceSchema,
 });
 
 const notYetIncludedSchema = z.strictObject({
   field: text,
   group: text,
-  slot: text.nullable(),
+  slot: z.nullable(text),
   source: sourceSchema,
 });
 
 // why: STORY-002-09 T3 — the mockup list readers (`personName`, `tagName`) as data, own keys only
 const itemNameSchema = z.strictObject({
-  paths: z.array(z.array(text).min(1)).min(1),
+  paths: nonEmpty(nonEmpty(text)),
   join: z.string(),
 });
 
 const slotSchema = z.strictObject({
   slot: text,
-  keys: z.array(text).min(1),
-  late: z.array(text).optional(),
-  edge: text.optional(),
-  edgeObject: text.optional(),
-  derive: z.enum(["path", "source", "parent-owners"]).optional(),
-  assetOnlyKeys: z.array(text).min(1).optional(),
-  strong: z.literal(true).optional(),
-  labelFallback: z.literal(true).optional(),
-  itemName: z.array(itemNameSchema).min(1).optional(),
+  keys: nonEmpty(text),
+  late: z.optional(z.array(text)),
+  edge: z.optional(text),
+  edgeObject: z.optional(text),
+  derive: z.optional(z.enum(["path", "source", "parent-owners"])),
+  assetOnlyKeys: z.optional(nonEmpty(text)),
+  strong: z.optional(z.literal(true)),
+  labelFallback: z.optional(z.literal(true)),
+  itemName: z.optional(nonEmpty(itemNameSchema)),
   source: sourceSchema,
 });
 
 const shapeHeuristicSchema = z.strictObject({
   kind: z.enum(["rows", "tree"]),
-  columns: z.array(text).min(1),
+  columns: nonEmpty(text),
   predicate: text,
-  labelKeys: z.array(text).min(1).optional(),
-  hintDefault: z.literal(true).optional(),
+  labelKeys: z.optional(nonEmpty(text)),
+  hintDefault: z.optional(z.literal(true)),
   source: sourceSchema,
 });
 
@@ -116,13 +117,13 @@ const typeMenuCategoriesSchema = z.strictObject({
 });
 
 const globalIdPrefixSchema = z.strictObject({
-  type: text.nullable(),
-  writable: z.literal(true).optional(),
+  type: z.nullable(text),
+  writable: z.optional(z.literal(true)),
   source: sourceSchema,
 });
 
 export const profileShapeSchema = z.strictObject({
-  categoryOrder: z.array(text).min(1),
+  categoryOrder: nonEmpty(text),
   typeMenuCategories: typeMenuCategoriesSchema,
   nodeTypes: z.record(text, nodeTypeSchema),
   predicates: z.record(text, predicateSchema),

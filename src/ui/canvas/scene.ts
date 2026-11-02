@@ -1,6 +1,7 @@
 import {
   entitySlots,
   fadeSet,
+  tierOfRank,
   type CanvasState,
   type Designed,
   type DrawnEdge,
@@ -37,7 +38,7 @@ type Box = { w: number; h: number; tier: Tier | "node" };
 type Visual = SceneNode["visual"];
 
 // why: mockup `iconFor` fallback (lib/topology.js line 306), the engine `boxOf` rank-0 box
-const RANK_ZERO: Box = { w: 20, h: 20, tier: "leaf" };
+const RANK_ZERO: Box = { w: 20, h: 20, tier: tierOfRank(0) };
 // why: epic question 12, TL-9 — the subtitle reads only this slot entry
 const SERVICE_SLOT = "data_source";
 const SERVICE_FROM = "attribute service_name";
@@ -59,7 +60,7 @@ function boxOf(type: string | null, vocab: Vocab): Box {
   return {
     w: visual.size,
     h: visual.size,
-    tier: visual.rank === 0 ? "leaf" : "node",
+    tier: tierOfRank(visual.rank),
   };
 }
 

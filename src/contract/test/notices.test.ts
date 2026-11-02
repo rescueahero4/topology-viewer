@@ -152,11 +152,11 @@ describe("notice catalog", () => {
 
   it("S6 too-large names the caps and asks for a smaller result", () => {
     expect(notices.en["too-large"].ai).toMatch(
-      /2,000 nodes.*4,000 edges.*256 KB/,
+      /2,000 nodes.*4,000 edges.*8 MB/,
     );
     expect(notices.en["too-large"].ai).toContain("smaller result");
     expect(notices.ja["too-large"].ai).toMatch(
-      /2,000 ノード.*4,000 エッジ.*256 KB/,
+      /2,000 ノード.*4,000 エッジ.*8 MB/,
     );
     expect(notices.ja["too-large"].ai).toContain("より小さい結果");
   });

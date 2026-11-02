@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 import { actionNameSchema, type ActionName } from "./actions";
 
 // why: SA §4.2, D11 and the owner ruling 2026-10-15 (`field-rejected`) — the one list of code names
@@ -42,10 +42,12 @@ export const noticeMetaSchema = z.strictObject({
   placeholders: z.array(z.string()),
 });
 
+const filled = z.string().check(z.minLength(1));
+
 export const noticeTextSchema = z.strictObject({
-  title: z.string().min(1),
-  body: z.string().min(1),
-  user: z.array(z.string().min(1)),
+  title: filled,
+  body: filled,
+  user: z.array(filled),
   ai: z.string(),
 });
 
@@ -124,10 +126,8 @@ function codesOf<S extends Severity>(...wanted: S[]): CodeOf<S>[] {
 }
 
 // why: SA §4.2, §4.7, D11 — both subsets come from the source enum and the severity map
-export const warningCodeSchema = noticeCodeSchema.extract(codesOf("warning"));
-export const issueCodeSchema = noticeCodeSchema.extract(
-  codesOf("warning", "fatal"),
-);
+export const warningCodeSchema = z.enum(codesOf("warning"));
+export const issueCodeSchema = z.enum(codesOf("warning", "fatal"));
 
 export type WarningCode = z.infer<typeof warningCodeSchema>;
 export type IssueCode = z.infer<typeof issueCodeSchema>;

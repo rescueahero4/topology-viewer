@@ -141,11 +141,13 @@ describe("S27 the copy bound of hint literals", () => {
         kind: "rows",
         subject: "from",
         object: "to",
-        type: "x".repeat(117136),
-        predicate: "y".repeat(117136),
+        type: "x".repeat(4180368),
+        predicate: "y".repeat(4180368),
       },
     };
-    expect(new TextEncoder().encode(JSON.stringify(input)).length).toBe(262143);
+    expect(new TextEncoder().encode(JSON.stringify(input)).length).toBe(
+      8388607,
+    );
     expect(normalize(input, NOW)).toEqual({
       ok: false,
       fatal: {
@@ -153,8 +155,8 @@ describe("S27 the copy bound of hint literals", () => {
         path: ["shape", "type"],
         info: {
           code: "too-large",
-          got: { unit: "kb", count: 343178 },
-          limit: { unit: "kb", count: 256 },
+          got: { unit: "kb", count: 12247178 },
+          limit: { unit: "kb", count: 8192 },
         },
       },
     });

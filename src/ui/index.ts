@@ -4,5 +4,4 @@ export type { ShellHost } from "./host";
 export { Menu, MenuItem } from "./Menu";
 export { setKeyScope } from "./eventScope";
 export { formatted, langOf, overrideStrings, t } from "./strings/index";
-export { DARK_MODE, effectiveTheme } from "./theme";
 export { UiIcon } from "./UiIcon";

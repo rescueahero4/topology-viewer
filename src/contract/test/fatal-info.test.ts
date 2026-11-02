@@ -64,9 +64,9 @@ describe("fatal-notice values", () => {
     const fatal = notices.codes.filter(
       (code) => notices.severity[code] === "fatal",
     );
-    const options = fatalInfoSchema.options.map((option) => {
+    const options = fatalInfoSchema.def.options.map((option) => {
       const { code, ...rest } = option.shape;
-      return [code.value, Object.keys(rest).sort()] as const;
+      return [code.def.values[0], Object.keys(rest).sort()] as const;
     });
     expect(options.map(([code]) => code).sort()).toEqual([...fatal].sort());
     for (const [code, keys] of options)

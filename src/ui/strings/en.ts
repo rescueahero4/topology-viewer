@@ -443,6 +443,5 @@ export const en = {
   "load.network": "The server cannot be reached.",
   "load.http": "The server answered with status {status}.",
   "load.parse": "The server answer is not valid JSON.",
-  "load.select": "The app could not read the server answer.",
   "load.load": "The app could not get the data.",
 } as const;

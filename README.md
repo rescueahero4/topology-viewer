@@ -1,137 +1,69 @@
 # topology-viewer
 
-A UI library that renders a graph payload from an external API. It gives a canvas, an inspector, search, filters, layouts and an editable table. The library has no backend and does not know your API.
-
-## Install
-
-Install from the git repository:
+A graph explorer for your API payload: canvas, inspector, search, filters, layouts and an editable table. No runtime dependencies. No backend.
 
 ```sh
 npm install git+https://github.com/<owner>/topology-viewer.git
 ```
 
-npm builds the package during the install. Your app installs no other runtime dependency. React is an optional peer dependency (18 or later). The UI runs on an internal copy of Preact, which your app does not see.
-
-## Connect to an API
-
 ```tsx
 import { TopologyViewer } from "topology-viewer/react";
 
-export function Graph() {
-  return (
-    <div style={{ height: 600 }}>
-      <TopologyViewer url="https://api.example.com/graph" />
-    </div>
-  );
-}
+<div style={{ height: 600 }}>
+  <TopologyViewer url="/api/graph" />
+</div>;
 ```
 
-The viewer shows a loading state, a failure state with "Try again", and then the chart. Each viewer fills its parent, so give the parent a height. The default minimum height is 480 px.
+Without React: `mountTopology(element, options)` from `topology-viewer`. See [`types/index.d.ts`](types/index.d.ts) for all options.
 
-## Three ways to give data
+## Data
 
-| Prop | Use |
-|---|---|
-| `url` | The viewer sends the request and reads the answer as JSON. Use `requestInit` for headers, method or credentials. |
-| `load` | Your own client (axios, GraphQL). The viewer gives an `AbortSignal` and takes a promise. |
-| `data` | A payload that you already have. It takes priority over `url` and `load`. |
-
-If the API puts the payload inside an envelope, use `select`:
+Give one of `data`, `url` or `load`.
 
 ```tsx
-<TopologyViewer url="/api/graph" select={(answer) => answer.result.graph} />
+<TopologyViewer
+  load={(signal) =>
+    fetch("/api/graph", { signal, headers: { authorization } })
+      .then((r) => r.json())
+      .then((r) => r.result.graph)
+  }
+/>
 ```
-
-Change `reloadKey` to load again from the same source, or call `reload()` on the ref.
-
-Do not put a secret in `requestInit` that the browser must not see. All of this code runs in the browser.
-
-## Payload
-
-The smallest payload is a list of nodes and a list of edges:
 
 ```json
 {
-  "nodes": [
-    { "id": "a", "type": "service", "label": "Orders", "attrs": { "language": "Go" } },
-    { "id": "b", "type": "store", "label": "orders-db" }
-  ],
+  "nodes": [{ "id": "a", "type": "service", "label": "Orders", "attrs": { "lang": "Go" } }],
   "edges": [{ "source": "a", "target": "b", "predicate": "dependsOn" }]
 }
 ```
 
-All fields are optional. The viewer also reads:
+Optional keys: `types`, `predicates`, `view`, `links`, `neighborhood`, `shape`. A bad value gives a notice, not a throw. Limits: 2,000 nodes, 4,000 edges, 8 MB.
 
-- `types`: the look of each node type (`label`, `rank`, `shape`, `color`, `abbr`, `glyph`). Each shape belongs to one rank. If `rank` and `shape` disagree, `rank` decides.
-- `predicates`: the look of each edge type (`label`, `category`, `inverse`, `role`).
-- `view`: the first view (`root`, `layout`, `budget`, `approach`, `reveal`).
-- `links`, `neighborhood`, tuples, and `shape` hints for rows and trees.
+The default vocabulary has general predicates and no node types. For the QDIC vocabulary and icons: `profile={qdicProfile}` from `topology-viewer/profiles/qdic` (optional import, 70 KB).
 
-A bad value does not crash the viewer. The viewer skips or replaces the value and shows a notice.
+## Integration
 
-## Vocabulary
+Each viewer has its own state and its own Shadow DOM root. It needs no `unsafe-eval` and no `unsafe-inline`. Add your API to `connect-src`. Mount in the browser only. All code runs in the browser, so keep secrets out of `load`.
 
-By default, the viewer gives no meaning to a node type name. The default vocabulary has only general predicates such as `contains`, `dependsOn` and `ownedBy`, with their families.
+## Repository
 
-To use the QDIC catalog vocabulary and icons, import the preset. The preset adds 37 KB to your bundle only if you import it.
-
-```tsx
-import { qdicProfile } from "topology-viewer/profiles/qdic";
-
-<TopologyViewer url="/api/graph" profile={qdicProfile} />;
-```
-
-## Events
-
-| Prop | When |
-|---|---|
-| `onLoadStart`, `onLoad`, `onError` | The load starts, ends or fails. |
-| `onSelect` | The user selects a node, a group or an edge, or clears the selection. |
-| `onEditsChange` | Each cell edit, undo, redo and cancel in the Dataset table. |
-| `onEditsSave` | The user presses "Save changes". Send the changes to your API here. |
-| `onOpenLink`, `onCopyDetails` | Replace the default new tab and clipboard actions. |
-
-The viewer does not send an edit to a server. Your app decides what to do with it.
-
-## Other options
-
-| Prop | Default | Use |
+| Path | npm installs it | Purpose |
 |---|---|---|
-| `lang` | Browser language | `"en"` or `"ja"`. |
-| `strings` | None | Replaces interface text by key, in the active language. |
-| `variant` | `"widget"` | `"widget"` is the compact look with a full-screen button. `"page"` is the wider look with text labels. |
-| `className`, `style` | None | For the outer element. |
+| `dist/`, `types/`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
+| `src/`, `assets/`, `scripts/` | No | Source of `dist/`, and its tests. |
+| `demo/` | No | A separate app with its own `package.json`. It uses only the public entries. |
 
-## Without React
-
-```ts
-import { mountTopology } from "topology-viewer";
-
-const viewer = mountTopology(element, { url: "/api/graph" });
-viewer.update({ url: "/api/other" });
-viewer.destroy();
-```
-
-## Page integration
-
-- **CSS:** The viewer is in a Shadow DOM root. Its CSS does not touch your page, and your CSS does not touch the viewer.
-- **Theme:** A rule on the outer element can set a design token, for example `--focus`.
-- **Shortcuts:** `/`, `Escape`, `[`, `]` and `Ctrl+.` work only while the pointer or the focus is in the viewer.
-- **Several viewers:** Each viewer has its own state, so one page can show several.
-- **CSP:** The viewer needs no `unsafe-eval` and no `unsafe-inline`. Add your API to `connect-src`.
-- **SSR:** Mount the viewer only in the browser. The React component mounts in an effect.
-
-## Development
+`npm run check` fails if this border or a dependency licence is broken.
 
 ```sh
-npm install
-npm test
-npm run typecheck
-npm run build
+npm install && npm run demo   # http://127.0.0.1:4601, with a mock API on port 4600
+npm test && npm run typecheck && npm run check
+npm audit && npm --prefix demo audit
+npm --prefix demo run test:e2e
 ```
 
-The source came from `qdic-data-visualization-mcp-app` (branch `dev`, commit `f7bd303`), with its history. The tests run with the QDIC profile. The build uses the neutral profile by default.
+After a library change, run `npm run build` and reload the demo.
 
 ## Licence
 
-The licence is not decided, so the package is `private` and `UNLICENSED`. See `THIRD-PARTY-NOTICES.txt` for the bundled libraries.
+Proprietary. See `LICENSE`.

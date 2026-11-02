@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import type { z } from "zod/mini";
 import type { NoticeCode, NoticeText } from "./codes";
 import type { valueTextsSchema } from "./values";
 
@@ -183,7 +183,7 @@ export const en = {
     user: [
       `Ask the data provider for a smaller result: only the part that answers your question. ${RESEND}`,
     ],
-    ai: "Send at most 2,000 nodes, 4,000 edges and 256 KB of JSON in one call. Send a smaller result: filter it to the part that answers the question, or send the most relevant part first.",
+    ai: "Send at most 2,000 nodes, 4,000 edges and 8 MB of JSON in one call. Send a smaller result: filter it to the part that answers the question, or send the most relevant part first.",
   },
   "not-a-graph": {
     title: "This data can't be read as a graph",

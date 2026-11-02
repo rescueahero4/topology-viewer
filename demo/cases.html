@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>test cases</title>
+    <style>
+      /* What an ordinary host page has. The viewer must not change these or read these. */
+      :root { --ink: #ff00ff; --focus: #00ff00; --canvas: #123456; }
+      body { margin: 0; font: 14px Georgia, serif; color: #222; }
+      button { background: rgb(255, 0, 0); }
+      .menu, .split, .canvas, .btn { display: inline; }
+      .host-probe { color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/cases.tsx"></script>
+  </body>
+</html>

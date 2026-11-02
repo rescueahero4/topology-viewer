@@ -1,28 +1,26 @@
 import path from "node:path";
 import { defineConfig, type Plugin } from "vite";
 
-const SOURCE_FOR_BUILD = path.join(
-  import.meta.dirname,
-  "src/contract/profile/source.build.ts",
-);
+const SWAPS = [
+  ["./source", "contract/profile/index.ts", "src/contract/profile/source.build.ts"],
+  ["./sprite.json", "renderer/sprite.ts", "src/renderer/sprite.build.ts"],
+];
 
-// The tests use the QDIC profile, the vocabulary that they are written for. The build reads the
-// profile from the `createCore` argument, with a neutral profile as the default, so that the QDIC
-// data stays out of the core.
-function profileSource(): Plugin {
+// The tests use the QDIC vocabulary. The build reads the vocabulary from the `createCore` argument,
+// so that the QDIC data stays out of the core.
+function configSources(): Plugin {
   return {
-    name: "topology-viewer:profile-source",
+    name: "topology-viewer:config-sources",
     enforce: "pre",
     resolveId(id, importer) {
-      if (id === "./source" && importer?.replaceAll("\\", "/").endsWith("contract/profile/index.ts"))
-        return SOURCE_FOR_BUILD;
-      return null;
+      const from = importer?.replaceAll("\\", "/");
+      const swap = SWAPS.find(([name, file]) => id === name && from?.endsWith(file));
+      return swap && path.join(import.meta.dirname, swap[2]);
     },
   };
 }
 
-// All module state of the UI goes inside one function. A call of `createCore` makes a new copy of
-// that state, so that two viewers on one page do not share signals, Preact or a profile.
+// All module state goes inside one function, so that each `createCore` call makes a new copy.
 function coreFactory(): Plugin {
   return {
     name: "topology-viewer:core-factory",
@@ -36,7 +34,7 @@ function coreFactory(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [profileSource(), coreFactory()],
+  plugins: [configSources(), coreFactory()],
   build: {
     target: "es2022",
     outDir: "dist",

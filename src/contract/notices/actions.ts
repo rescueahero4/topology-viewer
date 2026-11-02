@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/mini";
 
 export const actionNameSchema = z.enum([
   "show-types",
@@ -9,9 +9,9 @@ export const actionNameSchema = z.enum([
 ]);
 
 const actionSchema = z.strictObject({
-  label: z.string().min(1),
+  label: z.string().check(z.minLength(1)),
   primary: z.boolean(),
-  icon: z.string().nullable(),
+  icon: z.nullable(z.string()),
 });
 
 const actionTableSchema = z.record(actionNameSchema, actionSchema);

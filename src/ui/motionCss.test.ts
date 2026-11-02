@@ -108,7 +108,6 @@ const block = (selector: string) =>
       .flatMap((rule) => rule.decls.map((d) => [d.property, d.value] as const)),
   );
 const light = block(":root");
-const dark = block('[data-theme="dark"]');
 const isColour = (value: string) =>
   /^#[0-9a-f]{3,8}$/i.test(value) || /^rgba?\(/i.test(value);
 const norm = (value: string) => value.toLowerCase().replace(/\s+/g, "");
@@ -121,53 +120,6 @@ const HUES = [
   "--lost-fill",
   "--lost-ink",
 ];
-
-describe("S3 the dark token set", () => {
-  it("reads the light set with the canvas, shell and later-story tokens", () => {
-    const names = COLOURS.map(([name]) => name);
-    for (const name of [
-      "--label-halo",
-      "--chip-line",
-      "--lost-fill",
-      "--lost-ink",
-      "--wb-node-tint",
-      "--wb-drag",
-      "--warn",
-      "--danger-tint",
-      "--ai-bg",
-      "--ai-text",
-    ])
-      expect(names).toContain(name);
-  });
-
-  it("gives every light colour token a dark value", () => {
-    expect(COLOURS.filter(([name]) => !dark.has(name)).map(([n]) => n)).toEqual(
-      [],
-    );
-  });
-
-  it("takes each dark value from the light set", () => {
-    const held = new Set([...light.values()].map(norm));
-    expect([...dark].filter(([, value]) => !held.has(norm(value)))).toEqual([]);
-    expect([...dark.keys()].filter((name) => !light.has(name))).toEqual([]);
-  });
-
-  it("changes the canvas and keeps each hue token", () => {
-    expect(norm(dark.get("--canvas") ?? "")).not.toBe(
-      norm(light.get("--canvas") ?? ""),
-    );
-    for (const name of HUES)
-      expect([name, norm(dark.get(name) ?? "")]).toEqual([
-        name,
-        norm(light.get(name) ?? ""),
-      ]);
-  });
-
-  it("sets the Other family set again, so it resolves to the dark values", () => {
-    for (const name of ["--tint", "--pill-border", "--main"])
-      expect(dark.get(name)).toBe(light.get(name));
-  });
-});
 
 const TOKENS = new Set([...light.keys()]);
 

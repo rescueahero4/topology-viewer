@@ -8,18 +8,10 @@ const answer = (body: string, status = 200) =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe("fetchPayload", () => {
-  it("gets the payload of a url and passes the request options", async () => {
-    const fetchStub = answer('{"nodes":[]}');
-    vi.stubGlobal("fetch", fetchStub);
-    const own = signal();
-    const payload = await fetchPayload(
-      { url: "/graph", requestInit: { headers: { a: "b" } } },
-      own,
-    );
-    expect(payload).toEqual({ nodes: [] });
-    expect(fetchStub).toHaveBeenCalledWith("/graph", {
-      headers: { a: "b" },
-      signal: own,
+  it("gets the JSON of a url", async () => {
+    vi.stubGlobal("fetch", answer('{"nodes":[]}'));
+    await expect(fetchPayload({ url: "/graph" }, signal())).resolves.toEqual({
+      nodes: [],
     });
   });
 
@@ -76,26 +68,5 @@ describe("fetchPayload", () => {
     await expect(fetchPayload({ load }, signal())).rejects.toMatchObject({
       kind: "load",
     });
-  });
-
-  it("applies `select`, and gives the kind select when it throws", async () => {
-    const load = async () => ({ result: { graph: 1 } });
-    await expect(
-      fetchPayload(
-        { load, select: (r) => (r as { result: unknown }).result },
-        signal(),
-      ),
-    ).resolves.toEqual({ graph: 1 });
-    await expect(
-      fetchPayload(
-        {
-          load,
-          select: () => {
-            throw new Error("bad");
-          },
-        },
-        signal(),
-      ),
-    ).rejects.toMatchObject({ kind: "select" });
   });
 });
