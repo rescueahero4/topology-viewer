@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "A UI library that renders a graph payload from an external API: canvas, inspector, search and an editable table.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "sideEffects": [
     "./src/public/zodConfig.ts"

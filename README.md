@@ -66,4 +66,4 @@ After a library change, run `npm run build` and reload the demo.
 
 ## Licence
 
-Proprietary. See `LICENSE`.
+MIT. See `LICENSE`. Bundled libraries: `THIRD-PARTY-NOTICES.txt`.
