@@ -3,7 +3,7 @@
 A graph explorer for your API payload: canvas, inspector, search, filters, layouts and an editable table. No runtime dependencies. No backend.
 
 ```sh
-npm install git+https://github.com/<owner>/topology-viewer.git
+npm install git+https://github.com/rescueahero4/topology-viewer.git
 ```
 
 ```tsx
