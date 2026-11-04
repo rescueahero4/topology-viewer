@@ -15,8 +15,12 @@ import tokens from "../ui/tokens.css?inline";
 // so a page can set a token, and the tokens do not touch the page.
 const HOST = `:host{display:block;position:relative;color-scheme:light}
 :host(:fullscreen){width:100%;height:100%}
-.tv-mount{height:100%}
+.tv-mount{height:100%;isolation:isolate}
 .tv-mount[data-tv-full]{position:fixed;inset:0;z-index:var(--tv-fullscreen-z,1000);height:auto}`;
+
+// `isolation` keeps the z-index of each control inside the viewer, so that no control comes over a
+// sticky header of the page. The full view has a z-index of its own on this same element, so it still
+// comes over the page.
 
 // A viewer with no node types in its profile: all types are "custom", so the tag says nothing.
 export const NO_TYPES_RULE = `.prov{display:none}.fam-head:empty{display:none}`;

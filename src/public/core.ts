@@ -186,10 +186,25 @@ function createViewer(
       Math.abs(box.top) < 2 &&
       Math.abs(box.width - view.innerWidth) < 2 &&
       Math.abs(box.height - view.innerHeight) < 2;
-    if (fills) return;
-    console.warn(
-      'topology-viewer: the full view does not fill the browser view. A parent element has transform, filter or contain. Use fullscreen="native", or your own { enter, exit }.',
-    );
+    if (!fills) {
+      console.warn(
+        'topology-viewer: the full view does not fill the browser view. A parent element has transform, filter or contain. Use fullscreen="native", or your own { enter, exit }.',
+      );
+      return;
+    }
+    // A parent with `isolation` or its own `z-index` keeps the view under what is above that parent,
+    // such as a sticky header. The element at a point is the host for all that is in the Shadow DOM.
+    const covered = [
+      [view.innerWidth / 2, 4],
+      [4, view.innerHeight / 2],
+    ].some(([x, y]) => {
+      const top = doc.elementFromPoint(x as number, y as number);
+      return top !== null && top !== element && !element.contains(top);
+    });
+    if (covered)
+      console.warn(
+        'topology-viewer: something on the page covers the full view. A parent element has isolation or its own z-index, or something is above --tv-fullscreen-z. Use fullscreen="native", or your own { enter, exit }.',
+      );
   };
 
   const showViewport = (on: boolean) => {

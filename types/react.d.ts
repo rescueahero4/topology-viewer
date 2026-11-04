@@ -13,7 +13,9 @@ import type {
 export type * from "./index";
 
 export type TopologyViewerProps = TopologyOptions & {
+  /** A class on the host element, in your page. Also the place for `::part` rules. */
   className?: string;
+  /** A style on the host element, in your page. */
   style?: CSSProperties;
 };
 

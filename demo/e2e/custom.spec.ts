@@ -140,6 +140,47 @@ test.describe("style", () => {
   });
 });
 
+test.describe("layers", () => {
+  // A fixed header of the page, with a z-index below that of the controls of the viewer.
+  const addHeader = (page: Page) =>
+    page.evaluate(() => {
+      const bar = document.createElement("div");
+      bar.id = "page-header";
+      bar.style.cssText = "position:fixed;inset:0 0 auto 0;height:300px;z-index:5";
+      document.body.append(bar);
+    });
+  const topAt = (page: Page, selector: string) =>
+    page.locator(selector).first().evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      const top = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+      return top?.id === "" ? top?.className : top?.id;
+    });
+
+  test("no control of the viewer comes over a sticky header of the page", async ({ page }) => {
+    await open(page, "c-full");
+    await ready(page);
+    await addHeader(page);
+    expect(await topAt(page, ".a .fam-tab")).toBe("page-header");
+    expect(await topAt(page, ".a .tools")).toBe("page-header");
+  });
+
+  test("the full view still comes over it", async ({ page }) => {
+    await open(page, "c-full");
+    await ready(page);
+    await addHeader(page);
+    await page.evaluate(() => {
+      (document.getElementById("page-header") as HTMLElement).style.pointerEvents = "none";
+    });
+    await page.locator(".a .display-btn").click({ force: true });
+    await expect(page.locator(".a .display-btn")).toHaveAttribute("aria-pressed", "true");
+    await page.evaluate(() => {
+      (document.getElementById("page-header") as HTMLElement).style.pointerEvents = "auto";
+    });
+    // The element at a point is the host for all that is in the Shadow DOM.
+    expect(await topAt(page, ".a .fam-tab")).toBe("a");
+  });
+});
+
 test.describe("full screen", () => {
   const button = (page: Page) => page.locator(".a .display-btn");
   const fills = (page: Page) =>
@@ -174,6 +215,18 @@ test.describe("full screen", () => {
     await button(page).click();
     await expect(button(page)).toHaveAttribute("aria-pressed", "true");
     expect(warnings.join()).toContain("does not fill the browser view");
+  });
+
+  test("something that covers the view gets a warning", async ({ page }) => {
+    const warnings: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "warning") warnings.push(message.text());
+    });
+    await open(page, "c-full&covered");
+    await ready(page);
+    await button(page).click();
+    await expect(button(page)).toHaveAttribute("aria-pressed", "true");
+    expect(warnings.join()).toContain("covers the full view");
   });
 
   test("Escape closes a menu first, then the full view, and keeps the selection", async ({ page }) => {

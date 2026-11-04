@@ -106,7 +106,16 @@ function Full() {
   const [mode, setMode] = useState<"inline" | "fullscreen">("inline");
   const controlled = how === "controlled";
   return (
-    <div style={{ height: 900, transform: query.has("trap") ? "translateZ(0)" : undefined }}>
+    <div
+      style={{
+        height: 900,
+        transform: query.has("trap") ? "translateZ(0)" : undefined,
+        isolation: query.has("covered") ? "isolate" : undefined,
+      }}
+    >
+      {query.has("covered") && (
+        <style>{`body::before { content: ""; position: fixed; inset: 0 0 auto 0; height: 40px; z-index: 10; background: red; }`}</style>
+      )}
       <button id="ctl" onClick={() => setMode(mode === "inline" ? "fullscreen" : "inline")}>
         controlled
       </button>

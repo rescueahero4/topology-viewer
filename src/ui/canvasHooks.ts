@@ -163,6 +163,8 @@ function afterPaint(
   markPart(root, "canvas-root");
   if (root.parentElement !== null) markPart(root.parentElement, "canvas-layer");
   markPart(layers.svg, "canvas-svg");
+  const tooltip = root.querySelector(".qt-tip");
+  if (tooltip !== null) markPart(tooltip, "tooltip");
   const nodeConfig = configOf("node");
   const edgeConfig = configOf("edge");
   for (const el of layers.nodes.querySelectorAll<SVGGElement>("g.qt-node")) {

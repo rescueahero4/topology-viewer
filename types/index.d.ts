@@ -249,38 +249,69 @@ export type TopologyState = {
 };
 
 export type TopologyCommands = {
+  /** Selects a node by its id, or clears the selection with `null`. */
   select(id: string | null): void;
+  /** Selects a node and centres the chart around it. */
   focus(id: string): void;
+  /** Draws the neighbours of a node, or opens a group. */
   expand(id: string): void;
+  /** Takes back what `expand` drew. */
   collapse(id: string): void;
+  /** Moves nodes to the Hidden panel. */
   hide(ids: readonly string[]): void;
+  /** Brings hidden nodes back. */
   restore(ids: readonly string[]): void;
+  /** Draws these nodes, with what they need to connect. */
   reveal(ids: readonly string[]): void;
+  /** Goes back to the first view of the data. */
   resetView(): void;
+  /** Clears the selection and fits the chart in the view. */
   fit(): void;
   /** A built-in name, or `custom:<name>` for a layout of `layouts`. */
   setLayout(name: string): void;
+  /** Sets how many nodes the canvas draws. */
   setBudget(budget: number | "all"): void;
+  /** Sets how many nodes of a type make a group. */
   setGrouping(grouping: number | "off"): void;
+  /** Turns on every node type. */
   showAllTypes(): void;
+  /** Turns one node type on or off. `null` is the nodes with no type. */
   setTypeVisible(type: string | null, on: boolean): void;
+  /** Turns one filter family on or off. */
   setFamilyVisible(family: string, on: boolean): void;
+  /** Turns one predicate on or off. */
   setPredicateVisible(predicate: string, on: boolean): void;
+  /** Turns one of your custom filters on or off. */
   setCustomFilter(id: string, on: boolean): void;
+  /** Enters or leaves full screen, by the `fullscreen` strategy. */
   setDisplayMode(mode: "inline" | "fullscreen"): void;
+  /** Opens the table under the canvas. */
   openTable(): void;
+  /** Closes the table. */
   closeTable(): void;
+  /** Opens or closes the table. */
   toggleTable(): void;
+  /** Changes the filters of the table: `scope`, `rowType`, `kinds`, `families`. */
   setTableFilters(change: Readonly<Record<string, unknown>>): void;
+  /** Sorts the table by `{ column, dir }`, where `dir` is 1 or -1, or clears it with `null`. */
   setTableSort(sort: unknown): void;
+  /** Shows or hides a column: `{ core: "name" }` or `{ attr: "owner" }`. */
   setTableColumn(column: unknown, on: boolean): void;
+  /** Sets the text of the table search. */
   setTableSearch(text: string): void;
+  /** Sets the text of the canvas search, and runs it. */
   setSearch(text: string): void;
+  /** Opens or collapses the inspector card. */
   setInspectorOpen(open: boolean): void;
+  /** Does what "Save changes" does, so it calls `onSave`. */
   saveEdits(): void | Promise<void>;
+  /** Takes back every unsaved edit. */
   cancelEdits(): void;
+  /** Undoes the last edit. */
   undo(): void;
+  /** Redoes the last undone edit. */
   redo(): void;
+  /** Reads the current state. It follows the settled chart, so a change shows here when its move ends. */
   getState(): TopologyState;
 };
 
@@ -289,11 +320,13 @@ export type TopologyOptions = {
   data?: TopologyPayload | unknown;
   /** GET, JSON answer. Use `load` for headers, auth or an envelope. */
   url?: string;
+  /** Your own loading. Use it for headers, auth, or an API that wraps its answer. Return the graph. */
   load?: (signal: AbortSignal) => Promise<unknown>;
   /** Read at mount. To change it, give the viewer a new `key`. */
   profile?: TopologyProfile;
   /** Read at mount. Default: `"page"`. `"widget"` is the compact look for a chat host. */
   variant?: "widget" | "page";
+  /** The language of the interface. Default: the language of the browser, when it is one of these. */
   lang?: "en" | "ja";
   /** Replaces interface text by key. */
   strings?: Record<string, string>;
@@ -319,16 +352,21 @@ export type TopologyOptions = {
   layouts?: Readonly<Record<string, TopologyLayout>>;
   /** Change or switch off the keys. */
   keyboard?: TopologyKeyboard;
+  /** What full screen does. Default: `"viewport"`. */
   fullscreen?: TopologyFullscreen;
   /** Controls the mode: the viewer changes it only by this prop. */
   displayMode?: "inline" | "fullscreen";
   /** Default: true. Only for `fullscreen: "viewport"`. */
   lockPageScroll?: boolean;
+  /** Opens a link in the data. Default: a new tab. The link is already checked to be safe. */
   openLink?: (href: string) => void | Promise<void>;
+  /** The "Copy for AI" action. Default: the clipboard. */
   copyForAi?: (text: string) => Promise<unknown>;
 
   // Events
+  /** A load failed. The viewer also shows the failure, with a retry button. */
   onError?: (error: TopologyLoadError) => void;
+  /** The selection changed. */
   onSelect?: (selection: TopologySelection) => void;
   /**
    * The changes since the last save, on "Save changes". The bar waits for a promise. A rejected
@@ -340,9 +378,13 @@ export type TopologyOptions = {
   ) => TopologySaveAnswer | Promise<TopologySaveAnswer>;
   /** Every action of every control, before it runs. `preventDefault` stops it. */
   onAction?: (event: TopologyEvent) => void;
+  /** The display mode changed. With `displayMode` set, this is a request, and your state decides. */
   onDisplayModeChange?: (mode: "inline" | "fullscreen") => void;
+  /** A filter changed. */
   onFiltersChange?: (filters: unknown) => void;
+  /** The table gained its first unsaved edit, or has none left. */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Anything in `TopologyState` changed. */
   onStateChange?: (state: TopologyState) => void;
 };
 
