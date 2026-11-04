@@ -1,4 +1,4 @@
-# Forking topology-viewer
+# Forking Data Topology Viewer
 
 Fork when [CUSTOMIZING.md](CUSTOMIZING.md) does not reach what you need, such as adding table rows or replacing the renderer. It is MIT licensed, and a fork is normal use. Keep the licence and `THIRD-PARTY-NOTICES.txt`.
 

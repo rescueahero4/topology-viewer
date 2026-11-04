@@ -51,7 +51,7 @@ function Value({
         <button
           type="button"
           class="link-btn"
-          // why: a refused or failed host link has no UI in 0.1.0 (EPIC-006 owns the port)
+          // why: a refused or failed host link has no UI (EPIC-006 owns the port)
           onClick={() => void ctx.host.openLink(link).catch(() => undefined)}
         >
           {t(ui, "inspector.openLink")}

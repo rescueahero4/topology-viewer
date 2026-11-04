@@ -1,11 +1,11 @@
-// Fails when the package or the demo crosses its border, or when a dependency has a licence that is
-// not on the list.
+// Fails when the package or the demo crosses its border, when a dependency has a licence that is not
+// on the list, or when the version of the package has no entry in the changelog.
 import { execSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const SHIPPED = ["dist/", "types/", "CUSTOMIZING.md", "FORKING.md", "LICENSE", "README.md", "THIRD-PARTY-NOTICES.txt", "package.json"];
+const SHIPPED = ["dist/", "types/", "CHANGELOG.md", "CUSTOMIZING.md", "FORKING.md", "LICENSE", "README.md", "THIRD-PARTY-NOTICES.txt", "package.json"];
 const BUNDLED = ["preact", "@preact/signals", "d3-drag", "d3-ease", "d3-force", "d3-hierarchy", "d3-selection", "d3-timer", "d3-zoom", "zod"];
 const LICENCES = new Set(["MIT", "MIT-0", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "BlueOak-1.0.0", "CC0-1.0", "MPL-2.0", "Python-2.0", "CC-BY-4.0"]);
 
@@ -66,6 +66,10 @@ const visit = (name) => {
   for (const dep of Object.keys(entry?.dependencies ?? {})) visit(dep);
 };
 BUNDLED.forEach(visit);
+
+// 4. The version of the package has its entry in the changelog.
+const { version } = JSON.parse(read("package.json"));
+if (!read("CHANGELOG.md").includes(`\n## [${version}] - `)) problems.push(`CHANGELOG.md has no entry for ${version}`);
 
 console.log(`package: ${pack.files.length} files, ${(pack.size / 1024).toFixed(0)} KB packed, ${(pack.unpackedSize / 1024).toFixed(0)} KB unpacked`);
 console.log(`bundled libraries: ${seen.size}`);

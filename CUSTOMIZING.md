@@ -1,4 +1,4 @@
-# Customizing topology-viewer
+# Customizing Data Topology Viewer
 
 The [documentation site](https://rescueahero4.github.io/topology-viewer/) has all of this with live demos. This file is the short form, for reading offline.
 

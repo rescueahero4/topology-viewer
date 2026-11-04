@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "types",
+    "CHANGELOG.md",
     "CUSTOMIZING.md",
     "FORKING.md",
     "LICENSE",

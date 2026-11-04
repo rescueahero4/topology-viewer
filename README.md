@@ -1,6 +1,6 @@
-# topology-viewer
+# Data Topology Viewer
 
-A graph explorer for your API payload: canvas, inspector, search, filters, layouts and an editable table. No runtime dependencies. No backend.
+A graph explorer for your API payload: canvas, inspector, search, filters, layouts and an editable table. No runtime dependencies. No backend. In code, the package is `topology-viewer`.
 
 **[Documentation and live demos](https://rescueahero4.github.io/topology-viewer/)**
 
@@ -42,13 +42,6 @@ Change any style or behaviour with no fork. See [CUSTOMIZING.md](CUSTOMIZING.md)
 
 For a change that no option reaches, see [FORKING.md](FORKING.md).
 
-## Updating from 0.1
-
-- `variant` now defaults to `"page"`. Set `variant="widget"` for the compact chat look, which also has the rounded frame.
-- Full screen now fills the browser view. Set `fullscreen="native"` for the browser's Fullscreen API.
-- `onSave` now gets only the changes since the last save. The full list is in its second argument, `info.all`. If it returns a promise, the bar waits for it, and a failure keeps the edits.
-- The search shortcut no longer fires with Ctrl or Cmd held.
-
 ## Data
 
 Give one of `data`, `url` or `load`.
@@ -84,12 +77,12 @@ The React component is safe to server-render: it renders an empty element and mo
 
 | Path | npm installs it | Purpose |
 |---|---|---|
-| `dist/`, `types/`, `CUSTOMIZING.md`, `FORKING.md`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
+| `dist/`, `types/`, `CHANGELOG.md`, `CUSTOMIZING.md`, `FORKING.md`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
 | `src/`, `assets/`, `scripts/` | No | Source of `dist/`, and its tests. |
 | `demo/` | No | A separate app with its own `package.json`. It uses only the public entries. |
 | `docs/` | No | The documentation site, with live demos. It uses only the public entries. |
 
-`npm run check` fails if this border or a dependency licence is broken.
+`npm run check` fails if this border or a dependency licence is broken, or if the version has no entry in the changelog.
 
 ```sh
 npm install && npm run demo   # http://127.0.0.1:4601, with a mock API on port 4600
@@ -106,6 +99,10 @@ The documentation site runs on the same build:
 npm run build && npm --prefix docs install && npm --prefix docs run dev   # http://localhost:4321/topology-viewer/
 npm --prefix docs run test:e2e
 ```
+
+## Changelog
+
+The changes in each version, and the breaking ones among them, are in [CHANGELOG.md](CHANGELOG.md).
 
 ## Licence
 
