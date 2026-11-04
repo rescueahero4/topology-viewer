@@ -1,16 +1,65 @@
+import { keyIs } from "./custom";
 import { inKeyScope, targetOf } from "./eventScope";
-import { canvasLookup, matchEntities } from "#engine";
+import { canvasLookup, matchEntities, type Graph } from "#engine";
+import { nodeData, type PublicNode } from "./commands";
+import { custom, dispatch, live, optionOf } from "./custom";
+import { extendable } from "./Part";
 import type { ComponentChildren, RefObject } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useElementId } from "./ids";
 import type { Actions } from "./actions";
-import { pickHit, SearchResults, SHOWN } from "./SearchResults";
+import { limitOf, pickHit, SearchResults } from "./SearchResults";
 import { canvasState, editedModel, lang } from "./state";
 import { t } from "./strings/index";
 import { UiIcon } from "./UiIcon";
 
 // why: mockup search (app.js line 969) — the match runs 120 ms after the last key
 const DEBOUNCE_MS = 120;
+
+type Match = (node: PublicNode, query: string) => boolean;
+type Source = (query: string, signal: AbortSignal) => Promise<readonly string[]>;
+type Remote = {
+  query: string;
+  hits: readonly string[];
+  status: "idle" | "loading" | "failed";
+};
+
+// `source`: the hits come from the code of the developer, so the query can leave the page only when
+// the developer sends it. A new query cancels the one before it.
+function useRemote(query: string): Remote | null {
+  const source = optionOf<Source>("search", "source");
+  const [remote, setRemote] = useState<Remote>({
+    query: "",
+    hits: [],
+    status: "idle",
+  });
+  const has = source !== undefined;
+  useEffect(() => {
+    if (!has || query.trim() === "") return;
+    const own = new AbortController();
+    setRemote({ query, hits: [], status: "loading" });
+    (source as Source)(query, own.signal).then(
+      (hits) => {
+        if (!own.signal.aborted) setRemote({ query, hits, status: "idle" });
+      },
+      () => {
+        if (!own.signal.aborted) setRemote({ query, hits: [], status: "failed" });
+      },
+    );
+    return () => own.abort();
+  }, [has, query]);
+  return has ? remote : null;
+}
+
+function localHits(graph: Graph, query: string): readonly string[] {
+  const match = optionOf<Match>("search", "match");
+  if (match === undefined) return matchEntities(graph, query);
+  if (query.trim() === "") return [];
+  return graph.entities.flatMap((entity) => {
+    const node = nodeData(entity.id);
+    return node !== null && match(node, query) ? [entity.id] : [];
+  });
+}
 
 // why: mockup `isField` (app.js line 78) — a key in a text field is typing, not a command
 export const isField = (target: EventTarget | null) =>
@@ -22,7 +71,7 @@ function useSlashKey(input: RefObject<HTMLInputElement>): void {
   useEffect(() => {
     const doc = input.current?.ownerDocument;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "/" || !inKeyScope(event)) return;
+      if (!keyIs("search", event) || !inKeyScope(event)) return;
       if (isField(targetOf(event))) return;
       event.preventDefault();
       input.current?.focus();
@@ -45,12 +94,17 @@ function useQuery(input: RefObject<HTMLInputElement>) {
     close: () => setOpen(false),
     onInput: () => {
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        const value = input.current?.value ?? "";
-        setQuery(value);
-        setActive(0);
-        setOpen(value.trim() !== "");
-      }, DEBOUNCE_MS);
+      timer.current = setTimeout(
+        () => {
+          const value = input.current?.value ?? "";
+          const least = optionOf<number>("search", "minLength", 1);
+          const enough = value.trim() !== "" && value.trim().length >= least;
+          setQuery(enough ? value : "");
+          setActive(0);
+          setOpen(enough);
+        },
+        optionOf<number>("search", "debounce", DEBOUNCE_MS),
+      );
     },
     clear: () => {
       clearTimeout(timer.current);
@@ -60,6 +114,11 @@ function useQuery(input: RefObject<HTMLInputElement>) {
       input.current?.blur();
     },
   };
+}
+
+function searchKeyShown(): boolean {
+  const map = custom.value.keyboard;
+  return map !== false && map?.search !== false;
 }
 
 // why: rule 3 — one `canvasLookup` for each result list, made only while the list is open
@@ -85,22 +144,39 @@ type SearchProps = {
 // hits of `matchEntities` with their canvas state. STORY-007-03 rule 6 (embed-frame.html lines
 // 25-26) — embedded, the search is its own card and the tools are no card. STORY-007-04 rule 1
 // (line 34) — the children (the full-screen button) come after the search in the tools
-export function Search(props: SearchProps) {
+function SearchView(props: SearchProps) {
   const { actions, embedded } = props;
   const ui = lang.value;
   const now = editedModel.value;
   const id = useElementId();
   const input = useRef<HTMLInputElement>(null);
   const q = useQuery(input);
-  const hits = useMemo(
-    () => (now === null ? [] : matchEntities(now.graph, q.query)),
-    [now, q.query],
+  const remote = useRemote(q.query);
+  const local = useMemo(
+    () => (now === null || remote !== null ? [] : localHits(now.graph, q.query)),
+    [now, q.query, remote !== null],
   );
+  const hits = remote?.query === q.query ? remote.hits : local;
+  useEffect(() => {
+    live.search = {
+      get: () => input.current?.value ?? "",
+      set: (text) => {
+        if (input.current === null) return;
+        input.current.value = text;
+        q.onInput();
+      },
+    };
+    return () => {
+      live.search = null;
+    };
+  });
   const lookup = useLookup(q.open);
   useSlashKey(input);
-  const last = Math.min(hits.length, SHOWN) - 1;
+  const last = Math.min(hits.length, limitOf()) - 1;
   const pick = (hit: string) => {
-    pickHit(actions, lookup, hit);
+    const node = nodeData(hit);
+    if (dispatch("pick", [hit], { id: hit, node }, ["search-result", "search"]))
+      pickHit(actions, lookup, hit);
     q.close();
   };
   const onKeyDown = (event: KeyboardEvent) => {
@@ -124,15 +200,16 @@ export function Search(props: SearchProps) {
         <input
           ref={input}
           {...{ id, type: "search", autocomplete: "off" }}
-          placeholder={t(ui, "search.label")}
+          placeholder={optionOf<string>("search", "placeholder", t(ui, "search.label"))}
           onInput={q.onInput}
           onKeyDown={onKeyDown}
           onBlur={q.close}
         />
-        <kbd>{t(ui, "search.key")}</kbd>
+        {searchKeyShown() && <kbd>{t(ui, "search.key")}</kbd>}
         {q.open && now !== null && (
           <SearchResults
             {...{ model: now, lookup, hits, active: q.active, query: q.query }}
+            status={remote?.status ?? "idle"}
             labelledBy={`${id}-label`}
             onPick={pick}
           />
@@ -142,3 +219,5 @@ export function Search(props: SearchProps) {
     </div>
   );
 }
+
+export const Search = extendable("search", SearchView);

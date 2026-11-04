@@ -37,6 +37,7 @@ export type ExitResult = {
 
 const ALWAYS = new Set<Action["kind"]>([
   "toggleType",
+  "entitiesOff",
   "showAllTypes",
   "grouping",
   "restore",

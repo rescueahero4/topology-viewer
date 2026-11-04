@@ -1,0 +1,8 @@
+/* The form of a built Tailwind 4 sheet: the order of its layers comes first. */
+@layer theme, base, components, utilities;
+@layer base {
+  button { padding: 0; color: rgb(255, 0, 255); }
+}
+@layer utilities {
+  .utility-link { color: rgb(1, 2, 3); }
+}

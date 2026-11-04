@@ -1,3 +1,5 @@
+import { selectedNode } from "./commands";
+import { extendable } from "./Part";
 import { aroundInfo, type DrawnId } from "#engine";
 import type { Actions } from "./actions";
 import type { IconName } from "./icons";
@@ -77,7 +79,7 @@ function buttonsOf(actions: Actions, me: DrawnId, group: boolean): Button[] {
   return buttons;
 }
 
-export function InspectorActions(props: {
+function InspectorActionsView(props: {
   tip: Tip;
   actions: Actions;
   me: DrawnId;
@@ -92,3 +94,5 @@ export function InspectorActions(props: {
     </>
   );
 }
+
+export const InspectorActions = extendable("inspector-actions", InspectorActionsView, () => ({ node: selectedNode() }));

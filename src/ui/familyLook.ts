@@ -28,13 +28,47 @@ const ICONS: readonly IconName[] = [
 const OTHER = ICONS.length - 1;
 const PLACES = new Map(familyOrder().map((family, place) => [family, place]));
 
+export type FamilyLook = {
+  main: string;
+  tint?: string;
+  border?: string;
+  icon?: string;
+};
+
+// The colours of the families of the developer. Each family gets one more class, so every surface
+// that shows a family takes the colours with no other change.
+let looks: Readonly<Record<string, FamilyLook>> = {};
+const SAFE = /^[^;{}<>]*$/;
+
+const lookClass = (family: string) => {
+  const at = Object.keys(looks).indexOf(family);
+  return at === -1 ? null : `qt-fam-x${at}`;
+};
+
+export function setFamilyLooks(
+  next: Readonly<Record<string, FamilyLook>> | undefined,
+): string {
+  looks = next ?? {};
+  return Object.values(looks)
+    .map((look, at) => {
+      const { main, tint = main, border = main } = look;
+      if (![main, tint, border].every((one) => SAFE.test(one))) return "";
+      return `.qt-fam-x${at}{--tint:${tint};--pill-border:${border};--main:${main}}`;
+    })
+    .join("\n");
+}
+
 function placeOf(family: string): number {
   return Math.min(PLACES.get(family) ?? OTHER, OTHER);
 }
 
-export const familyClass = (family: string) => `qt-fam-${placeOf(family)}`;
+export const familyClass = (family: string) =>
+  lookClass(family) ?? `qt-fam-${placeOf(family)}`;
 
-export const familyIcon = (family: string) => ICONS[placeOf(family)];
+export const familyIcon = (family: string): IconName =>
+  ((Object.hasOwn(looks, family) ? looks[family]?.icon : undefined) as
+    | IconName
+    | undefined) ?? (ICONS[placeOf(family)] as IconName);
 
 // why: gap G5 — the predicate colours of the canvas, made once for each input
 const styles = computed<ReadonlyMap<string, EdgeStyle>>(() => {

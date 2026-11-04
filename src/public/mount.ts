@@ -5,31 +5,101 @@ import type {
 import type { CoreView } from "./core";
 import { createCore } from "./core-bundle.js";
 import { fetchPayload, TopologyLoadError } from "./fetchPayload";
+import { resolveProfile } from "./profile";
+import { createSlots, type SlotEntry } from "./slots";
+import { followPageStyles } from "./pageStyles";
+import { canvasOf, themeCss, themeOf, useSystemMode } from "./theme";
+
+// Only for the React entry: it renders the custom content of the parts itself.
+export type MountInternals = {
+  __renderSlots?: (entries: readonly SlotEntry[]) => void;
+};
+
+const sheetOf = (text: string) => {
+  const sheet = new CSSStyleSheet();
+  sheet.replaceSync(text);
+  return sheet;
+};
+
+function extraSheets(given: TopologyOptions["styles"]): CSSStyleSheet[] {
+  if (given === undefined) return [];
+  return (Array.isArray(given) ? given : [given]).map((one) =>
+    typeof one === "string" ? sheetOf(one) : one,
+  );
+}
 
 export function mountTopology(
   element: HTMLElement,
-  first: TopologyOptions,
+  first: TopologyOptions & MountInternals,
 ): TopologyViewerHandle {
   // Each viewer has its own core, so that two viewers on one page share no state.
-  const core = createCore(first.profile ?? {});
+  const core = createCore(resolveProfile(first.profile) ?? {});
   const root = element.shadowRoot ?? element.attachShadow({ mode: "open" });
-  const sheet = new CSSStyleSheet();
-  sheet.replaceSync(core.styleText);
-  root.adoptedStyleSheets = [sheet];
+  const coreSheet = sheetOf(core.styleText);
+  const themeSheet = new CSSStyleSheet();
   const mountPoint = element.ownerDocument.createElement("div");
   mountPoint.className = "tv-mount";
   root.replaceChildren(mountPoint);
+
+  let options = first;
+  let pageSheets: readonly CSSStyleSheet[] = [];
+  let stylesGiven: TopologyOptions["styles"] = undefined;
+  let stylesMade: CSSStyleSheet[] = [];
+
+  const adopt = () => {
+    root.adoptedStyleSheets = [coreSheet, ...pageSheets, themeSheet, ...stylesMade];
+  };
+  const stopPage = followPageStyles(
+    element,
+    root,
+    () => options.pageStyles === true,
+    (sheets) => {
+      pageSheets = sheets;
+      adopt();
+    },
+  );
+
+  const slots = createSlots(element, () => options);
   const viewer = core.createViewer(
     mountPoint,
     element,
-    first.variant ?? "widget",
+    options.variant ?? "page",
+    slots,
   );
+  const stopSystem = useSystemMode(element.ownerDocument, () => {
+    syncTheme();
+    paint();
+  });
 
-  let options = first;
+  let themeText = "";
+  function syncTheme() {
+    const text = [
+      themeCss(themeOf(options, element.ownerDocument)),
+      core.familyCss(options.familyLooks ?? {}),
+    ].join("\n");
+    if (text !== themeText) {
+      themeText = text;
+      themeSheet.replaceSync(text);
+    }
+    if (options.styles !== stylesGiven) {
+      stylesGiven = options.styles;
+      stylesMade = extraSheets(stylesGiven);
+      adopt();
+    }
+  }
+
   let view: CoreView = { state: "loading" };
   let controller: AbortController | null = null;
 
-  const paint = () => viewer.show({ ...options, view });
+  function paint() {
+    const theme = themeOf(options, element.ownerDocument);
+    viewer.show({
+      ...options,
+      view,
+      canvas: canvasOf(theme.tokens, element),
+      mode: theme.name,
+    });
+  }
   const show = (next: CoreView) => {
     view = next;
     paint();
@@ -66,20 +136,36 @@ export function mountTopology(
     );
   };
 
+  syncTheme();
+  adopt();
   load();
 
   return {
+    commands: viewer.commands,
     update(next) {
       const reload = next.data !== options.data || next.url !== options.url;
-      options = next;
+      options = { ...next, ...internalsOf(first, next as MountInternals) };
+      syncTheme();
       if (reload) load();
       else paint();
     },
     reload: load,
     destroy() {
       controller?.abort();
+      stopPage();
+      stopSystem();
       viewer.destroy();
+      slots.destroy();
       root.replaceChildren();
+      root.adoptedStyleSheets = [];
     },
   };
 }
+
+const internalsOf = (
+  first: MountInternals,
+  next: MountInternals,
+): MountInternals => {
+  const renderSlots = next.__renderSlots ?? first.__renderSlots;
+  return renderSlots === undefined ? {} : { __renderSlots: renderSlots };
+};

@@ -1,4 +1,6 @@
+import { dispatch } from "../custom";
 import {
+  entityOfDrawnId,
   firstView,
   frontier,
   setLayout,
@@ -9,6 +11,7 @@ import {
   createRenderer,
   iconMetrics,
   type Camera,
+  type Intent,
   type RendererText,
 } from "#renderer";
 import { intentOf } from "./activate";
@@ -78,7 +81,26 @@ function wire(ctx: Ctx, canvas: Canvas): void {
       if (ctx.frontier.edges.some((e) => e.key === edge))
         act(ctx, { kind: "selectEdge", edge, anchor });
     });
-  renderer.onIntent(intentOf(canvas, () => ctx.frontier, pick));
+  const next = intentOf(canvas, () => ctx.frontier, pick);
+  renderer.onIntent((intent) => {
+    if (checkedIntent(intent)) next(intent);
+  });
+}
+
+// A press on the canvas takes the same way as a control of the shell.
+function checkedIntent(intent: Intent): boolean {
+  if (intent.kind === "selectEdge") {
+    const { edge } = intent;
+    return dispatch("select", [edge], { edge }, ["edge"]);
+  }
+  const { node } = intent;
+  const id = node === null ? null : (entityOfDrawnId(node) ?? node);
+  return dispatch(
+    intent.kind,
+    [id],
+    { id },
+    [node === null ? "canvas" : "node"],
+  );
 }
 
 // why: Context "Factory" step (4) — the events of the first paint come in a microtask after the

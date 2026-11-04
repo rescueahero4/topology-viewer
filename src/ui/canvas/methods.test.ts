@@ -147,11 +147,11 @@ const CASES: [string, (c: Canvas) => void][] = [
   ["reveal []", (c) => c.reveal([])],
   ["reveal __proto__", (c) => c.reveal(["__proto__"])],
   ["focus __proto__", (c) => c.focus("__proto__")],
-  ...[7, 0, -1, 1.5, NaN, "x"].map((n): [string, (c: Canvas) => void] => [
+  ...[0, -1, 1.5, NaN, "x"].map((n): [string, (c: Canvas) => void] => [
     `setBudget ${n}`,
     (c) => c.setBudget(bad(n)),
   ]),
-  ["grouping 3", (c) => c.setFilters(bad({ kind: "grouping", grouping: 3 }))],
+  ["grouping 1.5", (c) => c.setFilters(bad({ kind: "grouping", grouping: 1.5 }))],
   [
     "toggleType __proto__",
     (c) => c.setFilters({ kind: "toggleType", type: "__proto__", on: false }),

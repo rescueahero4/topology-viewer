@@ -1,3 +1,5 @@
+import { Content } from "./Part";
+import { publicRow } from "./tableConfig";
 import type {
   CanvasLookup,
   DrawnId,
@@ -12,6 +14,7 @@ import { useTip } from "./Tooltip";
 import { UiIcon } from "./UiIcon";
 import {
   columnKey,
+  attrName,
   coreName,
   sameColumn,
   type Column,
@@ -79,6 +82,10 @@ function BulkBar(props: Props) {
   return (
     <th scope="colgroup" colSpan={props.span} class="wb-bulk">
       <div class="wb-bulk-in">
+        <Content
+          part="bulk-bar"
+          ctx={() => ({ rows: ticked.map(publicRow), total })}
+        >
         <span class="bulk-sel" aria-live="polite">
           {t(ui, "wb.selected", { count: ticked.length, total })}
         </span>
@@ -112,6 +119,7 @@ function BulkBar(props: Props) {
         <button type="button" class="link-btn" onClick={props.onClear}>
           {t(ui, "wb.clear")}
         </button>
+        </Content>
       </div>
       {tip.node}
     </th>
@@ -128,7 +136,7 @@ function SortHead(props: {
 }) {
   const { lang: ui, column, sort } = props;
   const dir = sort !== null && sameColumn(sort.column, column) ? sort.dir : 0;
-  const label = "core" in column ? coreName(ui, column.core) : column.attr;
+  const label = "core" in column ? coreName(ui, column.core) : attrName(column.attr);
   return (
     <th
       scope="col"

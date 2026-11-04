@@ -149,7 +149,8 @@ function withFilters(state: CanvasState, filters: Filters): CanvasState {
   if (
     same(before.typesOff, filters.typesOff) &&
     same(before.familiesOff, filters.familiesOff) &&
-    same(before.predicatesOff, filters.predicatesOff)
+    same(before.predicatesOff, filters.predicatesOff) &&
+    same(before.entitiesOff ?? [], filters.entitiesOff ?? [])
   )
     return state;
   return { ...state, filters };
@@ -167,6 +168,17 @@ export function toggleType(
   if (!present) return state;
   const typesOff = switched(state.filters.typesOff, type, on);
   return withFilters(state, { ...state.filters, typesOff });
+}
+
+// The result of the custom filters: sorted, so the same filters give the same array, and no key at
+// all with nothing off, so a viewer with no custom filter has the same state as before.
+export function setEntitiesOff(state: CanvasState, ids: readonly string[]) {
+  const { entitiesOff: _, ...rest } = state.filters;
+  const sorted = [...ids].sort(byCodePoint);
+  return withFilters(
+    state,
+    sorted.length === 0 ? rest : { ...rest, entitiesOff: sorted },
+  );
 }
 
 export function showAllTypes(state: CanvasState): CanvasState {

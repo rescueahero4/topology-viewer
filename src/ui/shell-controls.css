@@ -73,7 +73,7 @@
   background: var(--card-bg);
   backdrop-filter: blur(8px);
   border: 1px solid var(--warm-line);
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   overflow: hidden;
   max-width: 100%;
 }
@@ -82,7 +82,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   font-weight: 500;
   line-height: 1;
   color: var(--ink-600);
@@ -148,10 +148,10 @@
   height: 26px;
   padding: 0 8px;
   border: 1px solid var(--warm-line);
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   background: var(--card-bg);
   backdrop-filter: blur(8px);
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   font-weight: 500;
   color: var(--ink-700);
   cursor: pointer;
@@ -166,9 +166,9 @@
 }
 .pick-count {
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   background: var(--zinc-100);
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   line-height: 16px;
   color: var(--zinc-600);
   font-variant-numeric: tabular-nums;
@@ -183,7 +183,7 @@
   color: var(--zinc-500);
 }
 .pick-item {
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
 }
 .pick-item .nm {
   overflow: hidden;
@@ -197,9 +197,9 @@
   gap: 4px;
   padding: 3px 8px 3px 3px;
   border: 1px solid var(--warm-off);
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   background: var(--surface);
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
   font-weight: 500;
   color: var(--pill-ink);
   cursor: pointer;
@@ -216,7 +216,7 @@
   border: 1px solid var(--main);
   display: inline-grid;
   place-items: center;
-  font-size: 8px;
+  font-size: var(--tv-font-size-1, 8px);
   color: var(--main);
 }
 .pill[aria-pressed="true"] {
@@ -232,7 +232,7 @@
 .pill .n {
   color: var(--zinc-600);
   font-variant-numeric: tabular-nums;
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
 }
 .controls {
   position: absolute;
@@ -248,9 +248,9 @@
   gap: 6px;
   padding: 6px 8px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   background: transparent;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   font-weight: 500;
   color: var(--zinc-700);
   cursor: pointer;

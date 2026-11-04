@@ -1,4 +1,7 @@
-import type { CanvasState, Lang } from "#engine";
+import type { Budget, CanvasState, Grouping, Lang, LayoutName } from "#engine";
+import { releaseNodeSlots } from "./canvasHooks";
+import { liveCanvas, startCustomFilters } from "./commands";
+import { peekOption } from "./custom";
 import {
   useCallback,
   useLayoutEffect,
@@ -53,6 +56,29 @@ function make(parent: HTMLElement, start: Start, lang: Lang) {
     container.remove();
     return "failed" as const;
   }
+}
+
+// The defaults of the developer for a new chart. A view that the payload asks for wins.
+function startState(made: Canvas): void {
+  const view = editedModel.peek()?.payload.view;
+  const off = (part: string, run: (name: string) => void) =>
+    (peekOption<readonly string[]>(part, "off") ?? []).forEach(run);
+  off("filter-families", (family) =>
+    made.setFilters({ kind: "toggleFamily", family, on: false }),
+  );
+  off("filters", (predicate) =>
+    made.setFilters({ kind: "togglePredicate", predicate, on: false }),
+  );
+  off("types-menu", (type) =>
+    made.setFilters({ kind: "toggleType", type, on: false }),
+  );
+  const grouping = peekOption<Grouping>("grouping-menu", "default");
+  if (grouping !== undefined) made.setFilters({ kind: "grouping", grouping });
+  const budget = peekOption<Budget>("scope-menu", "default");
+  if (budget !== undefined && view?.budget === undefined) made.setBudget(budget);
+  const layout = peekOption<LayoutName>("layout-menu", "default");
+  if (layout !== undefined && view?.layout === undefined) made.setLayout(layout);
+  startCustomFilters();
 }
 
 // why: rule 5 — the five events feed `state.ts`; STORY-006-03 rule 4 — each `settle` also goes to
@@ -117,8 +143,12 @@ export function useRenderer(
     const { made, container } = built;
     const off = listen(made, onSettle, onSelect);
     setCanvas(made);
+    liveCanvas.value = made;
+    if (start.state === undefined) startState(made);
     return () => {
       for (const stop of off) stop();
+      releaseNodeSlots();
+      liveCanvas.value = null;
       container.remove();
       setCanvas(null);
     };

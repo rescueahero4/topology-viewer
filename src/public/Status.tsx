@@ -1,10 +1,11 @@
 import type { Lang } from "#engine";
-import { t, UiIcon } from "#ui";
+import { extendable, t, UiIcon } from "#ui";
 import type { CoreView } from "./core";
 
 type Props = Exclude<CoreView, { state: "data" }> & {
   lang: Lang;
   embedded: boolean;
+  theme?: string;
 };
 
 function Failed(props: Extract<Props, { state: "failed" }>) {
@@ -30,12 +31,12 @@ function Failed(props: Extract<Props, { state: "failed" }>) {
 }
 
 /** The viewer before a payload is there, in the same frame as a chart. */
-export function Status(props: Props) {
+function StatusView(props: Props) {
   const host = props.embedded
     ? { "data-host": "embedded", "data-display": "inline" }
     : {};
   return (
-    <div class="shell" data-theme="light" {...host}>
+    <div class="shell" data-theme={props.theme ?? "light"} {...host}>
       <main class="canvas" style={{ height: "100%" }}>
         {props.state === "failed" ? (
           <Failed {...props} />
@@ -52,3 +53,10 @@ export function Status(props: Props) {
     </div>
   );
 }
+
+export const Status = extendable("load-status", StatusView, (props: Props) => ({
+  state: props.state,
+  ...(props.state === "failed"
+    ? { kind: props.kind, status: props.status, retry: props.onRetry }
+    : {}),
+}));

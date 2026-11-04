@@ -1,3 +1,5 @@
+import { entityOfDrawnId } from "#engine";
+import { extendable } from "./Part";
 import type { DrawnId, Provenance, Selection } from "#engine";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import { useElementId } from "./ids";
@@ -102,7 +104,7 @@ function Marks({ ctx, row }: { ctx: RelCtx; row: Relation }) {
 
 // why: FR-INSPECT-1, FR-CANVAS-10, rules 5 and 6 (mockup app.js lines 761-772) — the row picks its
 // edge as the canvas does; the picked row scrolls into view; the predicate tip is made on open
-export function TripleRow({ ctx, row }: { ctx: RelCtx; row: Relation }) {
+function TripleRowView({ ctx, row }: { ctx: RelCtx; row: Relation }) {
   const ui = lang.value;
   const ref = useRef<HTMLDivElement>(null);
   const { edge } = row;
@@ -150,3 +152,20 @@ export function TripleRow({ ctx, row }: { ctx: RelCtx; row: Relation }) {
     </div>
   );
 }
+
+export function publicTriple(row: Relation) {
+  const { edge, direction } = row;
+  return {
+    key: edge.key,
+    subject: entityOfDrawnId(edge.subject) ?? edge.subject,
+    predicate: edge.predicate,
+    object: entityOfDrawnId(edge.object) ?? edge.object,
+    retired: edge.retired,
+    muted: edge.muted,
+    direction,
+  };
+}
+
+export const TripleRow = extendable("triple-row", TripleRowView, ({ row }) => ({
+  triple: publicTriple(row),
+}));

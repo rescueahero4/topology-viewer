@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import { computed } from "@preact/signals";
 import {
   entityOfDrawnId,
@@ -115,7 +116,7 @@ type Props = Toggle & { actions: Actions };
 
 // why: FR-CANVAS-12, rule 1 (mockup app.js lines 828-949, index.html lines 145-150) — a chip while
 // anything is hidden, a card when the user opens it; `App` shows it only while the list has items
-export function HiddenPanel({ actions, open, onToggle }: Props) {
+function HiddenPanelView({ actions, open, onToggle }: Props) {
   const tip = useTip();
   const ui = lang.value;
   const now = editedModel.value;
@@ -302,3 +303,5 @@ function SelectBar({ keys, ticked, onTick, onShow }: BarProps) {
     </div>
   );
 }
+
+export const HiddenPanel = extendable("hidden-panel", HiddenPanelView);

@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import {
   dragging,
   ratio,
@@ -13,7 +14,7 @@ import { t } from "./strings/index";
 // why: rule 10 (mockup app.js lines 1274-1296) — the handle shows the table share in %; a drag with
 // pointer capture and ArrowUp (table larger) or ArrowDown (table smaller) set the canvas share,
 // which is stored after the drag or the key step
-export function SplitHandle({ controls }: { controls: string }) {
+function SplitHandleView({ controls }: { controls: string }) {
   const onPointerDown = (event: PointerEvent) => {
     const handle = event.currentTarget as HTMLElement;
     const box = handle.parentElement?.getBoundingClientRect();
@@ -51,3 +52,5 @@ export function SplitHandle({ controls }: { controls: string }) {
     />
   );
 }
+
+export const SplitHandle = extendable("split-handle", SplitHandleView);

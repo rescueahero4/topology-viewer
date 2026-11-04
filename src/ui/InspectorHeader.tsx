@@ -1,3 +1,5 @@
+import { selectedNode } from "./commands";
+import { extendable } from "./Part";
 import type {
   GroupNode,
   Hex,
@@ -87,7 +89,7 @@ function CountText({ tip, counts }: { tip: Tip; counts: Counts }) {
 // counts, the actions of the open card and the collapse toggle; row 2 has the type mark, the name
 // (two lines, the full name in the tip) and the service badge; a namesake gets one more line with
 // its container path (FR-CANVAS-19)
-export function InspectorHeader(props: Props) {
+function InspectorHeaderView(props: Props) {
   const { tip, vocab, canvas, head, counts, open, onToggle, children } = props;
   const ui = lang.value;
   const type = head.type === null ? undefined : vocab.types.get(head.type);
@@ -139,3 +141,5 @@ export function InspectorHeader(props: Props) {
     </div>
   );
 }
+
+export const InspectorHeader = extendable("inspector-header", InspectorHeaderView, () => ({ node: selectedNode() }));

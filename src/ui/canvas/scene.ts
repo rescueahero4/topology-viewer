@@ -1,3 +1,5 @@
+import { nodeData } from "../commands";
+import { peekOption } from "../custom";
 import {
   entitySlots,
   fadeSet,
@@ -91,6 +93,11 @@ function typeLabelOf(type: string | null, vocab: Vocab, text: RendererText) {
   return resolved.label;
 }
 
+function subText(entity: string): string | undefined {
+  const given = peekOption<(node: unknown) => string | undefined>("node", "sublabel");
+  return given?.(nodeData(entity));
+}
+
 function nodeOf(
   node: DrawnNode,
   at: Point,
@@ -105,7 +112,12 @@ function nodeOf(
   const visual = visualOf(node.type, vocab);
   const box = boxOf(node.type, vocab);
   const group = "members" in node;
-  const fullLabel = group ? text.groupLabel(typeLabel, node.count) : node.label;
+  const named = group ? text.groupLabel(typeLabel, node.count) : node.label;
+  const labelOf = peekOption<(node: unknown) => string | undefined>("node", "label");
+  const fullLabel =
+    labelOf === undefined || group
+      ? named
+      : (labelOf(nodeData(node.entity)) ?? named);
   return {
     id: node.id,
     kind: group ? "group" : "entity",
@@ -114,7 +126,9 @@ function nodeOf(
     label: middleCut(fullLabel),
     fullLabel,
     typeLabel,
-    sub: group ? text.collapsed : subOf(vocab, node.entity, typeLabel),
+    sub: group
+      ? text.collapsed
+      : (subText(node.entity) ?? subOf(vocab, node.entity, typeLabel)),
     visual,
     colour: colourOf(visual, canvas),
     w: box.w,

@@ -1,3 +1,6 @@
+import { partConfig } from "./custom";
+import { Slot } from "./Part";
+import { validateMessage } from "./state";
 import { targetOf } from "./eventScope";
 import type { EditCode, Lang } from "#engine";
 import type { ComponentChildren } from "preact";
@@ -32,6 +35,8 @@ export type EditorProps = {
   onClose: (how: Close) => void;
   holder: { current: (() => boolean) | null };
   values?: readonly string[];
+  row?: Readonly<Record<string, unknown>>;
+  column?: unknown;
 };
 
 export const TYPES: Readonly<Record<FieldKind, string>> = {
@@ -130,7 +135,9 @@ function Message({ ui, ids, code }: Shared & { ui: Lang }) {
     <div class="cell-msg" aria-live="polite">
       {code !== null && (
         <p id={ids.message} class="form-error float-card">
-          {t(ui, MESSAGES[code])}
+          {code === "custom"
+            ? (validateMessage.peek() ?? t(ui, MESSAGES[code]))
+            : t(ui, MESSAGES[code])}
         </p>
       )}
     </div>
@@ -249,7 +256,46 @@ const keysOf =
 // Escape cancels; a bad value keeps the editor open with its message; the input takes the name
 // "Edit <column>" from a text node. With nothing to save (a node search with no active item),
 // Enter does nothing and a press outside closes the editor with no save
+function CustomEditor(props: EditorProps & { ctx: Record<string, unknown> }) {
+  const { ui, save, onClose, holder, ctx } = props;
+  const [code, setCode] = useState<EditCode | null>(null);
+  const ids = { name: useElementId(), message: useElementId() };
+  holder.current = () => true;
+  const commit = (after: unknown) => {
+    const found = save({ after });
+    const answer = isAsk(found) ? found.apply(false) : found;
+    setCode(answer);
+    if (answer === null) onClose("key");
+  };
+  return (
+    <div class="cell-edit">
+      <Slot
+        part="cell-editor"
+        place="render"
+        ctx={{ ...ctx, commit, cancel: () => onClose("key") }}
+      />
+      <Message {...{ ui, ids, code }} />
+    </div>
+  );
+}
+
 export function CellEditor(props: EditorProps) {
+  const config = partConfig("cell-editor");
+  const ctx = {
+    row: props.row ?? null,
+    column: props.column ?? null,
+    value: props.value,
+    name: props.name,
+  };
+  if (
+    config?.render !== undefined &&
+    (config.match === undefined || config.match(ctx))
+  )
+    return <CustomEditor {...props} ctx={ctx} />;
+  return <DefaultEditor {...props} />;
+}
+
+function DefaultEditor(props: EditorProps) {
   const { ui, kind, value, name, check, onClose, holder } = props;
   const box = useRef<HTMLDivElement>(null);
   const field = useField(kind, value);

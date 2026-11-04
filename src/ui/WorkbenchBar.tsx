@@ -1,3 +1,6 @@
+import { Fragment } from "preact";
+import { optionOf } from "./custom";
+import { extendable, itemsOf } from "./Part";
 import type { Lang, Vocab } from "#engine";
 import type { ComponentChildren } from "preact";
 import { useMemo } from "preact/hooks";
@@ -185,7 +188,7 @@ const scopeOptions = (ui: Lang, hidden: number): Option<Scope>[] => [
   },
 ];
 
-function FilterControls(props: BarProps) {
+function FilterControlsView(props: BarProps) {
   const { lang: ui, filters, onFilters } = props;
   const { kindItems, familyItems } = useMenuItems(props.rows, props.vocab, ui);
   const tip = useTip();
@@ -194,36 +197,46 @@ function FilterControls(props: BarProps) {
     { value: "nodes", label: t(ui, "wb.nodes") },
     { value: "edges", label: t(ui, "wb.edges") },
   ];
+  const show =
+    optionOf<Readonly<Record<string, boolean>>>("table-filters", "show") ?? {};
   return (
     <>
-      <Seg
-        name={t(ui, "wb.scope")}
-        value={filters.scope}
-        options={scopeOptions(ui, props.hidden)}
-        tip={tip}
-        onPick={(scope) => onFilters({ scope })}
-      />
-      <Seg
-        name={t(ui, "wb.rowType")}
-        value={filters.rowType}
-        options={types}
-        tip={tip}
-        onPick={(rowType) => onFilters({ rowType })}
-      />
-      <CheckMenu
-        lang={ui}
-        name="wb.kind"
-        items={kindItems}
-        picked={filters.kinds}
-        onPick={(kinds) => onFilters({ kinds })}
-      />
-      <CheckMenu
-        lang={ui}
-        name="wb.family"
-        items={familyItems}
-        picked={filters.families}
-        onPick={(families) => onFilters({ families })}
-      />
+      {show.scope !== false && (
+        <Seg
+          name={t(ui, "wb.scope")}
+          value={filters.scope}
+          options={scopeOptions(ui, props.hidden)}
+          tip={tip}
+          onPick={(scope) => onFilters({ scope })}
+        />
+      )}
+      {show.rowType !== false && (
+        <Seg
+          name={t(ui, "wb.rowType")}
+          value={filters.rowType}
+          options={types}
+          tip={tip}
+          onPick={(rowType) => onFilters({ rowType })}
+        />
+      )}
+      {show.kinds !== false && (
+        <CheckMenu
+          lang={ui}
+          name="wb.kind"
+          items={kindItems}
+          picked={filters.kinds}
+          onPick={(kinds) => onFilters({ kinds })}
+        />
+      )}
+      {show.families !== false && (
+        <CheckMenu
+          lang={ui}
+          name="wb.family"
+          items={familyItems}
+          picked={filters.families}
+          onPick={(families) => onFilters({ families })}
+        />
+      )}
       <ColumnMenu
         lang={ui}
         keys={props.keys}
@@ -235,50 +248,87 @@ function FilterControls(props: BarProps) {
   );
 }
 
+const FilterControls = extendable("table-filters", FilterControlsView, (props: BarProps) => ({
+  filters: props.filters,
+  setFilters: props.onFilters,
+}));
+
 // why: rules 4, 9, 12 (mockup index.html lines 173-208) — the filters, the "Columns" menu, the
 // count, the search box, "Expand table" or "Restore split view", and "Close table"
-export function WorkbenchBar(props: BarProps) {
+function WorkbenchBarView(props: BarProps) {
   const { lang: ui, layout } = props;
   const id = useElementId();
   const full = layout === "table-full";
   return (
     <div class="wb-bar">
       {props.start}
-      <FilterControls {...props} />
-      <span class="spacer" />
-      <span class="wb-count" aria-live="polite">
-        {props.count}
-      </span>
-      <label for={id} class="sr-only">
-        {t(ui, "wb.searchRows")}
-      </label>
-      <input
-        {...{ id, type: "search", autocomplete: "off" }}
-        class="wb-search"
-        placeholder={t(ui, "wb.searchHint")}
-        value={props.text}
-        onInput={(event) => props.onText(event.currentTarget.value)}
-      />
-      <button
-        type="button"
-        class="icon-btn"
-        aria-label={t(ui, full ? "wb.restore" : "wb.expand")}
-        onClick={props.onExpand}
-      >
-        <span class="ic">
-          <UiIcon name={full ? "minimize" : "maximize"} />
-        </span>
-      </button>
-      <button
-        type="button"
-        class="icon-btn"
-        aria-label={t(ui, "wb.close")}
-        onClick={props.onClose}
-      >
-        <span class="ic">
-          <UiIcon name="x" />
-        </span>
-      </button>
+      {itemsOf(
+        "workbench-toolbar",
+        [
+          { id: "table-filters", node: <FilterControls key="filters" {...props} /> },
+          { id: "spacer", node: <span key="spacer" class="spacer" /> },
+          {
+            id: "table-count",
+            node: (
+              <span key="count" class="wb-count" aria-live="polite">
+                {props.count}
+              </span>
+            ),
+          },
+          {
+            id: "table-search",
+            node: (
+              <Fragment key="search">
+                <label for={id} class="sr-only">
+                  {t(ui, "wb.searchRows")}
+                </label>
+                <input
+                  {...{ id, type: "search", autocomplete: "off" }}
+                  class="wb-search"
+                  placeholder={t(ui, "wb.searchHint")}
+                  value={props.text}
+                  onInput={(event) => props.onText(event.currentTarget.value)}
+                />
+              </Fragment>
+            ),
+          },
+          {
+            id: "table-expand",
+            node: (
+              <button
+                key="expand"
+                type="button"
+                class="icon-btn"
+                aria-label={t(ui, full ? "wb.restore" : "wb.expand")}
+                onClick={props.onExpand}
+              >
+                <span class="ic">
+                  <UiIcon name={full ? "minimize" : "maximize"} />
+                </span>
+              </button>
+            ),
+          },
+          {
+            id: "table-close",
+            node: (
+              <button
+                key="close"
+                type="button"
+                class="icon-btn"
+                aria-label={t(ui, "wb.close")}
+                onClick={props.onClose}
+              >
+                <span class="ic">
+                  <UiIcon name="x" />
+                </span>
+              </button>
+            ),
+          },
+        ],
+        { count: props.count, filters: props.filters },
+      )}
     </div>
   );
 }
+
+export const WorkbenchBar = extendable("workbench-toolbar", WorkbenchBarView);

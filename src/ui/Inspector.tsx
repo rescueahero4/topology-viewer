@@ -9,6 +9,8 @@ import {
 import type { RefObject } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
 import type { Actions } from "./actions";
+import { selectedNode } from "./commands";
+import { Content, extendable, itemsOf } from "./Part";
 import { Fact } from "./Fact";
 import type { ShellHost } from "./host";
 import { InspectorActions } from "./InspectorActions";
@@ -81,7 +83,9 @@ function EmptyCard(props: { card: RefObject<HTMLElement>; embedded: boolean }) {
       aria-live="polite"
     >
       <div class="insp-head">
-        <span class="insp-empty">{t(lang.value, key)}</span>
+        <Content part="inspector-empty" ctx={() => ({})}>
+          <span class="insp-empty">{t(lang.value, key)}</span>
+        </Content>
       </div>
     </aside>
   );
@@ -98,7 +102,7 @@ type Props = {
 // why: FR-INSPECT-1, FR-CANVAS-13, STORY-004-04 rule 1 (mockup app.js lines 705-790) — empty,
 // expanded, or collapsed to its header; the user's choice stays across selections. The one tip of
 // the card sits outside it, because the blurred card is the containing block of a fixed element
-export function Inspector(props: Props) {
+function InspectorView(props: Props) {
   const { host, actions, open, onToggle } = props;
   const tip = useTip();
   const card = useRef<HTMLElement>(null);
@@ -160,22 +164,45 @@ function CardBody(props: {
   const { tip, actions, model: now } = ctx;
   return (
     <div class="insp-body">
-      {shown.entity === undefined ? (
-        <GroupFacts vocab={now.vocab} group={shown.group} />
-      ) : (
-        <Metadata
-          key={shown.entity.id}
-          ctx={{ tip, host }}
-          model={now}
-          entity={shown.entity}
-        />
+      {itemsOf(
+        "inspector-body",
+        [
+          {
+            id: "inspector-attributes",
+            node:
+              shown.entity === undefined ? (
+                <GroupFacts key="facts" vocab={now.vocab} group={shown.group} />
+              ) : (
+                <Metadata
+                  key={shown.entity.id}
+                  ctx={{ tip, host }}
+                  model={now}
+                  entity={shown.entity}
+                />
+              ),
+          },
+          {
+            id: "inspector-notes",
+            node: (
+              <InspectorNotes
+                key="notes"
+                actions={actions}
+                vocab={now.vocab}
+                node={ctx.nodes.get(shown.drawn)}
+              />
+            ),
+          },
+          {
+            id: "inspector-triples",
+            node: <Relationships key="triples" ctx={ctx} rows={rows} />,
+          },
+        ],
+        { node: selectedNode() },
       )}
-      <InspectorNotes
-        actions={actions}
-        vocab={now.vocab}
-        node={ctx.nodes.get(shown.drawn)}
-      />
-      <Relationships ctx={ctx} rows={rows} />
     </div>
   );
 }
+
+export const Inspector = extendable("inspector", InspectorView, () => ({
+  node: selectedNode(),
+}));

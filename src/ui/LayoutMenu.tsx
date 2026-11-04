@@ -1,3 +1,5 @@
+import { custom, optionOf, type CustomLayout } from "./custom";
+import { extendable } from "./Part";
 import type { Lang, LayoutName } from "#engine";
 import { useElementId } from "./ids";
 import type { Actions } from "./actions";
@@ -56,6 +58,35 @@ const LAYOUTS: readonly Layout[] = [
 ];
 const TREES: readonly LayoutName[] = ["tree-h", "tree-v"];
 
+// The built-in layouts that the developer keeps. All of them with no option.
+function shownLayouts(): readonly Layout[] {
+  const names = optionOf<readonly string[]>("layout-menu", "layouts");
+  return names === undefined
+    ? LAYOUTS
+    : LAYOUTS.filter((item) => names.includes(item.name));
+}
+
+function CustomLayouts({ actions, layout }: Pick<Props, "actions" | "layout">) {
+  const given = custom.value.layouts ?? {};
+  const names = Object.keys(given);
+  if (names.length === 0) return null;
+  return (
+    <>
+      <hr />
+      {names.map((name) => (
+        <MenuItem
+          key={name}
+          kind="radio"
+          checked={layout === `custom:${name}`}
+          onSelect={() => actions.setLayout(`custom:${name}`)}
+        >
+          {(given[name] as CustomLayout).label}
+        </MenuItem>
+      ))}
+    </>
+  );
+}
+
 type Props = {
   actions: Actions;
   lang: Lang;
@@ -103,19 +134,26 @@ function LayoutItem({
 // why: FR-CANVAS-2, FR-CANVAS-8 — a pick of the current layout runs it again, so every pick calls
 // the canvas; the checked item follows the canvas state. STORY-007-03 rules 4, 5 — embedded, the
 // name is "Layout" and the tip above is the button text of the current layout
-export function LayoutMenu(props: Props) {
+function LayoutMenuView(props: Props) {
   const { lang, layout, tip, embedded } = props;
   const current = LAYOUTS.find((item) => item.name === layout) ?? LAYOUTS[0];
   const items = (trees: boolean) =>
-    LAYOUTS.filter((item) => TREES.includes(item.name) === trees).map(
+    shownLayouts().filter((item) => TREES.includes(item.name) === trees).map(
       (item) => <LayoutItem key={item.name} {...props} item={item} />,
     );
+  const plain = items(false);
+  const trees = items(true);
+  // A custom layout names itself on the button.
+  const customName = layout.startsWith("custom:")
+    ? custom.value.layouts?.[layout.slice("custom:".length)]?.label
+    : undefined;
+  const buttonText = customName ?? t(lang, current.button);
   const label = (
     <>
       <span class="ic">
         <UiIcon name={current.icon} />
       </span>
-      {t(lang, current.button)}
+      {buttonText}
       <span class="ic chev">
         <UiIcon name="chevron-up" />
       </span>
@@ -126,16 +164,20 @@ export function LayoutMenu(props: Props) {
       label={label}
       name={embedded ? t(lang, "layout.heading") : undefined}
       buttonClass="ctl-btn"
+      menuClass="layout-menu"
       closeOnPick
-      anchor={
-        embedded ? tip.above("layout", t(lang, current.button)) : undefined
-      }
+      anchor={embedded ? tip.above("layout", buttonText) : undefined}
     >
-      <p class="menu-label">{t(lang, "layout.heading")}</p>
-      {items(false)}
-      <hr />
-      <p class="menu-label">{t(lang, "layout.tree")}</p>
-      {items(true)}
+      {plain.length > 0 && (
+        <p class="menu-label">{t(lang, "layout.heading")}</p>
+      )}
+      {plain}
+      {plain.length > 0 && trees.length > 0 && <hr />}
+      {trees.length > 0 && <p class="menu-label">{t(lang, "layout.tree")}</p>}
+      {trees}
+      <CustomLayouts actions={props.actions} layout={layout} />
     </Menu>
   );
 }
+
+export const LayoutMenu = extendable("layout-menu", LayoutMenuView);

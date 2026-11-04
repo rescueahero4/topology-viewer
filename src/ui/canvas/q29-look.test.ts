@@ -262,7 +262,7 @@ describe("S10 the lost badge on s-vague", () => {
     const css = readFileSync(
       path.resolve(import.meta.dirname, "../tokens.css"),
       "utf8",
-    );
+    ).replace(/var\(--tv-[\w-]+, ([^;]+?)\);/g, "$1;");
     for (const text of [
       "--lost-fill: #fee2e2;",
       "--lost-ink: #b91c1c;",

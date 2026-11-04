@@ -11,6 +11,7 @@ export {
   type FitOptions,
 } from "./fit";
 export type { Intent } from "./intents";
+export { setRenderHooks, type RenderHooks, type TipInfo } from "./hooks";
 export { iconMetrics, spriteColours } from "./sprite";
 export { typeMark } from "./typeMark";
 export type { Scene, SceneEdge, SceneNode, SceneType } from "./scene";

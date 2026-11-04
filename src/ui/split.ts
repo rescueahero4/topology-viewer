@@ -1,3 +1,4 @@
+import { keyIs } from "./custom";
 import { inKeyScope, targetOf } from "./eventScope";
 import { batch, signal } from "@preact/signals";
 import type { RefObject } from "preact";
@@ -141,15 +142,16 @@ export function stepRatio(tableLarger: boolean): void {
 // is open. In a text field each key types its character
 function onSplitKey(event: KeyboardEvent): void {
   if (!inKeyScope(event) || isField(targetOf(event))) return;
-  if (event.key === "." && (event.ctrlKey || event.metaKey)) {
+  if (keyIs("toggleTable", event)) {
     event.preventDefault();
     toggleWorkbench();
     return;
   }
-  if (event.key !== "[" && event.key !== "]") return;
-  if (!isOpen() || event.ctrlKey || event.metaKey || event.altKey) return;
+  const larger = keyIs("tableLarger", event);
+  if (!larger && !keyIs("tableSmaller", event)) return;
+  if (!isOpen()) return;
   event.preventDefault();
-  stepRatio(event.key === "]");
+  stepRatio(larger);
 }
 
 export function useSplitKeys(

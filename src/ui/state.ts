@@ -50,10 +50,17 @@ export const editHistory = signal({ history: new EditHistory(), version: 0 });
 // why: STORY-008-09 rule 8 (FR-CELL-16) — the last save, Undo, Redo, Cancel or Save with its change
 // count, for the `aria-live` result; a new object each time, so the same result is read again
 export type EditStep = {
-  kind: "save" | "undo" | "redo" | "saved" | "cancelled";
+  kind: "save" | "undo" | "redo" | "saved" | "cancelled" | "failed";
   count: number;
 };
 export const editStep = signal<EditStep | null>(null);
+// A save that the developer handles can take time and can fail. The table takes no edit meanwhile.
+export const saveState = signal<{ saving: boolean; error: string | null }>({
+  saving: false,
+  error: null,
+});
+// The text of a `validate` answer, for the message of the cell editor.
+export const validateMessage = signal<string | null>(null);
 
 export function freshHistory(): void {
   editHistory.value = {

@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import {
   copyMessage,
   noticeText,
@@ -109,7 +110,7 @@ function Sections({ entry }: { entry: NoticeEntry }) {
 
 // why: FR-CANVAS-16, ddr-0052, rule 2 — one layout for the 28 codes, over the canvas and under
 // the floating controls; the details hold the code only (no message, stack or path, SA §9)
-export function CanvasNotice(props: Props) {
+function CanvasNoticeView(props: Props) {
   const { found, host } = props;
   const ui = lang.value;
   const entry = noticeText(found.code, found.info, ui);
@@ -150,3 +151,5 @@ export function CanvasNotice(props: Props) {
     </div>
   );
 }
+
+export const CanvasNotice = extendable("canvas-notice", CanvasNoticeView);

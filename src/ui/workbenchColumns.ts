@@ -1,3 +1,4 @@
+import { columnConfig, columnConfigs, columnsOnly, publicRow } from "./tableConfig";
 import {
   attributeSet,
   type AttrEntry,
@@ -59,7 +60,11 @@ const NAMES: Readonly<Record<CoreKey, Key>> = {
   attributes: "wb.col.attributes",
 };
 
-export const coreName = (lang: Lang, key: CoreKey) => t(lang, NAMES[key]);
+export const coreName = (lang: Lang, key: CoreKey) =>
+  columnConfigs().find((one) => one.core === key)?.label ?? t(lang, NAMES[key]);
+
+export const attrName = (key: string) =>
+  columnConfigs().find((one) => one.attr === key)?.label ?? key;
 
 // why: rule 2, epic question 24 (Security round 4, Product Owner 2026-10-21) — the attribute
 // columns with the most coverage show at first; the others start off in the "Columns" menu
@@ -102,8 +107,33 @@ export const attrShown = (choice: Choice, key: string, at: number) =>
   choice.attrs.get(key) ?? at < FIRST_SHOWN;
 
 export function shownColumns(keys: readonly string[], choice: Choice) {
-  const core = CORE.filter((key) => choice.core.get(key) ?? true);
-  const attrs = keys.filter((key, at) => attrShown(choice, key, at));
+  const configs = columnConfigs();
+  const off = (column: Column) => columnConfig(column)?.hidden === true;
+  if (columnsOnly())
+    return configs.flatMap((one): Column[] => {
+      if (one.hidden === true) return [];
+      if (one.core !== undefined) {
+        const key = one.core as CoreKey;
+        return (choice.core.get(key) ?? true) ? [{ core: key }] : [];
+      }
+      if (one.attr === undefined) return [];
+      return (choice.attrs.get(one.attr) ?? true) ? [{ attr: one.attr }] : [];
+    });
+  const core = CORE.filter(
+    (key) => (choice.core.get(key) ?? true) && !off({ core: key }),
+  );
+  const attrs = keys.filter(
+    (key, at) => attrShown(choice, key, at) && !off({ attr: key }),
+  );
+  // A column of the developer that the data does not have, such as a computed one.
+  for (const one of configs)
+    if (
+      one.attr !== undefined &&
+      one.hidden !== true &&
+      !keys.includes(one.attr) &&
+      (choice.attrs.get(one.attr) ?? true)
+    )
+      attrs.push(one.attr);
   return [
     ...core.map((key): Column => ({ core: key })),
     ...attrs.map((key): Column => ({ attr: key })),
@@ -174,6 +204,20 @@ function edgeText(lang: Lang, key: CoreKey, row: Row): string {
 
 // why: rules 2, 5 — the text of a cell; the sort reads the same text
 export function cellText(lang: Lang, vocab: Vocab, column: Column, row: Row) {
+  const config = columnConfig(column);
+  if (config?.value === undefined && config?.format === undefined)
+    return baseText(lang, vocab, column, row);
+  const shown = publicRow(row);
+  const value =
+    config.value === undefined
+      ? baseText(lang, vocab, column, row)
+      : config.value(shown);
+  return config.format === undefined
+    ? valueText(lang, value)
+    : config.format(value, shown);
+}
+
+function baseText(lang: Lang, vocab: Vocab, column: Column, row: Row) {
   if ("attr" in column)
     return row.rtype === "node"
       ? valueText(lang, own(row.record.attrs, column.attr))

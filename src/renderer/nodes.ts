@@ -1,6 +1,7 @@
 import { select, type Selection } from "d3-selection";
 import type { DrawnId, Point } from "#engine";
 import { drawBadge, drawChip, drawLost } from "./badges";
+import { renderHooks } from "./hooks";
 import { setColour } from "./marks";
 import type { SceneNode } from "./scene";
 import type { Hrefs } from "./sprite";
@@ -70,6 +71,32 @@ function drawLabels(node: NodeSelection, d: SceneNode, ctx: NodeContext) {
     .text(d.fullLabel === "" ? d.sub : d.fullLabel);
 }
 
+function drawA11y(node: NodeSelection, d: SceneNode, ctx: NodeContext) {
+  node
+    .append("text")
+    .attr("class", "qt-a11y")
+    .attr("id", ctx.labelId(d.id))
+    .text(d.fullLabel === "" ? d.sub : d.fullLabel);
+}
+
+const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// A custom node: the content of the developer shows through a native slot, in this group, so it moves
+// with the node. The name of the slot is a counter, never a model string.
+function drawSlot(el: SVGGElement, d: SceneNode, name: string): void {
+  const doc = el.ownerDocument;
+  const box = doc.createElementNS(el.namespaceURI, "foreignObject");
+  box.setAttribute("x", String(-d.w / 2));
+  box.setAttribute("y", String(-d.h / 2));
+  box.setAttribute("width", String(d.w));
+  box.setAttribute("height", String(d.h));
+  box.setAttribute("overflow", "visible");
+  const slot = doc.createElementNS(HTML_NS, "slot");
+  slot.setAttribute("name", name);
+  box.appendChild(slot);
+  el.appendChild(box);
+}
+
 // why: STORY-005-09 rule 2 (c), ISSUE-015 — the last drawn inputs of each node stay in memory
 // only, never in the DOM
 const drawnInputs = new WeakMap<SVGGElement, string>();
@@ -98,11 +125,18 @@ function inputsOf(d: SceneNode, ctx: NodeContext): string {
 // why: ISSUE-015 — Chromium fires `dblclick` only when both clicks hit the same element, and the
 // select of the first click paints again, so a node with equal inputs keeps its children
 function fillNode(el: SVGGElement, d: SceneNode, ctx: NodeContext): void {
-  const inputs = inputsOf(d, ctx);
+  const slot = renderHooks.nodeSlot?.(d) ?? null;
+  const inputs = `${inputsOf(d, ctx)}${slot === null ? "" : slot.name}`;
   if (drawnInputs.get(el) === inputs) return;
   drawnInputs.set(el, inputs);
   el.replaceChildren();
   const node = select<SVGGElement, SceneNode>(el);
+  if (slot !== null) {
+    drawSlot(el, d, slot.name);
+    if (slot.labels) drawLabels(node, d, ctx);
+    else drawA11y(node, d, ctx);
+    return;
+  }
   if (d.kind === "group") drawHalo(node, d);
   drawMark(node, d, ctx.hrefOf(d));
   drawLabels(node, d, ctx);
@@ -120,11 +154,18 @@ export function drawNodes(
   select(layer)
     .selectAll<SVGGElement, SceneNode>("g.qt-node")
     .data(nodes, (d) => d.id)
-    .join((enter) =>
-      enter
-        .append("g")
-        .attr("tabindex", 0)
-        .attr("aria-labelledby", (d) => ctx.labelId(d.id)),
+    .join(
+      (enter) =>
+        enter
+          .append("g")
+          .attr("tabindex", 0)
+          .attr("aria-labelledby", (d) => ctx.labelId(d.id)),
+      (update) => update,
+      (exit) => {
+        if (renderHooks.nodeGone !== undefined)
+          exit.each((d) => renderHooks.nodeGone?.(d.id));
+        exit.remove();
+      },
     )
     .attr("class", classOf)
     .attr("transform", translate)

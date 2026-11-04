@@ -1,10 +1,21 @@
+import { selectedNode } from "./commands";
+import { extendable } from "./Part";
 import type { ResolvedEntity } from "#engine";
 import { Fragment, type VNode } from "preact";
 import { useState } from "preact/hooks";
 import { AiMark } from "./AiMark";
 import type { CanvasModel } from "./canvas/index";
 import { RowFact, SlotFact, TypeFact, WriteFact, type FactCtx } from "./Fact";
-import { firstRecord, genericRows, otherRows } from "./factRows";
+import {
+  fieldRows,
+  firstRecord,
+  genericRows,
+  otherRows,
+  type FactRow,
+  type FieldOption,
+} from "./factRows";
+import { nodeData } from "./commands";
+import { optionOf } from "./custom";
 import { valueText } from "./formatValue";
 import { slotName } from "./names";
 import { lang } from "./state";
@@ -15,12 +26,21 @@ type Cap = { open: boolean; toggle: () => void } | null;
 
 // why: FR-INSPECT-4, mockup `FACT_CAP` (app.js line 563) — a capped list shows 6 rows
 const FACT_CAP = 6;
+const capOf = () => optionOf<number>("inspector-attributes", "cap", FACT_CAP);
+
+function customRows(rows: FactRow[], props: Props): FactRow[] {
+  const fields = optionOf<readonly FieldOption[]>("inspector-attributes", "fields");
+  if (fields === undefined) return rows;
+  const only = optionOf<boolean>("inspector-attributes", "only", false);
+  const attrs = firstRecord(props.model, props.entity.id)?.attrs ?? {};
+  return fieldRows(rows, fields, only, nodeData(props.entity.id), attrs);
+}
 
 function FactList({ facts, cap }: { facts: VNode[]; cap: Cap }) {
   const ui = lang.value;
-  const more = cap === null ? 0 : facts.length - FACT_CAP;
-  const shown =
-    more > 0 && cap?.open !== true ? facts.slice(0, FACT_CAP) : facts;
+  const most = capOf();
+  const more = cap === null ? 0 : facts.length - most;
+  const shown = more > 0 && cap?.open !== true ? facts.slice(0, most) : facts;
   return (
     <>
       <dl>{shown}</dl>
@@ -69,7 +89,7 @@ function Catalog({ props, cap }: { props: Props; cap: Cap }) {
       />,
     ),
   );
-  const other = otherRows(ui, model, entity.id).map((row, i) =>
+  const other = customRows(otherRows(ui, model, entity.id), props).map((row, i) =>
     keyed(String(i), <RowFact ctx={ctx} row={row} />),
   );
   return (
@@ -90,7 +110,7 @@ function Catalog({ props, cap }: { props: Props; cap: Cap }) {
 function Generic({ props, cap }: { props: Props; cap: Cap }) {
   const ui = lang.value;
   const { ctx, model, entity } = props;
-  const rows = genericRows(ui, model, entity.id).map((row, i) =>
+  const rows = customRows(genericRows(ui, model, entity.id), props).map((row, i) =>
     keyed(String(i), <RowFact ctx={ctx} row={row} />),
   );
   const record = firstRecord(model, entity.id);
@@ -118,7 +138,7 @@ function Generic({ props, cap }: { props: Props; cap: Cap }) {
 
 // why: FR-INSPECT-4; the parent keys this component by the entity, so "Show N more" closes on a new
 // selection (mockup `factsOpen`, app.js line 529)
-export function Metadata(props: Props) {
+function MetadataView(props: Props) {
   const ui = lang.value;
   const [open, setOpen] = useState(false);
   const cap = { open, toggle: () => setOpen((now) => !now) };
@@ -134,3 +154,5 @@ export function Metadata(props: Props) {
     </div>
   );
 }
+
+export const Metadata = extendable("inspector-attributes", MetadataView, () => ({ node: selectedNode() }));

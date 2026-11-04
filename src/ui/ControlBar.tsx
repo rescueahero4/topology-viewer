@@ -1,5 +1,6 @@
 import { stats } from "#engine";
-import type { JSX } from "preact";
+import { Fragment, type JSX } from "preact";
+import { extendable, itemsOf } from "./Part";
 import type { Actions } from "./actions";
 import { GroupingMenu } from "./GroupingMenu";
 import { LayoutMenu } from "./LayoutMenu";
@@ -16,7 +17,7 @@ type DatasetProps = { tip: Tip; controls: string; embedded: boolean };
 // why: FR-HOST-2, rule 9 (mockup index.html line 136, app.js lines 1265-1266) — the tip names the
 // macOS key when `navigator.platform` says so; the key works with Ctrl or Cmd on every platform.
 // STORY-007-03 rules 4, 5 — embedded, the name is "Dataset table" and the tip above is the label
-function DatasetButton({ tip, controls, embedded }: DatasetProps) {
+function DatasetButtonView({ tip, controls, embedded }: DatasetProps) {
   const ui = lang.value;
   const mac = /mac/i.test(navigator.platform);
   const anchor: JSX.HTMLAttributes<HTMLButtonElement> = embedded
@@ -43,9 +44,11 @@ function DatasetButton({ tip, controls, embedded }: DatasetProps) {
   );
 }
 
+const DatasetButton = extendable("dataset-button", DatasetButtonView);
+
 // why: P22 and the mockup canvas controls (index.html lines 84-133) — bottom left on the canvas,
 // each menu opens upwards; the tip of the layout info icons sits outside the blurred card
-export function ControlBar({
+function ControlBarView({
   actions,
   workbench,
   embedded,
@@ -63,44 +66,78 @@ export function ControlBar({
   return (
     <>
       <div class="controls float-card">
-        <ScopeMenu
-          actions={actions}
-          lang={ui}
-          model={now}
-          state={state}
-          drawn={drawn}
-          tip={tip}
-          embedded={embedded}
-        />
-        <span class="sep" aria-hidden="true" />
-        <TypesMenu
-          actions={actions}
-          lang={ui}
-          vocab={now.vocab}
-          types={stats(now.vocab, state).types}
-          tip={tip}
-          embedded={embedded}
-        />
-        <span class="sep" aria-hidden="true" />
-        <LayoutMenu
-          actions={actions}
-          lang={ui}
-          layout={state.layout}
-          tip={tip}
-          embedded={embedded}
-        />
-        <span class="sep" aria-hidden="true" />
-        <GroupingMenu
-          actions={actions}
-          lang={ui}
-          grouping={state.grouping}
-          tip={tip}
-          embedded={embedded}
-        />
-        <span class="sep" aria-hidden="true" />
-        <DatasetButton tip={tip} controls={workbench} embedded={embedded} />
+        {itemsOf("display-options", [
+          {
+            id: "scope-menu",
+            node: (
+              <ScopeMenu
+                actions={actions}
+                lang={ui}
+                model={now}
+                state={state}
+                drawn={drawn}
+                tip={tip}
+                embedded={embedded}
+              />
+            ),
+          },
+          {
+            id: "types-menu",
+            node: (
+              <TypesMenu
+                actions={actions}
+                lang={ui}
+                vocab={now.vocab}
+                types={stats(now.vocab, state).types}
+                tip={tip}
+                embedded={embedded}
+              />
+            ),
+          },
+          {
+            id: "layout-menu",
+            node: (
+              <LayoutMenu
+                actions={actions}
+                lang={ui}
+                layout={state.layout}
+                tip={tip}
+                embedded={embedded}
+              />
+            ),
+          },
+          {
+            id: "grouping-menu",
+            node: (
+              <GroupingMenu
+                actions={actions}
+                lang={ui}
+                grouping={state.grouping}
+                tip={tip}
+                embedded={embedded}
+              />
+            ),
+          },
+          {
+            id: "dataset-button",
+            node: (
+              <DatasetButton
+                tip={tip}
+                controls={workbench}
+                embedded={embedded}
+              />
+            ),
+          },
+        ]).map((node, at) => (
+          <Fragment key={at}>
+            {at > 0 && <span class="sep" aria-hidden="true" />}
+            {node}
+          </Fragment>
+        ))}
       </div>
       {tip.node}
     </>
   );
 }
+
+export const ControlBar = extendable("display-options", ControlBarView);

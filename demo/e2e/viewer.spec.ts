@@ -355,9 +355,7 @@ test.describe("page integration", () => {
     const toggle = page.locator(".a .display-btn");
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    expect(
-      await page.evaluate(() => document.fullscreenElement?.className),
-    ).toBe("a");
+    expect(await page.evaluate(() => document.fullscreenElement)).toBeNull();
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
   });

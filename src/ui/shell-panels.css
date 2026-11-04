@@ -43,7 +43,7 @@
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   color: var(--zinc-900);
   padding: 5px 0;
   outline: none;
@@ -61,11 +61,11 @@
 kbd {
   font-family:
     ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   color: var(--zinc-500);
   border: 1px solid var(--zinc-200);
   border-bottom-width: 2px;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   padding: 0 4px;
   line-height: 14px;
 }
@@ -82,9 +82,9 @@ kbd {
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   color: var(--zinc-700);
 }
 .search-results li[aria-selected="true"],
@@ -99,7 +99,7 @@ kbd {
 .search-results .meta {
   margin-left: auto;
   color: var(--zinc-500);
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
 }
 .search-results .none {
   color: var(--zinc-500);
@@ -108,7 +108,7 @@ kbd {
 .search-results .sub {
   flex-basis: 100%;
   padding-left: 24px;
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   color: var(--zinc-500);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,9 +156,9 @@ kbd {
   gap: 6px;
   padding: 3px 4px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   background: transparent;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   font-weight: 600;
   color: var(--zinc-900);
   cursor: pointer;
@@ -176,10 +176,10 @@ kbd {
 .hid-count {
   min-width: 18px;
   padding: 0 5px;
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   background: var(--zinc-900);
   color: var(--surface);
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   font-weight: 600;
   line-height: 16px;
   text-align: center;
@@ -202,7 +202,7 @@ kbd {
   gap: 8px;
   padding: 6px 12px;
   border-bottom: 1px solid var(--zinc-200);
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
   color: var(--zinc-600);
 }
 .hid-list {
@@ -217,7 +217,7 @@ kbd {
   align-items: center;
   gap: 8px;
   padding: 4px 4px 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -254,7 +254,7 @@ kbd {
   flex-direction: column;
 }
 .hid-row .name {
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   font-weight: 500;
   color: var(--zinc-900);
   overflow: hidden;
@@ -262,7 +262,7 @@ kbd {
   white-space: nowrap;
 }
 .hid-row .sub {
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   color: var(--zinc-500);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -320,9 +320,9 @@ kbd {
   gap: 6px;
   max-width: min(440px, calc(100% - 24px));
   padding: 4px 6px 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   color: var(--zinc-700);
   cursor: pointer;
   white-space: nowrap;
@@ -356,10 +356,10 @@ kbd {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   background: var(--zinc-900);
   color: var(--surface);
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
   font-weight: 500;
   flex: none;
 }

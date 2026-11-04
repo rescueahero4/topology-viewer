@@ -54,11 +54,16 @@ describe("S9 the button exists only when the host lists fullscreen", () => {
   it.each([
     ["no list", { availableDisplayModes: undefined }],
     ["inline only", { availableDisplayModes: ["inline"] }],
-    ["not embedded", { embedded: false, availableDisplayModes: FULL }],
   ])("%s gives no button", async (_name, options) => {
     const { root } = await mount(options);
     expect(root.querySelector(".tools .search")).not.toBeNull();
     expect(toggle(root)).toBeNull();
+  });
+
+  // The page variant is the default now, and it has the button too.
+  it("shows the button with no embedded host when fullscreen is listed", async () => {
+    const { root } = await mount({ embedded: false, availableDisplayModes: FULL });
+    expect(toggle(root)).not.toBeNull();
   });
 
   it("puts one button after the search when fullscreen is listed", async () => {

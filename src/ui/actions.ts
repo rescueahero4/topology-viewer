@@ -1,3 +1,4 @@
+import { dispatch } from "./custom";
 import type {
   Budget,
   CanvasState,
@@ -53,7 +54,44 @@ export function snapshotOf(): Snapshot | null {
 // why: rule 1, SA §4.5 — each control of the shell calls one canvas method through this module;
 // there is no `setGrouping` method, so the Grouping change is a filter action. STORY-004-08 rule 6
 // — a budget change and a reset first keep the snapshot for the Undo toast
+const CHECKED = [
+  "setBudget",
+  "resetView",
+  "setLayout",
+  "showAllTypes",
+  "toggleType",
+  "toggleFamily",
+  "togglePredicate",
+  "setGrouping",
+  "select",
+  "focus",
+  "expand",
+  "collapse",
+  "hide",
+  "restore",
+  "reveal",
+  "groupAroundRoot",
+  "clearAndFit",
+] as const satisfies readonly (keyof Actions)[];
+
+// Each control of the shell goes through here, so that an `on` handler or `onAction` of the developer
+// can see or stop it. With no customization `dispatch` answers true at once.
+function checked(actions: Actions): Actions {
+  const out = { ...actions } as Record<string, unknown>;
+  for (const name of CHECKED) {
+    const run = actions[name] as (...args: unknown[]) => void;
+    out[name] = (...args: unknown[]) => {
+      if (dispatch(name, args, { value: args[0] })) run(...args);
+    };
+  }
+  return out as Actions;
+}
+
 export function actionsOf(canvas: Canvas, keep: () => void): Actions {
+  return checked(directActions(canvas, keep));
+}
+
+function directActions(canvas: Canvas, keep: () => void): Actions {
   return {
     setBudget: (n) => {
       keep();

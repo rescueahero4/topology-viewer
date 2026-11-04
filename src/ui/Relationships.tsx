@@ -1,3 +1,7 @@
+import { selectedNode } from "./commands";
+import { optionOf } from "./custom";
+import { extendable } from "./Part";
+import { publicTriple } from "./TripleRow";
 import type { Selection } from "#engine";
 import { useState } from "preact/hooks";
 import { familyClass, familyIcon } from "./familyLook";
@@ -85,7 +89,7 @@ function Blocks({
 
 // why: FR-INSPECT-1, rules 1, 3, 4 (mockup app.js lines 754-790) — the tabs count each direction;
 // a new selection shows "All" again (mockup line 529)
-export function Relationships({
+function RelationshipsView({
   ctx,
   rows,
 }: {
@@ -104,10 +108,16 @@ export function Relationships({
     out,
     in: rows.length - out,
   };
-  const shown = rows.filter((row) => tab === "all" || row.direction === tab);
+  const keep = optionOf<(triple: unknown) => boolean>("inspector-triples", "filter");
+  const shown = rows.filter(
+    (row) =>
+      (tab === "all" || row.direction === tab) &&
+      (keep === undefined || keep(publicTriple(row))),
+  );
+  const tabs = optionOf<boolean>("inspector-triples", "tabs", true);
   return (
     <>
-      <div class="insp-tabs">
+      <div class="insp-tabs" hidden={!tabs}>
         <div
           role="tablist"
           class="tab-list"
@@ -134,3 +144,7 @@ export function Relationships({
     </>
   );
 }
+
+export const Relationships = extendable("inspector-triples", RelationshipsView, () => ({
+  node: selectedNode(),
+}));

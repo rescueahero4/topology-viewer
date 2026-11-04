@@ -1,3 +1,4 @@
+import { keyIs, live } from "./custom";
 import { inKeyScope, targetOf } from "./eventScope";
 import type { RefObject } from "preact";
 import { useEffect } from "preact/hooks";
@@ -18,9 +19,12 @@ export function useEscapeKey(
     const doc = anchor.current?.ownerDocument;
     if (doc === undefined || actions === null) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return;
+      if (!keyIs("escape", event) || event.defaultPrevented) return;
       if (!inKeyScope(event)) return;
       if (isField(targetOf(event)) || closeMenu() || closeTips()) return;
+      // The browser exits its own full screen on this key; the viewer exits its own view here. The
+      // selection stays.
+      if (live.exitOnEscape?.() === true) return;
       actions.select(null);
     };
     doc.addEventListener("keydown", onKey);

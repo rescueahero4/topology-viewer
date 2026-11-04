@@ -1,3 +1,4 @@
+import { keyIs } from "./custom";
 import type { Actions } from "./actions";
 import { redoEdit, undoEdit } from "./edits";
 
@@ -5,12 +6,12 @@ import { redoEdit, undoEdit } from "./edits";
 // Ctrl+Shift+Z (Cmd+Shift+Z) redoes while the focus is in the Workbench and no cell is in edit; in
 // a cell editor, its form or its choice the keys stay with the input text, as the browser does
 export function editKeyOf(event: KeyboardEvent): "undo" | "redo" | null {
-  if (!(event.ctrlKey || event.metaKey) || event.altKey) return null;
-  if (event.key.toLowerCase() !== "z") return null;
+  const redo = keyIs("redo", event);
+  if (!redo && !keyIs("undo", event)) return null;
   const target = event.target;
   if (target instanceof Element && target.closest(".cell-edit") !== null)
     return null;
-  return event.shiftKey ? "redo" : "undo";
+  return redo ? "redo" : "undo";
 }
 
 // why: rule 4 — the handler of the Workbench section stops the event, so the host page gets no

@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import {
   useCallback,
   useEffect,
@@ -41,7 +42,7 @@ type Props = {
 // why: rule 6 (H1: the status stack, styles.css lines 303-305, and the focus-pill form, lines
 // 321-332) — the text, then one action button; the press makes a new canvas with the saved input,
 // state and camera and closes the toast
-export function UndoToast({ snapshot, close, remake }: Props) {
+function UndoToastView({ snapshot, close, remake }: Props) {
   useEffect(() => {
     if (snapshot === null) return;
     const timer = setTimeout(close, TOAST_MS);
@@ -65,3 +66,5 @@ export function UndoToast({ snapshot, close, remake }: Props) {
     </div>
   );
 }
+
+export const UndoToast = extendable("undo-toast", UndoToastView);

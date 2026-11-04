@@ -1,3 +1,6 @@
+import { liveActions } from "./commands";
+import { live } from "./custom";
+import { Content } from "./Part";
 import type {
   CanvasState,
   Fatal,
@@ -254,7 +257,12 @@ function useHiddenCard(): Toggle & { any: boolean } {
 // why: STORY-007-03 rules 1, 3 — the `.shell` attributes of the embedded host (embed-frame.html
 // line 10); the narrow rule is off in the embedded inline mode
 function hostOf({ embedded, displayMode }: AppProps) {
-  if (embedded !== true) return { narrow: true, attributes: {} };
+  if (embedded !== true)
+    return {
+      narrow: true,
+      attributes:
+        displayMode === "fullscreen" ? { "data-display": "fullscreen" } : {},
+    };
   const display = displayMode ?? "inline";
   return {
     narrow: display === "fullscreen",
@@ -291,6 +299,15 @@ export function App(props: AppProps) {
     [canvas, keep],
   );
   useEscapeKey(root, actions);
+  useLayoutEffect(() => {
+    liveActions.value = actions;
+  }, [actions]);
+  useLayoutEffect(() => {
+    live.inspector = { get: () => open, set: setOpen };
+    return () => {
+      live.inspector = null;
+    };
+  });
   const card =
     inspected.value === null ? "empty" : open ? "expanded" : "collapsed";
   // why: ISSUE-012 C6 — the Inspector mounts a new card element when the floating controls come or
@@ -317,6 +334,7 @@ export function App(props: AppProps) {
             </Search>
           )}
           {shown.ok && <div class="graph" ref={graph} />}
+          {shown.ok && <Content part="canvas" ctx={() => ({})} />}
           <Notice shell={shell} host={host} actions={actions} />
           {actions !== null && (
             <Floating

@@ -1,3 +1,5 @@
+import { optionOf } from "./custom";
+import { extendable } from "./Part";
 import type {
   Budget,
   CanvasState,
@@ -32,6 +34,14 @@ const OPTIONS: readonly Option[] = [
   { budget: 50 },
   { budget: "all", note: "scope.slow" },
 ];
+
+function optionsOfMenu(): readonly Option[] {
+  const given = optionOf<readonly Budget[]>("scope-menu", "budgets");
+  if (given === undefined) return OPTIONS;
+  return given.map(
+    (budget) => OPTIONS.find((one) => one.budget === budget) ?? { budget },
+  );
+}
 
 function budgetText(lang: Lang, budget: Budget): string {
   return budget === "all"
@@ -118,7 +128,7 @@ function ResetItem({ actions, lang, state }: Props) {
 // is one canvas call, and the engine re-selects under Active. STORY-004-08 rule 5 (FR-HOST-9,
 // H4 (b)) — one last item reopens a dismissed DataNotice. STORY-007-03 rules 4, 5 — embedded, the
 // name is "Canvas scope" and the tip above is the label
-export function ScopeMenu(props: Props) {
+function ScopeMenuView(props: Props) {
   const { actions, lang, model, state, drawn, tip, embedded } = props;
   const all = state.scope.mode === "all";
   const values = {
@@ -157,7 +167,7 @@ export function ScopeMenu(props: Props) {
       <Summary {...props} />
       <hr />
       <p class="menu-label">{t(lang, "scope.start")}</p>
-      {OPTIONS.map(({ budget, note }) => (
+      {optionsOfMenu().map(({ budget, note }) => (
         <MenuItem
           key={budget}
           kind="radio"
@@ -178,3 +188,5 @@ export function ScopeMenu(props: Props) {
     </Menu>
   );
 }
+
+export const ScopeMenu = extendable("scope-menu", ScopeMenuView);

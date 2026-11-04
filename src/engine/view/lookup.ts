@@ -60,6 +60,7 @@ export function canvasLookup(
   const off = offTheCanvas(state);
   const owner = ownerOf(state, off);
   const typesOff = new Set(state.filters.typesOff);
+  const entitiesOff = new Set(state.filters.entitiesOff);
   const shown = new Set(state.around?.shown);
   const hiddenOf = (id: string): DrawnId | null => {
     const at = first.get(id);
@@ -76,7 +77,8 @@ export function canvasLookup(
     if (at === undefined) return "not-drawn";
     const entity = top.ids[at];
     if (off(entity)) return hiddenOf(entity) === null ? "not-drawn" : "hidden";
-    if (typesOff.has(top.types[at])) return "not-drawn";
+    if (typesOff.has(top.types[at]) || entitiesOff.has(entity))
+      return "not-drawn";
     if (state.around === null) return "drawn";
     const node = drawnIdOf(entity);
     return node !== null && !shown.has(node) ? "faded" : "drawn";

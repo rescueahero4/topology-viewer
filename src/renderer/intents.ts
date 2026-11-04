@@ -19,6 +19,31 @@ export type Pointer = {
   leave(): void;
 };
 
+const CONTROL = "button,a[href],input,select,textarea,label,[data-tv-control]";
+
+const firstOf = (event: Event): EventTarget | undefined =>
+  event.composedPath?.()[0];
+
+/**
+ * A press on a control inside a custom node belongs to that control: it does not select the node, and
+ * it starts no drag and no pan. A default node has no such element.
+ */
+export function fromControl(event: Event): boolean {
+  const first = firstOf(event);
+  return first instanceof Element && first.closest(CONTROL) !== null;
+}
+
+// The content of a custom node lives outside the Shadow DOM, and its framework listens at the root of
+// the page, so the event goes on to there. The canvas ignores it: its own handler needs the target.
+const fromCustomNode = (event: Event) =>
+  event
+    .composedPath?.()
+    .some((one) => one instanceof Element && one.localName === "foreignObject") === true;
+
+const stopOwn = (event: Event) => {
+  if (!fromCustomNode(event)) event.stopPropagation();
+};
+
 const nodesOf = (layers: Layers) =>
   select(layers.nodes).selectAll<SVGGElement, SceneNode>("g.qt-node");
 const hitsOf = (layers: Layers) =>
@@ -37,18 +62,18 @@ function anchorOf(edge: SceneEdge, node: DrawnId | null): DrawnId {
 export function bindNodes(layers: Layers, p: Pointer): void {
   nodesOf(layers)
     .on("click.qt", (event: MouseEvent, d) => {
-      if (!p.live()) return;
-      event.stopPropagation();
+      if (!p.live() || fromControl(event)) return;
+      stopOwn(event);
       p.emit({ kind: "select", node: d.id });
     })
     .on("dblclick.qt", (event: MouseEvent, d) => {
-      if (!p.live()) return;
-      event.stopPropagation();
+      if (!p.live() || fromControl(event)) return;
+      stopOwn(event);
       event.preventDefault();
       p.emit({ kind: "activate", node: d.id });
     })
     .on("keydown.qt", (event: KeyboardEvent, d) => {
-      if (!p.live()) return;
+      if (!p.live() || fromControl(event)) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
       if (event.key === "Enter") p.emit({ kind: "select", node: d.id });

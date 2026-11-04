@@ -27,6 +27,7 @@ import {
   setGrouping,
   showAllTypes,
   toggleFamily,
+  setEntitiesOff,
   togglePredicate,
   toggleType,
 } from "./filter";
@@ -319,6 +320,8 @@ function step(
       return toggleFamily(state, vocab, action.family, action.on);
     case "togglePredicate":
       return togglePredicate(state, vocab, action.predicate, action.on);
+    case "entitiesOff":
+      return setEntitiesOff(state, action.ids);
     case "grouping":
       return setGrouping(state, action.grouping);
     case "hide":

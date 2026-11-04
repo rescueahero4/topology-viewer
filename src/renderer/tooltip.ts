@@ -1,4 +1,5 @@
 import { pointer } from "d3-selection";
+import { renderHooks, type TipInfo } from "./hooks";
 import type { SceneEdge, SceneNode } from "./scene";
 import type { RendererText } from "./text";
 
@@ -42,8 +43,14 @@ export function createTooltip(
     el.textContent = value;
     return el;
   };
-  const show = (main: string, sub: string, event: MouseEvent, lift: number) => {
-    tip.replaceChildren(line("qt-tip-main", main), line("qt-tip-sub", sub));
+  const slotOf = (name: string) => {
+    const slot = doc.createElement("slot");
+    slot.setAttribute("name", name);
+    return slot;
+  };
+  // A custom tooltip of the developer, or no tooltip; `null` is the default.
+  const custom = (info: TipInfo) => renderHooks.tip?.(info) ?? null;
+  const place = (event: MouseEvent, lift: number) => {
     const [x, y] = pointer(event, root);
     // why: STORY-003-02 DA-5 — the position takes finite numbers only
     if (Number.isFinite(x) && Number.isFinite(y - lift)) {
@@ -52,11 +59,24 @@ export function createTooltip(
     }
     tip.classList.add("qt-on");
   };
+  const show = (main: string, sub: string, event: MouseEvent, lift: number) => {
+    tip.replaceChildren(line("qt-tip-main", main), line("qt-tip-sub", sub));
+    place(event, lift);
+  };
+  const showCustom = (found: string | false, event: MouseEvent, lift: number) => {
+    if (found === false) return;
+    tip.replaceChildren(slotOf(found));
+    place(event, lift);
+  };
   return {
     showNode(node, event) {
+      const found = custom({ kind: "node", node });
+      if (found !== null) return showCustom(found, event, node.h / 2);
       show(node.fullLabel, nodeSub(node, text), event, node.h / 2);
     },
     showEdge(edge, subject, object, event) {
+      const found = custom({ kind: "edge", edge, subject, object });
+      if (found !== null) return showCustom(found, event, EDGE_LIFT);
       const main = text.tipEdge(subject.fullLabel, object.fullLabel);
       const sub = text.tipEdgeAction(
         edge.label,

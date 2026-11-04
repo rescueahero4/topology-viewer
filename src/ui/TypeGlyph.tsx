@@ -1,3 +1,4 @@
+import { partsOn } from "./partDom";
 import type { Designed, Hex, Visual } from "#engine";
 import { spriteColours, typeMark } from "#renderer";
 import { useLayoutEffect, useRef } from "preact/hooks";
@@ -11,6 +12,8 @@ export function TypeGlyph({ visual, size, untyped }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     ref.current?.replaceChildren(typeMark(visual, size, untyped));
+    // The renderer builds this element, so the hook of the vnodes does not see it.
+    if (partsOn()) ref.current?.firstElementChild?.setAttribute("part", "type-mark");
   }, [visual, size, untyped]);
   return <span ref={ref} aria-hidden="true" />;
 }

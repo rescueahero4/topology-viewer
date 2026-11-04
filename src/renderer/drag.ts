@@ -1,3 +1,4 @@
+import { fromControl } from "./intents";
 import { drag, type D3DragEvent } from "d3-drag";
 import { select } from "d3-selection";
 import { timer, type Timer } from "d3-timer";
@@ -139,7 +140,10 @@ export function watch(w: Watch, on: boolean): void {
 // press while a drag runs, so a second press writes no window listeners of its own
 export const pressFilter =
   (running: () => boolean) => (event: MouseEvent | TouchEvent) =>
-    !event.ctrlKey && !(event as MouseEvent).button && !running();
+    !event.ctrlKey &&
+    !(event as MouseEvent).button &&
+    !running() &&
+    !fromControl(event);
 
 const stopTicker = (m: M) => {
   m.ticker?.stop();

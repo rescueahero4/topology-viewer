@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import type { DrawnId, Vocab } from "#engine";
 import { useElementId } from "./ids";
 import { CheckMark } from "./Checkbox";
@@ -27,7 +28,7 @@ type Props = {
 // why: rule 1 (mockup app.js lines 875-880) — the check box and the eye button are not in the tab
 // order; the row is the one tab stop. The eye button takes its name from a text node, and the
 // model name is its own text node in it (SA §11)
-export function HiddenRow({
+function HiddenRowView({
   row,
   vocab,
   tip,
@@ -82,3 +83,5 @@ export function HiddenRow({
     </li>
   );
 }
+
+export const HiddenRow = extendable("hidden-row", HiddenRowView, ({ row }) => ({ row }));

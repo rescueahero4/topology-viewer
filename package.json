@@ -1,6 +1,6 @@
 {
   "name": "topology-viewer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A UI library that renders a graph payload from an external API: canvas, inspector, search and an editable table.",
   "license": "MIT",
@@ -11,6 +11,8 @@
   "files": [
     "dist",
     "types",
+    "CUSTOMIZING.md",
+    "FORKING.md",
     "LICENSE",
     "THIRD-PARTY-NOTICES.txt"
   ],

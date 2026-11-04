@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import {
   aroundInfo,
   entityOfDrawnId,
@@ -30,7 +31,7 @@ function rootName(ui: Lang, vocab: Vocab, info: AroundInfo): string {
 // "hidden"; its name comes from its text nodes; one press ends the grouping. SA §6 row 10
 // (STORY-005-07; ISSUE-021) — the state and the frontier of the last `settle`: a `select` or an
 // `explore` event of an exit carries the end state before the glide home is drawn
-export function FocusPill({ actions }: { actions: Actions }) {
+function FocusPillView({ actions }: { actions: Actions }) {
   const tip = useTip();
   const state = settled.value?.state ?? null;
   const drawn = frontier.value;
@@ -72,3 +73,5 @@ export function FocusPill({ actions }: { actions: Actions }) {
     </>
   );
 }
+
+export const FocusPill = extendable("focus-pill", FocusPillView);

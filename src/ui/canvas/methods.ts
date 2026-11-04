@@ -1,6 +1,7 @@
 import {
   drawnIdOf,
   frontier,
+  hasCustomLayout,
   hide,
   onCanvas,
   transition,
@@ -51,6 +52,7 @@ export type Filter = Extract<
       | "showAllTypes"
       | "toggleFamily"
       | "togglePredicate"
+      | "entitiesOff"
       | "grouping";
   }
 >;
@@ -87,8 +89,9 @@ const LAYOUTS: readonly unknown[] = [
   "tree-h",
   "tree-v",
 ];
-const BUDGETS: readonly unknown[] = [10, 20, 50, "all"];
-const GROUPINGS: readonly unknown[] = [2, 5, 10, "off"];
+const whole = (v: unknown) => typeof v === "number" && Number.isInteger(v) && v > 0;
+const isBudget = (v: unknown) => v === "all" || whole(v);
+const isGrouping = (v: unknown) => v === "off" || whole(v);
 
 const isString = (v: unknown): v is string => typeof v === "string";
 const isGroup = (n: DrawnNode): n is GroupNode => "members" in n;
@@ -236,8 +239,12 @@ function filterOf(ctx: Ctx, f: unknown): Filter | null {
   const { types, families, predicates } = ctx.model.vocab;
   const on = v.on;
   if (v.kind === "showAllTypes") return { kind: "showAllTypes" };
-  if (v.kind === "grouping" && GROUPINGS.includes(v.grouping))
-    return { kind: "grouping", grouping: v.grouping as 2 | 5 | 10 | "off" };
+  if (v.kind === "grouping" && isGrouping(v.grouping))
+    return { kind: "grouping", grouping: v.grouping as number | "off" };
+  if (v.kind === "entitiesOff")
+    return Array.isArray(v.ids) && v.ids.every(isString)
+      ? { kind: "entitiesOff", ids: v.ids as string[] }
+      : null;
   if (typeof on !== "boolean") return null;
   const { type, family, predicate } = v;
   if (
@@ -291,7 +298,7 @@ export function methodsOf(ctx: Ctx): Canvas {
     setData: (f) => run(() => setData(ctx, f)),
     setLayout: (name) =>
       run(() => {
-        if (LAYOUTS.includes(name) && !layoutExit(ctx, name))
+        if ((LAYOUTS.includes(name) || hasCustomLayout(name)) && !layoutExit(ctx, name))
           commit(ctx, null, laid(ctx, ctx.state, ctx.frontier, name));
       }),
     select: (id) => run(() => select(ctx, id)),
@@ -307,7 +314,7 @@ export function methodsOf(ctx: Ctx): Canvas {
     },
     setBudget: (n) =>
       run(() => {
-        if (BUDGETS.includes(n)) act(ctx, { kind: "budget", budget: n });
+        if (isBudget(n)) act(ctx, { kind: "budget", budget: n });
       }),
     resetView: () => run(() => act(ctx, { kind: "reset" })),
     setApproach: (a) =>

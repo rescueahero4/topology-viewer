@@ -3,8 +3,8 @@ export type EdgeKey = string;
 export type GroupKey = string;
 
 export type Approach = "active" | "passive";
-export type Budget = 10 | 20 | 50 | "all";
-export type Grouping = 2 | 5 | 10 | "off";
+export type Budget = number | "all";
+export type Grouping = number | "off";
 export type ScopeMode = "ai" | "auto" | "all" | "custom";
 
 export type Hint = { root: string; reveal: string[] };
@@ -18,7 +18,13 @@ export type Scope = {
 export type Selection =
   { node: DrawnId } | { edge: EdgeKey; anchor: DrawnId } | null;
 
-export type LayoutName = "force" | "atomic" | "bubbles" | "tree-h" | "tree-v";
+export type LayoutName =
+  | "force"
+  | "atomic"
+  | "bubbles"
+  | "tree-h"
+  | "tree-v"
+  | `custom:${string}`;
 
 export type Point = { x: number; y: number };
 
@@ -33,6 +39,9 @@ export type Filters = {
   typesOff: (string | null)[];
   familiesOff: string[];
   predicatesOff: string[];
+  // The entities that a custom filter of the developer leaves out. Plain data, so the engine stays
+  // deterministic; the functions of the filters run outside it.
+  entitiesOff?: string[];
 };
 
 export type HiddenEntry = {
@@ -112,6 +121,7 @@ export type Action =
   | { kind: "showAllTypes" }
   | { kind: "toggleFamily"; family: string; on: boolean }
   | { kind: "togglePredicate"; predicate: string; on: boolean }
+  | { kind: "entitiesOff"; ids: string[] }
   | { kind: "grouping"; grouping: Grouping }
   | { kind: "hide"; node: DrawnId }
   | { kind: "hideMany"; ids: string[] }

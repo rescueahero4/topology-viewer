@@ -1,3 +1,5 @@
+import { optionOf } from "./custom";
+import { extendable } from "./Part";
 import type { Grouping, Lang } from "#engine";
 import type { Actions } from "./actions";
 import { Menu, MenuItem } from "./Menu";
@@ -21,6 +23,14 @@ const OPTIONS: readonly { grouping: Grouping; note?: Key }[] = [
   { grouping: "off", note: "grouping.offNote" },
 ];
 
+function optionsOfMenu(): readonly { grouping: Grouping; note?: Key }[] {
+  const given = optionOf<readonly Grouping[]>("grouping-menu", "values");
+  if (given === undefined) return OPTIONS;
+  return given.map(
+    (grouping) => OPTIONS.find((one) => one.grouping === grouping) ?? { grouping },
+  );
+}
+
 function optionText(lang: Lang, grouping: Grouping): string {
   return grouping === "off"
     ? t(lang, "grouping.off")
@@ -29,7 +39,7 @@ function optionText(lang: Lang, grouping: Grouping): string {
 
 // why: FR-CANVAS-2 and the mockup button label (app.js line 485) — "Group 2+" … "Group off".
 // STORY-007-03 rules 4, 5 — embedded, the name is the menu heading and the tip above is the label
-export function GroupingMenu(props: Props) {
+function GroupingMenuView(props: Props) {
   const { actions, lang, grouping, tip, embedded } = props;
   const text =
     grouping === "off"
@@ -51,6 +61,7 @@ export function GroupingMenu(props: Props) {
       label={label}
       name={embedded ? t(lang, "grouping.heading") : undefined}
       buttonClass="ctl-btn"
+      menuClass="grouping-menu"
       closeOnPick
       anchor={
         embedded
@@ -59,7 +70,7 @@ export function GroupingMenu(props: Props) {
       }
     >
       <p class="menu-label">{t(lang, "grouping.heading")}</p>
-      {OPTIONS.map((option) => (
+      {optionsOfMenu().map((option) => (
         <MenuItem
           key={option.grouping}
           kind="radio"
@@ -73,3 +84,5 @@ export function GroupingMenu(props: Props) {
     </Menu>
   );
 }
+
+export const GroupingMenu = extendable("grouping-menu", GroupingMenuView);

@@ -1,3 +1,5 @@
+import { selectedNode } from "./commands";
+import { extendable } from "./Part";
 import type { Entry, ResolvedEntity, Vocab } from "#engine";
 import { Fragment, type ComponentChildren, type JSX } from "preact";
 import { AiMark } from "./AiMark";
@@ -182,7 +184,7 @@ export function WriteFact({ writable }: { writable: boolean }) {
   );
 }
 
-export function RowFact({ ctx, row }: { ctx: FactCtx; row: FactRow }) {
+function RowFactView({ ctx, row }: { ctx: FactCtx; row: FactRow }) {
   const ui = lang.value;
   if (row.kind === "records")
     return (
@@ -213,3 +215,9 @@ export function RowFact({ ctx, row }: { ctx: FactCtx; row: FactRow }) {
     </Fact>
   );
 }
+
+export const RowFact = extendable("attribute-row", RowFactView, ({ row }) =>
+  row.kind === "attribute"
+    ? { key: row.key, label: row.label, value: row.value, node: selectedNode() }
+    : { key: "records", label: "", value: row.ids, node: selectedNode() },
+);

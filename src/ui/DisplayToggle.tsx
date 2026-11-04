@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import type { ShellHost } from "./host";
 import { lang } from "./state";
 import { t } from "./strings/index";
@@ -14,13 +15,9 @@ type Props = {
 // — only in the widget and only while the host lists "fullscreen"; a press asks for the other
 // mode, and the state follows the display mode that the host reports, not the request result.
 // No tip (the WorkbenchBar.tsx icon buttons)
-export function DisplayToggle(props: Props) {
-  const { host, embedded, displayMode, availableDisplayModes } = props;
-  if (
-    embedded !== true ||
-    availableDisplayModes?.includes("fullscreen") !== true
-  )
-    return null;
+function DisplayToggleView(props: Props) {
+  const { host, displayMode, availableDisplayModes } = props;
+  if (availableDisplayModes?.includes("fullscreen") !== true) return null;
   const full = displayMode === "fullscreen";
   return (
     <button
@@ -40,3 +37,15 @@ export function DisplayToggle(props: Props) {
     </button>
   );
 }
+
+export const DisplayToggle = extendable(
+  "fullscreen-button",
+  DisplayToggleView,
+  ({ displayMode, host }) => ({
+    displayMode: displayMode ?? "inline",
+    toggle: () =>
+      void host
+        .requestDisplayMode(displayMode === "fullscreen" ? "inline" : "fullscreen")
+        .catch(() => undefined),
+  }),
+);

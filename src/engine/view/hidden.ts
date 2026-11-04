@@ -371,7 +371,10 @@ export function onCanvas(
   const entity = graph.entities[at].id;
   if (offTheCanvas(state)(entity))
     return hiddenOf(state, graph, entity) === null ? "not-drawn" : "hidden";
-  if (state.filters.typesOff.includes(entityType(vocab, entity)))
+  if (
+    state.filters.typesOff.includes(entityType(vocab, entity)) ||
+    state.filters.entitiesOff?.includes(entity) === true
+  )
     return "not-drawn";
   if (state.around === null) return "drawn";
   const node = drawnIdOf(state, graph, vocab, entity);

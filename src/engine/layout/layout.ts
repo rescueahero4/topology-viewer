@@ -15,6 +15,23 @@ import { drawnOf, type IconMetrics } from "./drawn";
 import { forceConfig, forceLayout } from "./force";
 import { treeLayout } from "./tree";
 
+// The layouts of the developer, by their name in `LayoutName`. A layout is a pure function of the
+// drawn nodes and edges, so a new draw gives the same places.
+export type LayoutRun = (graph: {
+  nodes: { id: DrawnId; type: string | null; label: string; w: number; h: number }[];
+  edges: { subject: DrawnId; object: DrawnId; predicate: string }[];
+}) => ReadonlyMap<DrawnId, Point>;
+
+const customLayouts = new Map<string, LayoutRun>();
+
+export function setCustomLayouts(next: ReadonlyMap<string, LayoutRun>): void {
+  customLayouts.clear();
+  for (const [name, run] of next) customLayouts.set(name, run);
+}
+
+export const hasCustomLayout = (name: unknown) =>
+  typeof name === "string" && customLayouts.has(name);
+
 export type LayoutResult = {
   positions: [DrawnId, Point][];
   ticks: number;
@@ -45,6 +62,21 @@ export function layout(
   };
   if (frontier.nodes.length === 0) return empty;
   const drawn = drawnOf(frontier, vocab, metrics);
+  const run = customLayouts.get(name);
+  if (run !== undefined) {
+    const placed = run({
+      nodes: drawn.nodes.map(({ id, type, label, w, h }) => ({ id, type, label, w, h })),
+      edges: frontier.edges.map(({ subject, object, predicate }) => ({ subject, object, predicate })),
+    });
+    const before = new Map(state.positions);
+    return {
+      ...empty,
+      positions: drawn.nodes.map((node): [DrawnId, Point] => [
+        node.id,
+        placed.get(node.id) ?? before.get(node.id) ?? { x: 0, y: 0 },
+      ]),
+    };
+  }
   if (name === "force")
     return {
       ...empty,

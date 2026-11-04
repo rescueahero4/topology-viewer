@@ -1,3 +1,5 @@
+import { columnConfig } from "./tableConfig";
+import { extendable } from "./Part";
 import { fold, type Lang } from "#engine";
 import { useMemo, useState } from "preact/hooks";
 import { Menu, MenuItem } from "./Menu";
@@ -53,7 +55,7 @@ function Items({
   );
   return (
     <div class="pick-list">
-      {CORE.map((key) =>
+      {CORE.filter((key) => columnConfig({ core: key })?.hidden !== true).map((key) =>
         item(
           key,
           { core: key },
@@ -80,7 +82,7 @@ function Items({
 
 // why: FR-TABLE-1, rule 12 (H4 (b)) — the searchable form of the STORY-004-03 picker; a toggle
 // keeps the menu open. The keys are text nodes (SA §11)
-export function ColumnMenu(props: Props) {
+function ColumnMenuView(props: Props) {
   const ui = props.lang;
   const [query, setQuery] = useState("");
   return (
@@ -107,3 +109,5 @@ export function ColumnMenu(props: Props) {
     </Menu>
   );
 }
+
+export const ColumnMenu = extendable("column-menu", ColumnMenuView);

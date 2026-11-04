@@ -1,3 +1,4 @@
+import { columnConfig, publicColumn, publicRow } from "./tableConfig";
 import type { EditCode, Lang } from "#engine";
 import { h, type ComponentChildren, type RefObject } from "preact";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
@@ -168,10 +169,17 @@ function editorOf(
   const { ui } = table;
   const graph = editedModel.peek()?.graph;
   const key = "attr" in column ? column.attr : "service_name";
+  const editor = columnConfig(column)?.editor;
   const values =
-    kind === "values" && graph !== undefined ? valueItems(graph, key) : [];
+    typeof editor === "object"
+      ? editor.select
+      : kind === "values" && graph !== undefined
+        ? valueItems(graph, key)
+        : [];
   return h(CellEditor, {
     ...{ ui, kind, value, name: nameOf(ui, column), holder, onClose, values },
+    row: publicRow(row),
+    column: publicColumn(column),
     check: (read: Read) => table.onCheck(row, column, read),
     save: (read: Read) => table.onSave(row, column, read),
   });

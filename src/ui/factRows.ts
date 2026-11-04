@@ -152,3 +152,56 @@ export function otherRows(
     ),
   ];
 }
+
+export type FieldOption = {
+  key?: string;
+  label?: string;
+  value?: (node: unknown) => unknown;
+  format?: (value: unknown, node: unknown) => unknown;
+  hidden?: boolean;
+};
+
+/**
+ * The `fields` option over the rows: a field with a `key` changes or hides that row, a field with a
+ * `value` adds a row, and `only` keeps just the listed fields, in their order.
+ */
+export function fieldRows(
+  rows: readonly FactRow[],
+  fields: readonly FieldOption[],
+  only: boolean,
+  node: unknown,
+  attrs: Readonly<Record<string, unknown>>,
+): FactRow[] {
+  const rowOf = (key: string): (FactRow & { kind: "attribute" }) | undefined =>
+    rows.find((row) => row.kind === "attribute" && row.key === key) as
+      | (FactRow & { kind: "attribute" })
+      | undefined;
+  const made = (field: FieldOption): FactRow | null => {
+    const { key = "", label, value, format } = field;
+    const known = rowOf(key);
+    const raw = value !== undefined ? value(node) : known?.value ?? attrs[key];
+    if (value === undefined && known === undefined && !Object.hasOwn(attrs, key))
+      return null;
+    return {
+      ...known,
+      kind: "attribute",
+      key,
+      label: label ?? known?.label ?? humanise(key),
+      value: format === undefined ? raw : format(raw, node),
+    };
+  };
+  const shown = fields.filter((field) => field.hidden !== true);
+  if (only) return shown.flatMap((field) => made(field) ?? []);
+  const named = new Map(fields.flatMap((one) => (one.key === undefined ? [] : [[one.key, one]])));
+  const kept = rows.flatMap((row): FactRow[] => {
+    if (row.kind !== "attribute") return [row];
+    const field = named.get(row.key);
+    if (field === undefined) return [row];
+    if (field.hidden === true) return [];
+    return [made(field) ?? row];
+  });
+  const added = shown.filter(
+    (field) => field.key === undefined || rowOf(field.key) === undefined,
+  );
+  return [...kept, ...added.flatMap((field) => made(field) ?? [])];
+}

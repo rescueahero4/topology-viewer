@@ -9,6 +9,7 @@ import { drawFade, fadeHits, fadePills } from "./fade";
 import { drawHalo } from "./halo";
 import { selectionLights, showLights, showSelection } from "./highlight";
 import { drawHits, hitEdges, keptHits } from "./hits";
+import { renderHooks } from "./hooks";
 import { bindHits, bindNodes, type Intent, type Pointer } from "./intents";
 import { createLayers, type Layers } from "./layers";
 import type { Lod } from "./lod";
@@ -127,6 +128,7 @@ export function paint(
   drawHalo(layers.focus, node === null ? null : (ends.get(node) ?? null));
   drawPills(layers.edgeLabels, pillEdges(scene), ends, k, text);
   drawFade(layers, scene);
+  renderHooks.afterPaint?.(parts.root, layers, scene);
 }
 
 // why: STORY-003-04 Context "Labels", "Viewport hit paths" — at the end of each gesture or camera

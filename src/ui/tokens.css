@@ -1,94 +1,95 @@
 /* Light canvas tokens: values of the v56 mockup (styles.css, lib/topology.js lines 69-137, 266, 1046). */
 :root {
-  --canvas: #f4f4f5;
-  --ink: #0f172a;
-  --label-sub: #475569;
-  --label-halo: #ffffff;
-  --grouped-sub: #94a3b8;
-  --badge: #f7310e;
-  --chip-line: #71717a;
-  --chip-text: #3f3f46;
-  --chip-open: #f4f4f5;
-  --focus: #4f46e5;
-  --node-outline: #ffffff;
-  --edge-muted: #c4c4cc;
-  --edge-dim: #d0cdc6;
-  --pill-text: #ffffff;
-  --tip-bg: #18181b;
-  --tip-text: #ffffff;
-  --tip-sub: #a1a1aa;
-  --lost-fill: #fee2e2;
-  --lost-ink: #b91c1c;
+  --frame-border: var(--tv-frame-border, 0);
+  --canvas: var(--tv-canvas, #f4f4f5);
+  --ink: var(--tv-node-label, #0f172a);
+  --label-sub: var(--tv-node-sublabel, #475569);
+  --label-halo: var(--tv-node-label-halo, #ffffff);
+  --grouped-sub: var(--tv-group-sublabel, #94a3b8);
+  --badge: var(--tv-badge, #f7310e);
+  --chip-line: var(--tv-chip-line, #71717a);
+  --chip-text: var(--tv-chip-text, #3f3f46);
+  --chip-open: var(--tv-chip-open, #f4f4f5);
+  --focus: var(--tv-focus, #4f46e5);
+  --node-outline: var(--tv-node-outline, #ffffff);
+  --edge-muted: var(--tv-edge-muted, #c4c4cc);
+  --edge-dim: var(--tv-edge-dim, #d0cdc6);
+  --pill-text: var(--tv-edge-pill-text, #ffffff);
+  --tip-bg: var(--tv-tooltip-bg, #18181b);
+  --tip-text: var(--tv-tooltip-text, #ffffff);
+  --tip-sub: var(--tv-tooltip-subtext, #a1a1aa);
+  --lost-fill: var(--tv-lost-fill, #fee2e2);
+  --lost-ink: var(--tv-lost-text, #b91c1c);
   /* Light shell tokens: the mockup :root (styles.css lines 3-30) and, as tokens, its rgba() colours
      of lines 85, 91, 107 (card), 344 (overlay) and 376 (backdrop); STORY-004-02 rule 17 (B3). */
-  --surface: #ffffff;
-  --zinc-50: #fafafa;
-  --zinc-100: #f4f4f5;
-  --zinc-200: #e4e4e7;
-  --zinc-300: #d4d4d8;
-  --zinc-500: #71717a;
-  --zinc-600: #52525b;
-  --zinc-700: #3f3f46;
-  --zinc-900: #18181b;
-  --warm-line: #e8e5df;
-  --warm-off: #f0eeea;
-  --danger: #b91c1c;
-  --select: #2563eb;
-  --radius: 6px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-pop: 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
-  --panel-dur: 300ms;
-  --panel-ease: ease;
-  --card-bg: rgba(255, 255, 255, 0.92);
-  --overlay-bg: rgba(244, 244, 245, 0.86);
-  --backdrop: rgba(24, 24, 27, 0.3);
+  --surface: var(--tv-surface, #ffffff);
+  --zinc-50: var(--tv-surface-subtle, #fafafa);
+  --zinc-100: var(--tv-surface-hover, #f4f4f5);
+  --zinc-200: var(--tv-border, #e4e4e7);
+  --zinc-300: var(--tv-border-strong, #d4d4d8);
+  --zinc-500: var(--tv-text-muted, #71717a);
+  --zinc-600: var(--tv-text-soft, #52525b);
+  --zinc-700: var(--tv-text, #3f3f46);
+  --zinc-900: var(--tv-text-strong, #18181b);
+  --warm-line: var(--tv-rule, #e8e5df);
+  --warm-off: var(--tv-rule-subtle, #f0eeea);
+  --danger: var(--tv-danger, #b91c1c);
+  --select: var(--tv-accent, #2563eb);
+  --radius: var(--tv-radius, 6px);
+  --shadow: var(--tv-shadow, 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05));
+  --shadow-pop: var(--tv-shadow-popup, 0 10px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06));
+  --panel-dur: var(--tv-motion-duration, 300ms);
+  --panel-ease: var(--tv-motion-easing, ease);
+  --card-bg: var(--tv-card-bg, rgba(255, 255, 255, 0.92));
+  --overlay-bg: var(--tv-overlay-bg, rgba(244, 244, 245, 0.86));
+  --backdrop: var(--tv-backdrop, rgba(24, 24, 27, 0.3));
   /* The ink of the category bar and the control bar (mockup styles.css lines 92, 95, 96, 107, 128,
      131); STORY-004-03 rule 7. */
-  --ink-600: #525252;
-  --ink-700: #404040;
-  --pill-ink: #666666;
+  --ink-600: var(--tv-control-text-soft, #525252);
+  --ink-700: var(--tv-control-text, #404040);
+  --pill-ink: var(--tv-pill-text, #666666);
   /* The inspector (mockup styles.css lines 230, 240, 243, 245); STORY-004-04. */
-  --zinc-400: #a1a1aa;
-  --ai-tint: #ede9fe;
-  --ai-ink: #6d28d9;
-  --link: #0891b2;
+  --zinc-400: var(--tv-text-faint, #a1a1aa);
+  --ai-tint: var(--tv-ai-tint, #ede9fe);
+  --ai-ink: var(--tv-ai-text, #6d28d9);
+  --link: var(--tv-link, #0891b2);
   /* The triple rows (mockup styles.css lines 264, 499); STORY-004-05. */
-  --pred-ink: #6b7280;
-  --picked: #eef2ff;
+  --pred-ink: var(--tv-predicate-text, #6b7280);
+  --picked: var(--tv-picked, #eef2ff);
   /* The Workbench row types and the handle drag (mockup styles.css lines 409, 452, 453);
      STORY-004-07. */
-  --wb-node-tint: #e0f2fe;
-  --wb-node-ink: #0369a1;
-  --wb-edge-tint: #ede9fe;
-  --wb-edge-ink: #6d28d9;
-  --wb-drag: #60a5fa;
+  --wb-node-tint: var(--tv-table-node-tint, #e0f2fe);
+  --wb-node-ink: var(--tv-table-node-text, #0369a1);
+  --wb-edge-tint: var(--tv-table-edge-tint, #ede9fe);
+  --wb-edge-ink: var(--tv-table-edge-text, #6d28d9);
+  --wb-drag: var(--tv-handle-drag, #60a5fa);
   /* The notices, the DataNotice chip and the Undo toast (mockup styles.css lines 309, 351, 360,
      361); STORY-004-08. */
-  --warn: #b45309;
-  --danger-tint: #fef2f2;
-  --ai-bg: #f5f3ff;
-  --ai-text: #4c1d95;
+  --warn: var(--tv-warning, #b45309);
+  --danger-tint: var(--tv-danger-tint, #fef2f2);
+  --ai-bg: var(--tv-ai-bg, #f5f3ff);
+  --ai-text: var(--tv-ai-note-text, #4c1d95);
   /* Family tint, border and main (mockup CATEGORIES, lib/topology.js lines 34-39), one set for
      each place 0-5 of the engine familyOrder(): Structure, Lineage, Reference, Annotation,
      Ownership & Access, Other. A custom family and Custom take set 5 (STORY-004-03 rule 7). */
-  --fam-0-tint: #dcfce7;
-  --fam-0-border: #acd8bc;
-  --fam-0-main: #16a34a;
-  --fam-1-tint: #e0e7ff;
-  --fam-1-border: #b9b7dc;
-  --fam-1-main: #4f46e5;
-  --fam-2-tint: #cffafe;
-  --fam-2-border: #a3d5e1;
-  --fam-2-main: #0891b2;
-  --fam-3-tint: #fef3c7;
-  --fam-3-border: #e4c095;
-  --fam-3-main: #d97706;
-  --fam-4-tint: #f1f5f9;
-  --fam-4-border: #b3bdcc;
-  --fam-4-main: #475569;
-  --fam-5-tint: #f4f4f5;
-  --fam-5-border: #d4d4d8;
-  --fam-5-main: #71717a;
+  --fam-0-tint: var(--tv-family-0-tint, #dcfce7);
+  --fam-0-border: var(--tv-family-0-border, #acd8bc);
+  --fam-0-main: var(--tv-family-0-main, #16a34a);
+  --fam-1-tint: var(--tv-family-1-tint, #e0e7ff);
+  --fam-1-border: var(--tv-family-1-border, #b9b7dc);
+  --fam-1-main: var(--tv-family-1-main, #4f46e5);
+  --fam-2-tint: var(--tv-family-2-tint, #cffafe);
+  --fam-2-border: var(--tv-family-2-border, #a3d5e1);
+  --fam-2-main: var(--tv-family-2-main, #0891b2);
+  --fam-3-tint: var(--tv-family-3-tint, #fef3c7);
+  --fam-3-border: var(--tv-family-3-border, #e4c095);
+  --fam-3-main: var(--tv-family-3-main, #d97706);
+  --fam-4-tint: var(--tv-family-4-tint, #f1f5f9);
+  --fam-4-border: var(--tv-family-4-border, #b3bdcc);
+  --fam-4-main: var(--tv-family-4-main, #475569);
+  --fam-5-tint: var(--tv-family-5-tint, #f4f4f5);
+  --fam-5-border: var(--tv-family-5-border, #d4d4d8);
+  --fam-5-main: var(--tv-family-5-main, #71717a);
   /* The family set of an element; each qt-fam-N class of shell-controls.css sets it (STORY-004-03
      rule 7), and an element with no such class has the Other set. */
   --tint: var(--fam-5-tint);
@@ -103,12 +104,10 @@
   height: 100%;
   overflow: hidden;
   background: var(--canvas);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  font-family: var(
+    --tv-font-canvas,
+    var(--tv-font, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif)
+  );
   user-select: none;
 }
 

@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import { batch, signal } from "@preact/signals";
 import {
   noticeText,
@@ -112,7 +113,7 @@ function Body({ host, lines }: { host: ShellHost; lines: ChipLine[] }) {
 
 // why: FR-DATA-3, FR-CANVAS-16, SA §6 row 13 (mockup `renderDataNotice`, app.js lines 199-220) —
 // a partial problem is never silent; the chip is collapsed until the user opens it
-export function DataNotice({ host }: { host: ShellHost }) {
+function DataNoticeView({ host }: { host: ShellHost }) {
   const list = warnings.value;
   if (list.length === 0 || dismissedFor.value === list) return null;
   const ui = lang.value;
@@ -153,3 +154,5 @@ export function DataNotice({ host }: { host: ShellHost }) {
     </aside>
   );
 }
+
+export const DataNotice = extendable("data-notice", DataNoticeView);

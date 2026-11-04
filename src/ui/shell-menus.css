@@ -31,7 +31,7 @@
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   color: var(--zinc-900);
   padding: 8px 0;
   outline: none;
@@ -70,7 +70,7 @@
 .pick-empty {
   margin: 0;
   padding: 10px 8px;
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
   font-style: italic;
   color: var(--zinc-500);
 }
@@ -82,7 +82,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -118,9 +118,9 @@
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
 }
 .type-list .check:hover {
   background: var(--zinc-100);
@@ -142,7 +142,7 @@
 .type-list .n {
   color: var(--zinc-500);
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
 }
 .type-list .off .glyph,
 .type-list .off .name {
@@ -151,10 +151,10 @@
 /* why: FR-VOC-3 — the provenance tag takes the look of the mockup tag of the type list
    (.tag-noicon, styles.css line 193; LEARNINGS 38) */
 .type-list .prov {
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   color: var(--zinc-600);
   border: 1px dashed var(--zinc-300);
-  border-radius: 4px;
+  border-radius: var(--tv-radius-sm, 4px);
   padding: 0 4px;
 }
 .more-chip {
@@ -163,10 +163,10 @@
   height: 15px;
   padding: 0 5px;
   border: 1px dashed var(--zinc-500);
-  border-radius: 999px;
+  border-radius: var(--tv-radius-pill, 999px);
   background: var(--surface);
   color: var(--zinc-700);
-  font-size: 10px;
+  font-size: var(--tv-font-size-3, 10px);
   font-weight: 700;
   line-height: 1;
   vertical-align: 1px;
@@ -177,7 +177,7 @@
 }
 .scope-summary {
   margin: 4px 8px;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   line-height: 1.45;
   color: var(--zinc-700);
   max-width: 250px;
@@ -188,6 +188,6 @@
 .scope-summary .hint {
   display: block;
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--tv-font-size-4, 11px);
   color: var(--zinc-500);
 }

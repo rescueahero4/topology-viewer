@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const SHIPPED = ["dist/", "types/", "LICENSE", "README.md", "THIRD-PARTY-NOTICES.txt", "package.json"];
+const SHIPPED = ["dist/", "types/", "CUSTOMIZING.md", "FORKING.md", "LICENSE", "README.md", "THIRD-PARTY-NOTICES.txt", "package.json"];
 const BUNDLED = ["preact", "@preact/signals", "d3-drag", "d3-ease", "d3-force", "d3-hierarchy", "d3-selection", "d3-timer", "d3-zoom", "zod"];
 const LICENCES = new Set(["MIT", "MIT-0", "ISC", "BSD-2-Clause", "BSD-3-Clause", "Apache-2.0", "0BSD", "BlueOak-1.0.0", "CC0-1.0", "MPL-2.0", "Python-2.0", "CC-BY-4.0"]);
 

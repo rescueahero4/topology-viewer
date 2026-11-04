@@ -1,3 +1,6 @@
+import { peekOption } from "./custom";
+import { saveState } from "./state";
+import { columnConfig, publicRow } from "./tableConfig";
 import {
   attributeSet,
   readJsonCell,
@@ -98,6 +101,13 @@ export function cellValue(row: Row, column: Column): unknown {
 // why: STORY-008-04 rule 1 (PRD-002 FR-CELL-1) — the one decision of an editable cell.
 // STORY-008-09 rule 19 — every node attribute cell, also a list or an object, is editable
 export function editable(row: Row, column: Column): boolean {
+  if (saveState.peek().saving) return false;
+  if (peekOption<boolean>("table", "readOnly") === true) return false;
+  const config = columnConfig(column);
+  if (config?.value !== undefined) return false;
+  const given = config?.editable;
+  if (given === false) return false;
+  if (typeof given === "function" && !given(publicRow(row))) return false;
   if ("attr" in column) return row.rtype === "node";
   return (row.rtype === "node" ? NODE_CORE : EDGE_CORE).has(column.core);
 }
@@ -128,6 +138,9 @@ export function inputOf(
   value: unknown,
 ): InputKind | null {
   if (!editable(row, column)) return null;
+  const editor = columnConfig(column)?.editor;
+  if (typeof editor === "string") return editor;
+  if (typeof editor === "object") return "values";
   if ("attr" in column) return valueInput(value);
   return row.rtype === "edge" && column.core === "name"
     ? "predicate"
@@ -231,4 +244,5 @@ export const MESSAGES: Readonly<Record<EditCode, Key>> = {
   "reserved-key": "edit.reservedKey",
   "too-large": "edit.tooLarge",
   "not-a-boolean": "edit.notABoolean",
+  custom: "edit.custom",
 };

@@ -5,7 +5,10 @@ import { colourLiterals } from "./cssRules";
 
 const SRC = import.meta.dirname;
 const read = (name: string) =>
-  readFileSync(path.join(SRC, name), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+  readFileSync(path.join(SRC, name), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    // A public token holds the default value: the value stays pinned here.
+    .replace(/var\(--tv-[\w-]+, ([^;]+?)\);/g, "$1;");
 const SHELL = readdirSync(SRC).filter((name) => /^shell-.*\.css$/.test(name));
 
 type Rule = { selector: string; body: string[] };
@@ -111,7 +114,7 @@ describe("S31 no colour literal in the shell CSS", () => {
   });
 
   it("has the tokens for the mockup rgba() values", () => {
-    const tokens = readFileSync(path.join(SRC, "tokens.css"), "utf8");
+    const tokens = read("tokens.css");
     for (const value of [
       "rgba(255, 255, 255, 0.92)",
       "rgba(244, 244, 245, 0.86)",

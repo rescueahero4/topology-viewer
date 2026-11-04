@@ -9,7 +9,7 @@
   border-radius: var(--radius);
   background: var(--surface);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   color: var(--zinc-900);
 }
 .cell-input:focus {
@@ -45,7 +45,7 @@
 }
 .cell-msg .form-error {
   padding: 6px 10px;
-  font-size: 12px;
+  font-size: var(--tv-font-size-5, 12px);
   white-space: nowrap;
 }
 

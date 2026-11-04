@@ -1,3 +1,4 @@
+import { extendable } from "./Part";
 import {
   typeGroups,
   type Lang,
@@ -58,7 +59,7 @@ function TypeLine({
 // why: FR-FILTER-3, FR-VOC-3, P20 (ddr-0047 "Types") — one block for each group of the Types menu
 // in the order of `typeGroups()`, so `ui` reads no profile; the rows keep the `stats` order.
 // STORY-007-03 rules 4, 5 — embedded, the name is "Node types" and the tip above is the label
-export function TypesMenu(props: Props) {
+function TypesMenuView(props: Props) {
   const { lang, types, tip, embedded } = props;
   const blocks = typeGroups()
     .map((group) => ({
@@ -82,6 +83,7 @@ export function TypesMenu(props: Props) {
       label={label}
       name={embedded ? t(lang, "types.heading") : undefined}
       buttonClass="ctl-btn"
+      menuClass="types-menu"
       anchor={
         embedded ? tip.above("types", t(lang, "types.button")) : undefined
       }
@@ -100,3 +102,5 @@ export function TypesMenu(props: Props) {
     </Menu>
   );
 }
+
+export const TypesMenu = extendable("types-menu", TypesMenuView);

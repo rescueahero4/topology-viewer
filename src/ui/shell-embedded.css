@@ -161,6 +161,6 @@
 /* Inline in the chat, the app frame has round corners (mockup embedded.html .app-frame); full
    screen has square corners. */
 .shell[data-host="embedded"][data-display="inline"] {
-  border-radius: 10px;
+  border-radius: var(--tv-frame-radius, 10px);
   overflow: hidden;
 }

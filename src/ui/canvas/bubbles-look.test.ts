@@ -293,7 +293,7 @@ describe("S21 accessible names, no title, and the token rules", () => {
     const css = readFileSync(
       path.resolve(import.meta.dirname, "../tokens.css"),
       "utf8",
-    ).replace(/\s+/g, " ");
+    ).replace(/var\(--tv-[\w-]+, ([^;]+?)\);/g, "$1;").replace(/\s+/g, " ");
     const RULES: [string, string][] = [
       [
         ".qt-bubble circle {",

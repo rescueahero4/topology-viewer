@@ -6,6 +6,9 @@ import type {
   Vocab,
 } from "#engine";
 import type { Actions } from "./actions";
+import { nodeData } from "./commands";
+import { optionOf } from "./custom";
+import { Content, extendable } from "./Part";
 import type { CanvasModel } from "./canvas/index";
 import { typeName } from "./names";
 import { namesakeLine } from "./namesake";
@@ -15,6 +18,8 @@ import { TypeGlyph } from "./TypeGlyph";
 
 // why: mockup `showResults` (app.js lines 958-959) — the first 50 rows, then one "N more…" line
 export const SHOWN = 50;
+
+export const limitOf = () => optionOf<number>("search", "limit", SHOWN);
 
 // why: rule 3, SA §6 row 21 (search part), P20 — `drawn` adds nothing; a faded hit is text only,
 // with no state glyph, because the mockup search row has none (H1, app.js lines 951-991)
@@ -72,17 +77,20 @@ type Props = {
   query: string;
   labelledBy: string;
   onPick: (id: string) => void;
+  status?: "idle" | "loading" | "failed";
 };
 
 // why: rule 3, FR-CANVAS-19, EPIC-003 hand-off H12 (mockup app.js lines 954-958) — each row has the
 // type mark, the full label and the meta line; a namesake gets its container path under the meta
 // line. A press keeps the focus in the input, so the list does not close before the pick
-export function SearchResults(props: Props) {
+function SearchResultsView(props: Props) {
   const { model, lookup, hits, active, query, labelledBy, onPick } = props;
   const ui = lang.value;
   const { vocab } = model;
   const records = recordsOf(model.graph);
   const [before, after] = tAround(ui, "search.none", "query");
+  const status = props.status ?? "idle";
+  const limit = limitOf();
   return (
     <ul
       class="menu search-results"
@@ -90,14 +98,19 @@ export function SearchResults(props: Props) {
       aria-labelledby={labelledBy}
       onMouseDown={(event) => event.preventDefault()}
     >
-      {hits.length === 0 && (
+      {status !== "idle" && (
+        <li class="none">
+          {t(ui, status === "loading" ? "search.loading" : "search.failed")}
+        </li>
+      )}
+      {status === "idle" && hits.length === 0 && (
         <li class="none">
           {before}
           {query}
           {after}
         </li>
       )}
-      {hits.slice(0, SHOWN).map((id, i) => {
+      {hits.slice(0, limit).map((id, i) => {
         const entity = vocab.entities.get(id);
         const type = entity?.type ?? null;
         const visual =
@@ -111,22 +124,34 @@ export function SearchResults(props: Props) {
             aria-selected={i === active}
             onClick={() => onPick(id)}
           >
-            <span class="glyph">
-              <TypeGlyph visual={visual} size={16} untyped={vocab.untyped} />
-            </span>
-            <span class="name">{entity?.label ?? id}</span>
-            <span class="meta">
-              {metaOf(ui, type, vocab, records.get(id) ?? 1, state)}
-            </span>
-            {namesake !== null && <span class="sub">{namesake}</span>}
+            <Content
+              part="search-result"
+              ctx={() => ({
+                id,
+                node: nodeData(id),
+                query,
+                active: i === active,
+              })}
+            >
+              <span class="glyph">
+                <TypeGlyph visual={visual} size={16} untyped={vocab.untyped} />
+              </span>
+              <span class="name">{entity?.label ?? id}</span>
+              <span class="meta">
+                {metaOf(ui, type, vocab, records.get(id) ?? 1, state)}
+              </span>
+              {namesake !== null && <span class="sub">{namesake}</span>}
+            </Content>
           </li>
         );
       })}
-      {hits.length > SHOWN && (
+      {hits.length > limit && (
         <li class="none">
-          {t(ui, "search.more", { count: hits.length - SHOWN })}
+          {t(ui, "search.more", { count: hits.length - limit })}
         </li>
       )}
     </ul>
   );
 }
+
+export const SearchResults = extendable("search-results", SearchResultsView);

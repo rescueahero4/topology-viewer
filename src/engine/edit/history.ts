@@ -1,5 +1,5 @@
 import type { DrawnId } from "../state/canvasState";
-import type { Edit } from "./types";
+import type { CellChange, Edit } from "./types";
 
 // why: PRD-002 FR-CELL-11 — the history keeps the last 20 edits of the session
 const LIMIT = 20;
@@ -44,6 +44,11 @@ export class EditHistory {
 
   active(): readonly Edit[] {
     return [...this.savedList, ...this.keptList, ...this.doneList];
+  }
+
+  // The changes that are not saved yet, in order. A save sends only these.
+  pending(): readonly CellChange[] {
+    return [...this.keptList, ...this.doneList].flatMap((edit) => edit.changes);
   }
 
   dirty(): boolean {

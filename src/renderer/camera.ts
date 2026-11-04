@@ -1,3 +1,4 @@
+import { fromControl } from "./intents";
 import { easeCubicInOut } from "d3-ease";
 import { select } from "d3-selection";
 import { timer, type Timer } from "d3-timer";
@@ -103,6 +104,7 @@ function behaviourOf(host: CameraHost, st: State, stop: () => void) {
       (event: MouseEvent) =>
         (!event.ctrlKey || event.type === "wheel") &&
         !event.button &&
+        !fromControl(event) &&
         !(/^(mousedown|touchstart)$/.test(event.type) && host.running()),
     )
     .scaleExtent([K_MIN, K_MAX])

@@ -1,3 +1,6 @@
+import { dispatch, live } from "./custom";
+import { extendable } from "./Part";
+import { publicRow } from "./tableConfig";
 import {
   canvasLookup,
   fold,
@@ -192,6 +195,8 @@ function countText(ui: Lang, now: CanvasModel, view: View): string {
 function pressOf(actions: Actions, lookup: CanvasLookup | null) {
   return (row: Row) => {
     if (lookup === null) return;
+    if (!dispatch("rowPress", [row.index], { row: publicRow(row) }, ["table-row"]))
+      return;
     const keys = entitiesOf(row)
       .map((id) => lookup.hiddenOf(id))
       .filter((key): key is DrawnId => key !== null);
@@ -346,7 +351,7 @@ type Props = {
 // why: FR-TABLE-4, FR-HOST-2, rules 4, 9, 12 — the Dataset table under the canvas. It stays mounted
 // for the App, so the session state stays; a closed Workbench is `inert` and draws no rows.
 // STORY-008-02 rule 5 — the session belongs to the base input, so an edit does not reset it
-export function Workbench({ id, actions, host, start }: Props) {
+function WorkbenchView({ id, actions, host, start }: Props) {
   const ui = lang.value;
   const base = model.value;
   const now = editedModel.value;
@@ -361,6 +366,28 @@ export function Workbench({ id, actions, host, start }: Props) {
       update((s) => ({ filters: { ...s.filters, query } }));
     }, DEBOUNCE_MS);
   };
+  useEffect(() => {
+    live.table = {
+      get: () => ({
+        filters: {
+          ...session.filters,
+          kinds: [...session.filters.kinds],
+          families: [...session.filters.families],
+        },
+        sort: session.sort,
+        text: session.text,
+      }),
+      setFilters: (change) =>
+        update((s) => ({ filters: { ...s.filters, ...change } as Filters })),
+      setSort: (sort) => update(() => ({ sort: sort as Sort })),
+      setColumn: (column, on) =>
+        update((s) => ({ choice: choose(s.choice, column as Column, on) })),
+      setText: onText,
+    };
+    return () => {
+      live.table = null;
+    };
+  });
   const open = layout.value !== "canvas-only";
   return (
     <section
@@ -381,3 +408,5 @@ export function Workbench({ id, actions, host, start }: Props) {
     </section>
   );
 }
+
+export const Workbench = extendable("workbench", WorkbenchView);

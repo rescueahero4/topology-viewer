@@ -116,6 +116,9 @@ export { forceConfig, type ForceConfig } from "./layout/force";
 export {
   layout,
   recenter,
+  setCustomLayouts,
+  hasCustomLayout,
+  type LayoutRun,
   setLayout,
   type LayoutResult,
 } from "./layout/layout";

@@ -16,6 +16,28 @@ import { TopologyViewer } from "topology-viewer/react";
 
 Without React: `mountTopology(element, options)` from `topology-viewer`. See [`types/index.d.ts`](types/index.d.ts) for all options.
 
+## Customizing
+
+Change any style or behaviour with no fork. See [CUSTOMIZING.md](CUSTOMIZING.md).
+
+```tsx
+<TopologyViewer
+  url="/api/graph"
+  themes={{ dark: darkTheme }}
+  colorMode="system"
+  pageStyles
+  parts={{
+    "family-tab": { className: "bg-amber-200" },
+    "inspector-notes": { render: ({ node }) => <OwnerCard node={node} /> },
+    node: { render: ({ node, selected }) => <ServiceCard {...{ node, selected }} /> },
+    table: { options: { validate: ({ value }) => (value === "" ? "Required" : undefined) } },
+  }}
+  onSave={async (changes) => { await api.patch(changes); }}
+/>
+```
+
+For a change that no option reaches, see [FORKING.md](FORKING.md).
+
 ## Data
 
 Give one of `data`, `url` or `load`.
@@ -49,7 +71,7 @@ Each viewer has its own state and its own Shadow DOM root. It needs no `unsafe-e
 
 | Path | npm installs it | Purpose |
 |---|---|---|
-| `dist/`, `types/`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
+| `dist/`, `types/`, `CUSTOMIZING.md`, `FORKING.md`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
 | `src/`, `assets/`, `scripts/` | No | Source of `dist/`, and its tests. |
 | `demo/` | No | A separate app with its own `package.json`. It uses only the public entries. |
 

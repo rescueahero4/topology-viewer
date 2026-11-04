@@ -1,6 +1,7 @@
 // The pages of the browser tests. Each one is a small use of the public API.
 import { StrictMode, useRef, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { CUSTOM_CASES } from "./custom-cases";
 import { qdicProfile } from "topology-viewer/profiles/qdic";
 import {
   TopologyViewer,
@@ -184,6 +185,7 @@ function Toggle() {
 }
 
 const CASES: Record<string, () => ReactNode> = {
+  ...CUSTOM_CASES,
   url: () => <Viewer url={API + path} />,
   envelope: Envelope,
   auth: Auth,

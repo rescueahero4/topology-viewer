@@ -101,9 +101,10 @@ export function topology(graph: Graph, vocab: Vocab): Topology {
 // the drawn set but is not drawn (FR-FILTER-6); `null` is the row of the entities with no type (D93 (1))
 export function offOf(top: Topology, state: CanvasState): Uint8Array {
   const off = new Set(state.filters.typesOff);
+  const entities = new Set(state.filters.entitiesOff);
   const mask = new Uint8Array(top.ids.length);
   top.types.forEach((type, entity) => {
-    if (off.has(type)) mask[entity] = 1;
+    if (off.has(type) || entities.has(top.ids[entity])) mask[entity] = 1;
   });
   return mask;
 }

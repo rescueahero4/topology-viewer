@@ -1,3 +1,6 @@
+import { cellValue } from "./cellEdit";
+import { Content } from "./Part";
+import { publicColumn, publicRow } from "./tableConfig";
 import {
   entityOfDrawnId,
   type EditCode,
@@ -171,7 +174,17 @@ function Cell({
         nav.onFocus();
       }}
     >
-      {body}
+      <Content
+        part="table-cell"
+        ctx={() => ({
+          row: publicRow(row),
+          column: publicColumn(column),
+          value: cellValue(row, column),
+          text: cellText(cells.ui, cells.vocab, column, row),
+        })}
+      >
+        {body}
+      </Content>
     </td>
   );
 }

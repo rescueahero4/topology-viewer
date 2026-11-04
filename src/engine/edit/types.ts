@@ -44,7 +44,9 @@ export type EditCode =
   | "duplicate-key"
   | "reserved-key"
   | "too-large"
-  | "not-a-boolean";
+  | "not-a-boolean"
+  // A message from the `validate` option of the developer.
+  | "custom";
 
 export type ValueKind =
   "text" | "number" | "boolean" | "date" | "list" | "object";

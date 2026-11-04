@@ -1,3 +1,5 @@
+import { selectedNode } from "./commands";
+import { extendable } from "./Part";
 import type { DrawnNode, Vocab } from "#engine";
 import type { ComponentChildren } from "preact";
 import type { Actions } from "./actions";
@@ -69,7 +71,7 @@ function notesOf(actions: Actions, vocab: Vocab, node: DrawnNode): Note[] {
   return notes;
 }
 
-export function InspectorNotes(props: {
+function InspectorNotesView(props: {
   actions: Actions;
   vocab: Vocab;
   node: DrawnNode | undefined;
@@ -84,3 +86,5 @@ export function InspectorNotes(props: {
     </>
   );
 }
+
+export const InspectorNotes = extendable("inspector-notes", InspectorNotesView, () => ({ node: selectedNode() }));

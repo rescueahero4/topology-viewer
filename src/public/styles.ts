@@ -15,7 +15,8 @@ import tokens from "../ui/tokens.css?inline";
 // so a page can set a token, and the tokens do not touch the page.
 const HOST = `:host{display:block;position:relative;color-scheme:light}
 :host(:fullscreen){width:100%;height:100%}
-.tv-mount{height:100%}`;
+.tv-mount{height:100%}
+.tv-mount[data-tv-full]{position:fixed;inset:0;z-index:var(--tv-fullscreen-z,1000);height:auto}`;
 
 // A viewer with no node types in its profile: all types are "custom", so the tag says nothing.
 export const NO_TYPES_RULE = `.prov{display:none}.fam-head:empty{display:none}`;
@@ -35,3 +36,11 @@ export const styleText = [
   embedded,
   HOST,
 ].join("\n");
+
+// The CSS of the viewer sits in one cascade layer. A rule of the developer with no layer wins over all
+// of it, with no fight of specificity. For a page that uses `pageStyles`: the layer is inside
+// `components`, so the reset of Tailwind 4 stays under the viewer and its utilities over it, whichever
+// sheet states the order first. A `<link>` in a shadow root comes before the adopted sheets, so a new
+// top-level name here would land after `utilities`.
+export const layered = (css: string) =>
+  `@layer theme, base, components, utilities;\n@layer components.tv {\n${css}\n}`;

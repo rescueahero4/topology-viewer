@@ -16,15 +16,20 @@ import type { Actions } from "./actions";
 import { endsToDraw } from "./canvas/index";
 import { changeOf, sameValue, type Read, type Saved } from "./cellEdit";
 import { localVocab } from "./names";
+import { custom, dispatch, peekOption, type SaveAnswer } from "./custom";
 import {
   editedModel,
   editHistory,
   editStep,
   lang,
   model,
+  saveState,
   shownInput,
   stepEdits,
+  validateMessage,
 } from "./state";
+import { t } from "./strings/index";
+import { columnConfig, publicColumn, publicRow } from "./tableConfig";
 import type { Column } from "./workbenchColumns";
 import type { Row } from "./workbenchRows";
 
@@ -33,6 +38,9 @@ import type { Row } from "./workbenchRows";
 // new ends to draw, and the edit keeps the canvas effect for Undo. In memory only; nothing goes to
 // the host (SA §11 addendum 0.28)
 export function saveEdit(actions: Actions, changes: CellChange[]): void {
+  if (!dispatch("edit", [changes], { changes }, ["table"])) return;
+  if (saveState.peek().error !== null)
+    saveState.value = { saving: false, error: null };
   const edit: Edit = { changes, effect: { drew: [], undrew: [] } };
   stepEdits((history) => history.push(edit));
   const now = editedModel.peek();
@@ -83,6 +91,7 @@ export function redoEdit(actions: Actions): void {
 export function cancelChanges(actions: Actions): void {
   let cancelled: Edit[] = [];
   stepEdits((history) => (cancelled = history.cancel()));
+  saveState.value = { saving: false, error: null };
   editStep.value = { kind: "cancelled", count: cancelled.length };
   const now = editedModel.peek();
   if (now === null || cancelled.length === 0) return;
@@ -92,10 +101,44 @@ export function cancelChanges(actions: Actions): void {
 
 // why: SA addendum 0.33 (9), STORY-008-09 rule 5 — "Save changes" folds the unsaved edits into the
 // one saved edit and empties Undo and Redo; the edited graph is the same, so the canvas does not move
-export function saveChanges(): void {
-  const count = editHistory.peek().history.done.length;
-  stepEdits((history) => history.save());
-  editStep.value = { kind: "saved", count };
+export function saveChanges(): void | Promise<void> {
+  const { history } = editHistory.peek();
+  const count = history.done.length;
+  const fold = () => {
+    saveState.value = { saving: false, error: null };
+    stepEdits((now) => now.save());
+    editStep.value = { kind: "saved", count };
+  };
+  if (saveState.peek().saving) return;
+  const pending = history.pending();
+  if (!dispatch("save", [pending], { changes: pending }, ["change-bar"])) return;
+  const handler = custom.peek().onSave;
+  if (handler === undefined) return fold();
+  // The text of a failure comes only from what the developer chose to answer, so a server text
+  // stays out of the interface.
+  const fail = (message?: string) => {
+    saveState.value = {
+      saving: false,
+      error: message ?? t(lang.peek(), "edit.saveFailed"),
+    };
+    editStep.value = { kind: "failed", count };
+  };
+  const settle = (answer: SaveAnswer) => {
+    const error = typeof answer === "object" ? answer?.error : undefined;
+    if (typeof error === "string") fail(error);
+    else fold();
+  };
+  saveState.value = { saving: true, error: null };
+  let answer: SaveAnswer | Promise<SaveAnswer>;
+  try {
+    answer = handler(pending, {
+      all: history.active().flatMap((edit) => edit.changes),
+    });
+  } catch {
+    return fail();
+  }
+  if (answer instanceof Promise) return answer.then(settle, () => fail());
+  settle(answer);
 }
 
 type Checked = {
@@ -124,7 +167,38 @@ function checked(row: Row, column: Column, read: Read): Checked {
   const change = changeOf(base.graph, row, column, read.after);
   if (sameValue(change.before, change.after)) return NOTHING;
   const check = (one: CellChange) => checkEdit(now.graph, input.profile, one);
-  return { code: check(change), change, check, graph: now.graph };
+  return {
+    code: check(change) ?? validated(row, column, read.after),
+    change,
+    check,
+    graph: now.graph,
+  };
+}
+
+// The checks of the developer, after the checks of the engine: a closed list of values, then
+// `validate`.
+function validated(row: Row, column: Column, after: unknown): EditCode | null {
+  const say = (message: string) => {
+    validateMessage.value = message;
+    return "custom" as const;
+  };
+  const select = columnConfig(column)?.editor;
+  if (
+    typeof select === "object" &&
+    Array.isArray(select.select) &&
+    !select.select.includes(after as string)
+  )
+    return say(select.message ?? t(lang.peek(), "edit.custom"));
+  const validate = peekOption<(change: unknown) => string | null | undefined>(
+    "table",
+    "validate",
+  );
+  const answer = validate?.({
+    row: publicRow(row),
+    column: publicColumn(column),
+    value: after,
+  });
+  return typeof answer === "string" && answer !== "" ? say(answer) : null;
 }
 
 const isCore = (column: Column, key: string) =>
