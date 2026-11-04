@@ -22,8 +22,7 @@ function classOf(d: SceneNode): string {
   return d.tier === "leaf" ? "qt-node qt-leaf" : "qt-node";
 }
 
-// why: quollio-topology group node (lib/topology.js lines 990-994) — a group sits in a soft
-// halo of its own guarded colour
+// why: a group sits in a soft halo of its own guarded colour
 function drawHalo(node: NodeSelection, d: SceneNode): void {
   for (const [scale, opacity] of [
     [1.55, 0.1],

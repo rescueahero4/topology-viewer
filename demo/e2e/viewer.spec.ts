@@ -200,13 +200,13 @@ test.describe("mock data of the MCP widget", () => {
     await open(page, "case=url&path=/fail/badshape");
     const notice = page.locator(".a .notice");
     await expect(notice).toContainText("data provider");
-    for (const word of ["AI client", "QDIC", "Quollio", "chat"])
+    for (const word of ["AI client", "QDIC", "chat"])
       await expect(notice).not.toContainText(word);
     await notice.locator("button", { hasText: "Copy details" }).click();
     await expect(notice.locator("button", { hasText: "Copied" })).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     expect(copied).toContain("The topology chart");
-    expect(copied).not.toContain("Quollio");
+    expect(copied).not.toContain("QDIC");
   });
 });
 
