@@ -3,7 +3,7 @@ import services from "./data/services.json";
 
 export default function Demo() {
   return (
-    <div style={{ height: 460 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer
         data={services}
         // A pure function: the same graph gives the same places.

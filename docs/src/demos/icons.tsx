@@ -37,7 +37,7 @@ const graph = {
 
 export default function Demo() {
   return (
-    <div style={{ height: 420 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer
         data={graph}
         profile={profile}

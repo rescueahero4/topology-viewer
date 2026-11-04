@@ -3,7 +3,7 @@ import services from "./data/services.json";
 
 export default function Demo() {
   return (
-    <div style={{ height: 440, padding: 12 }}>
+    <div style={{ height: 504, padding: 12 }}>
       <TopologyViewer
         data={services}
         theme={{

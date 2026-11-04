@@ -13,7 +13,7 @@ export default function Demo() {
   return (
     <>
       <style>{css}</style>
-      <div style={{ height: 440 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           data={services}
           pageStyles

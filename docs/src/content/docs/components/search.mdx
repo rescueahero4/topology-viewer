@@ -10,13 +10,13 @@ By default, search matches labels and ids as you type, and picking a result focu
 
 ## Your own matching and results
 
-<Demo name="search-local" height={460} />
+<Demo name="search-local" height={520} />
 
 ## Search on your server
 
 `source` gets the query and an abort signal, and returns the ids of the hits. The viewer shows a loading state and a failed state, and a new query cancels the last one.
 
-<Demo name="search-remote" height={420} />
+<Demo name="search-remote" height={480} />
 
 <Aside type="note">
 The query leaves the page only through your `source`. Without it, the search stays in the browser.

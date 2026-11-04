@@ -25,7 +25,7 @@ type Node = { attrs: { owner_email?: string } };
 
 export default function Demo() {
   return (
-    <div style={{ height: 440 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer
         data={graph}
         parts={{

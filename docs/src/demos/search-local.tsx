@@ -10,7 +10,7 @@ export default function Demo() {
   return (
     <>
       <div className="demo-bar">Try "go" or "rust". Picked: {picked}</div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           data={services}
           keyboard={{ search: "mod+k" }}

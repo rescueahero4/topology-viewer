@@ -13,7 +13,7 @@ export default function Demo() {
         <button aria-pressed={mode === "dark"} onClick={() => setMode("dark")}>Dark</button>
         <button aria-pressed={mode === "system"} onClick={() => setMode("system")}>System</button>
       </div>
-      <div style={{ height: 440 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer data={services} themes={{ dark: DARK_THEME }} colorMode={mode} />
       </div>
     </>

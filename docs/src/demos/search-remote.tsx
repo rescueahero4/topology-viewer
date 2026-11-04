@@ -13,7 +13,7 @@ async function searchApi(query: string, signal: AbortSignal): Promise<string[]> 
 
 export default function Demo() {
   return (
-    <div style={{ height: 420 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer
         data={services}
         parts={{

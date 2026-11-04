@@ -15,7 +15,7 @@ export default function Demo() {
         ))}
         Then press the button next to the search. Escape closes it.
       </div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           key={how}
           data={services}

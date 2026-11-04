@@ -12,7 +12,7 @@ The viewer runs in a Shadow DOM, so your page CSS cannot reach inside it by acci
 
 Every element has a public name, and `::part(name)` selects it from outside. These rules beat the viewer's own rules, with no fight over specificity.
 
-<Demo name="part-css" height={440} />
+<Demo name="part-css" height={480} />
 
 ### States are part names too
 
@@ -34,7 +34,7 @@ CSS does not let `::part` select children, as in `::part(a) span`. Name the chil
 
 `style` on a part takes an object, or a function of its state. On the canvas, the function gets the data of the node or the edge.
 
-<Demo name="inline-style" height={440} />
+<Demo name="inline-style" height={480} />
 
 An inline style goes through the DOM style API, so it needs no `unsafe-inline`.
 

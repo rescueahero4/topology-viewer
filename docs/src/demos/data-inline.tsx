@@ -22,7 +22,7 @@ const graph = {
 
 export default function Demo() {
   return (
-    <div style={{ height: 380 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer data={graph} />
     </div>
   );

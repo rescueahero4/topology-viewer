@@ -15,7 +15,7 @@ export default function Demo() {
         </button>
         <button onClick={() => viewer.current?.reload()}>Reload</button>
       </div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           ref={viewer}
           // Use load for headers, auth, or an API that wraps its answer.

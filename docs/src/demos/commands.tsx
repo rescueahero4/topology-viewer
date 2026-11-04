@@ -16,7 +16,7 @@ export default function Demo() {
         <button onClick={() => viewer.current?.hide(["redis"])}>hide(["redis"])</button>
         <button onClick={() => viewer.current?.fit()}>fit()</button>
       </div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           ref={viewer}
           data={services}

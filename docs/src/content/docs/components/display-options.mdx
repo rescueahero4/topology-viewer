@@ -8,7 +8,7 @@ import Demo from "~/components/Demo.astro";
 
 The bar at the bottom left holds the scope, node types, layout, grouping and the table button.
 
-<Demo name="display-options" height={440} />
+<Demo name="display-options" height={480} />
 
 ## Options
 
@@ -29,7 +29,7 @@ A `view` in the payload wins over `default`, so that your data can decide its ow
 
 `layouts` adds a layout to the menu. Its name is `custom:<key>`. It is a pure function: the same graph gives the same places. Look for **Ring** in the layout menu.
 
-<Demo name="custom-layout" height={460} />
+<Demo name="custom-layout" height={480} />
 
 `run` gets the drawn nodes, each with `id`, `type`, `label`, `width` and `height`, and the edges, with `source`, `target` and `predicate`. It returns `{ [id]: { x, y } }`. A node with no place stays where it is.
 

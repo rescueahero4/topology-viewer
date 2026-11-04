@@ -15,7 +15,7 @@ export default function Demo() {
         </button>
         Press anything in the viewer.
       </div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           data={services}
           // Every action of every control, before it runs.

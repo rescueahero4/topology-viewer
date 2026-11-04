@@ -15,7 +15,7 @@ export default function Demo() {
         </button>
         The viewer asked {asks} times. This demo ignores it.
       </div>
-      <div style={{ height: 400 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           data={services}
           displayMode={mode}

@@ -8,7 +8,7 @@ export default function Demo() {
         Hover the viewer, then try Ctrl or Cmd + K for the search, and Ctrl or Cmd + J for the table.
         The / key does nothing here.
       </div>
-      <div style={{ height: 400 }}>
+      <div style={{ height: 480 }}>
         <TopologyViewer
           data={services}
           keyboard={{ search: "mod+k", toggleTable: "mod+j", tableLarger: false, tableSmaller: false }}

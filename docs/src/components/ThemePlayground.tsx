@@ -184,7 +184,7 @@ export default function ThemePlayground() {
             </select>
           </label>
         </div>
-        <div style={{ height: 480, padding: 12 }}>
+        <div style={{ height: 504, padding: 12 }}>
           <TopologyViewer data={services} theme={theme} />
         </div>
       </div>

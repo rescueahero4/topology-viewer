@@ -14,10 +14,10 @@ const CompanyViewer = createTopologyViewer({
 export default function Demo() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, padding: 8 }}>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <CompanyViewer data={services} />
       </div>
-      <div style={{ height: 420 }}>
+      <div style={{ height: 480 }}>
         <CompanyViewer
           data={services}
           theme={{ accent: "#db2777", frameRadius: "0" }}

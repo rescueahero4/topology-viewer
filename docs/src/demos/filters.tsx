@@ -5,7 +5,7 @@ type Node = { attrs: { language?: string; replicas?: number } };
 
 export default function Demo() {
   return (
-    <div style={{ height: 460 }}>
+    <div style={{ height: 480 }}>
       <TopologyViewer
         data={services}
         parts={{
