@@ -6,6 +6,8 @@ A graph explorer for your API payload: canvas, inspector, search, filters, layou
 npm install git+https://github.com/rescueahero4/topology-viewer.git
 ```
 
+Run the same command to update. A plain `npm install` keeps the commit in your lockfile.
+
 ```tsx
 import { TopologyViewer } from "topology-viewer/react";
 
@@ -38,6 +40,13 @@ Change any style or behaviour with no fork. See [CUSTOMIZING.md](CUSTOMIZING.md)
 
 For a change that no option reaches, see [FORKING.md](FORKING.md).
 
+## Updating from 0.1
+
+- `variant` now defaults to `"page"`. Set `variant="widget"` for the compact chat look, which also has the rounded frame.
+- Full screen now fills the browser view. Set `fullscreen="native"` for the browser's Fullscreen API.
+- `onSave` now gets only the changes since the last save. The full list is in its second argument, `info.all`. If it returns a promise, the bar waits for it, and a failure keeps the edits.
+- The search shortcut no longer fires with Ctrl or Cmd held.
+
 ## Data
 
 Give one of `data`, `url` or `load`.
@@ -65,7 +74,9 @@ The default vocabulary has general predicates and no node types. For the QDIC vo
 
 ## Integration
 
-Each viewer has its own state and its own Shadow DOM root. It needs no `unsafe-eval` and no `unsafe-inline`. Add your API to `connect-src`. Mount in the browser only. All code runs in the browser, so keep secrets out of `load`.
+Each viewer has its own state and its own Shadow DOM root. It needs no `unsafe-eval` and no `unsafe-inline`. Add your API to `connect-src`. With `pageStyles`, `style-src` must also allow your stylesheets.
+
+The React component is safe to server-render: it renders an empty element and mounts in the browser. `mountTopology` is browser only. All code runs in the browser, so keep secrets out of `load`.
 
 ## Repository
 
