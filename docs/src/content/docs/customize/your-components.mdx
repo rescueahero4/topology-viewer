@@ -1,0 +1,78 @@
+---
+title: Your components
+description: Add your own components around, instead of, or among the parts of the viewer.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+Any part can show your own component. Press a node here, and look for the additions:
+
+<Demo name="your-content" height={480} />
+
+## Four ways to add content
+
+| Key | Your content goes | Use it to |
+|---|---|---|
+| `before`, `after` | Next to the default | Add to a part and keep it |
+| `render` | Instead of the default | Replace a part |
+| `items` | Among the children of a container | Reorder, remove and add |
+| `canvas: { after }` | Over the chart | Add a legend or a toolbar |
+
+Each one takes a function that gets the context of the part, or a plain React node. The [parts reference](/topology-viewer/reference/parts/) lists the context of each part. All of them include `commands`.
+
+## Replace only some items
+
+`match` decides which items take your `render`. The others keep the default.
+
+```tsx
+parts={{
+  "triple-row": {
+    match: ({ triple }) => triple.predicate === "owns",
+    render: ({ triple }) => <OwnershipRow triple={triple} />,
+  },
+}}
+```
+
+## Containers
+
+`items` sets the children of `display-options`, `inspector-body` and `workbench-toolbar`. A string keeps a default child, leaving a name out removes it, and `{ id, render }` adds yours.
+
+```tsx
+parts={{
+  "inspector-body": {
+    items: [
+      "inspector-triples",
+      { id: "risk", render: ({ node }) => <RiskPanel node={node} /> },
+      "inspector-attributes",
+    ],
+  },
+}}
+```
+
+## Your CSS and React context keep working
+
+Your content lives outside the Shadow DOM, as a child of the viewer's host element, and shows at its place through a native `<slot>`. It stays in your React tree. So:
+
+- Your CSS applies to it, including Tailwind and CSS modules.
+- `useContext` works, so your theme provider, query client and router are all there.
+- Viewer tokens inherit into it, so `var(--tv-surface)` works.
+- Your state stays when the viewer re-renders.
+
+## Limits
+
+<Aside type="note" title="render replaces. It cannot wrap the default.">
+You cannot show the default inside your own component. To keep most of a component, replace one of its smaller parts instead, or use `before` and `after`.
+</Aside>
+
+Some parts keep their own element, because the viewer needs it: `table-cell`, `search-result`, `bulk-bar`, `inspector-empty` and `canvas`. Your content goes inside that element. So keyboard moves and selection keep working in a table cell.
+
+`table-row` and `table-head` take style and `on` only.
+
+## Clicks inside the viewer
+
+Clicks in your content also reach the viewer's own handlers around it. For example, a press on your content in a `table-cell` also presses the row. To stop that, use `on`:
+
+```tsx
+parts={{ "table-row": { on: { rowPress: (event) => event.preventDefault() } } }}
+```

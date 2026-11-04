@@ -1,0 +1,138 @@
+---
+title: Your data
+description: The payload format, from the minimum to every optional key.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+The viewer reads one JSON payload. Only `nodes` and `edges` matter to start.
+
+```json
+{
+  "nodes": [
+    { "id": "a", "type": "service", "label": "Orders", "attrs": { "language": "Go" } },
+    { "id": "b", "type": "service", "label": "Payments" }
+  ],
+  "edges": [
+    { "source": "a", "target": "b", "predicate": "dependsOn" }
+  ]
+}
+```
+
+<Demo name="data-inline" title="Nodes, edges, types and a first view" height={380} />
+
+## Nodes
+
+| Key | Type | Notes |
+|---|---|---|
+| `id` | `string` | Unique. An edge refers to it. |
+| `label` | `string` | The name to show. |
+| `type` | `string` | Groups the node for filters, icons and colours. |
+| `attrs` | `object` | Anything. Shows in the inspector and as table columns. A key that starts with `_` stays private. |
+
+Two forms are accepted for compact payloads: `["id", "type", "label", { "attrs": 1 }]`, and the catalog form with `globalId`, `nodeType`, `physicalName` and `logicalName`.
+
+## Edges
+
+| Key | Type | Notes |
+|---|---|---|
+| `source` or `subject` | `string` | The id of the start node. |
+| `target` or `object` | `string` | The id of the end node. |
+| `predicate` | `string` | What the relationship is, such as `dependsOn`. |
+| `attrs` | `object` | Anything. |
+| `isActive` | `boolean` | `false` draws it as retired. |
+| `valid_from`, `valid_to` | `string` | Dates, shown in the table. |
+
+The compact form is `["subject", "predicate", "object"]`. You can also send edges as `links`, or nodes and edges inside `neighborhood`.
+
+## Types
+
+`types` sets how each node type looks. A type with no entry gets a mark of its own.
+
+```json
+{
+  "types": {
+    "service": { "label": "Service", "shape": "hexagon", "color": "#2563EB", "abbr": "SV" },
+    "database": { "label": "Database", "shape": "circle", "color": "#059669", "abbr": "DB", "rank": 4 }
+  }
+}
+```
+
+| Key | Values |
+|---|---|
+| `label` | The name in menus and tooltips. |
+| `shape` | `circle`, `triangle`, `square`, `diamond`, `pentagon`, `hexagon`, `heptagon`, `octagon` |
+| `color` | A colour. The viewer adjusts it if it would be unreadable on the canvas. |
+| `abbr` | Up to 2 letters inside the mark. |
+| `rank` | 0 to 6. The size of the mark. |
+| `glyph` | SVG path data, up to 512 characters, for your own mark. |
+| `level` | A whole number. The level in the tree layouts. |
+| `role` | `structure`, `attribute` or `curation`. Its role in the tree layouts. |
+
+For real icons, use [`defineProfile`](/topology-viewer/components/types-and-icons/).
+
+## Predicates
+
+`predicates` sets how each relationship behaves.
+
+```json
+{
+  "predicates": {
+    "calls": { "label": "calls", "category": "Traffic", "inverse": "called by" },
+    "owns": { "label": "owns", "category": "Ownership", "role": "containment" }
+  }
+}
+```
+
+`category` is the family it filters under. `role: "containment"` makes it a parent and child link in the tree layouts.
+
+## Fields
+
+`fields` names your attributes for the inspector.
+
+```json
+{
+  "fields": {
+    "owner_email": { "label": "Owner", "why": "From the HR system" }
+  }
+}
+```
+
+To control this from your code instead, use [`inspector-attributes`](/topology-viewer/components/inspector/).
+
+## The first view
+
+`view` sets what shows first.
+
+| Key | Values |
+|---|---|
+| `root` | The id of the node to start from. |
+| `approach` | `active` starts from one node and lets users explore outwards. `passive` draws up to the budget. |
+| `budget` | `10`, `20`, `50` or `"all"`. How many nodes to draw. |
+| `layout` | `force`, `atomic`, `bubbles`, `tree-h` or `tree-v`. |
+| `reveal` | A list of ids to draw from the start. |
+
+<Aside type="tip">
+Want all your nodes on screen at once? Use `"view": { "approach": "passive", "budget": "all" }`.
+</Aside>
+
+## Rows and trees
+
+A payload does not have to be a graph. The viewer recognizes rows with `source` and `target` columns, and nested trees. Use `shape` when it cannot tell:
+
+```json
+{ "shape": { "kind": "rows", "subject": "from", "object": "to", "predicate": "kind" } }
+```
+
+```json
+{ "shape": { "kind": "tree", "children": "items", "label": "name", "id": "key" } }
+```
+
+## Bad data
+
+The viewer treats the payload as untrusted. A bad value falls back to a default, and a chip lists what it could not use. It does not throw, and no text in the data can become markup or script.
+
+## Limits
+
+2,000 nodes, 4,000 edges, 8 MB. A payload over a limit shows a notice in the viewer.

@@ -1,0 +1,77 @@
+---
+title: Canvas and nodes
+description: Use any React component as a node, style nodes and edges, and add your own tooltip.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+## Your components as nodes
+
+A node can be any component. It pans, zooms, drags and fades with the canvas. Try the `+` button, then drag a card.
+
+<Demo name="custom-nodes" title="Services are React cards. Teams, queues and stores keep the default mark." height={520} />
+
+### What to know
+
+- **Give it a size.** `sizes` is by node type, and the layout uses it to make room.
+- **`match` picks the nodes.** With no `match`, every node takes your `render`, except group nodes.
+- **A press selects it,** and a double press activates it, as with a default node.
+- **A control belongs to itself.** A press on a `button`, `a`, `input`, `select`, `textarea` or `label` does not select, drag or pan. To make your own control behave this way, add `data-tv-control`.
+- **Labels are off by default,** because your component usually shows the name. `labels: true` keeps them under it.
+- **Your CSS and context work,** as with [any of your components](/topology-viewer/customize/your-components/).
+
+<Aside type="caution" title="Keep nodes light">
+Each custom node is one component, so a slow one is slow thousands of times. Keep them simple when you draw many, or use `style` instead.
+</Aside>
+
+<Aside type="note" title="Browser support">
+Custom nodes use `<foreignObject>`, and the tests run in Chromium. Safari has a history of bugs with content in `foreignObject`, so test there if you support it.
+</Aside>
+
+## Style nodes and edges
+
+`style` on `node` and `edge` takes a function of the data. Here, nodes with 4 or more replicas glow, and `owns` edges are dotted.
+
+<Demo name="inline-style" height={440} closed />
+
+## Labels and tooltips
+
+`label` and `sublabel` set the text under a default node. `tooltip` replaces the tooltip, for nodes and edges. Hover something:
+
+<Demo name="node-labels" height={440} />
+
+Set `tooltip: { hidden: true }` to have no tooltip.
+
+## Canvas actions
+
+```tsx
+parts={{
+  node: {
+    on: {
+      select: (event) => track(event.id),
+      activate: (event) => {
+        event.preventDefault(); // Stop the default expand or focus.
+        openDetails(event.id);
+      },
+    },
+  },
+  canvas: { on: { select: () => closeDrawer() } }, // A press on the empty canvas.
+}}
+```
+
+## Overlays
+
+`canvas: { after }` adds your content over the chart, for a legend or a toolbar. Position it yourself.
+
+```tsx
+parts={{
+  canvas: {
+    after: () => <Legend style={{ position: "absolute", right: 12, top: 56 }} />,
+  },
+}}
+```
+
+## Swapping the renderer
+
+The renderer itself cannot be swapped without [a fork](/topology-viewer/advanced/forking/), because it owns the state of the chart. Custom nodes, styles and [layouts](/topology-viewer/components/display-options/#your-own-layout) cover most needs.

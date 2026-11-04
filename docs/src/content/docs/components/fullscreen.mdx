@@ -1,0 +1,63 @@
+---
+title: Full screen
+description: Fill the browser view, use the Fullscreen API, or run your own behaviour.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+By default, full screen fills the browser view, with no browser API and no permission prompt. **Expand table** takes the same way.
+
+<Demo name="fullscreen" height={460} />
+
+## Strategies
+
+| `fullscreen` | Does |
+|---|---|
+| `"viewport"` | Fills the browser view. The default. |
+| `"native"` | Uses the Fullscreen API of the browser |
+| `false` | No button, and **Expand table** stays in the frame |
+| `{ enter, exit }` | Runs your own functions |
+
+## In `viewport` mode
+
+- **Escape** closes an open menu first, and then the full view. The selection stays.
+- **The page behind does not scroll.** `lockPageScroll={false}` turns this off.
+- **The page does not move,** and the chart keeps its state.
+- **Focus returns** to where it was when the view closes.
+- `--tv-fullscreen-z` sets the layer. Default: 1000.
+
+<Aside type="caution" title="A parent can trap the view">
+A parent with `transform`, `filter` or `contain` makes a fixed element fill the parent, and not the view. A parent with `isolation` or its own `z-index` keeps the view under what is above that parent, such as a sticky header. The viewer warns in the console in both cases.
+
+Remove that style from the parent, or use `"native"`, or your own `{ enter, exit }`.
+</Aside>
+
+## Your own behaviour
+
+```tsx
+<TopologyViewer
+  fullscreen={{
+    enter: ({ element }) => openMyDrawer(element),
+    exit: () => closeMyDrawer(),
+  }}
+/>
+```
+
+Either can return a promise. If it rejects, the mode stays as it was.
+
+## Your state decides
+
+With `displayMode` set, a press only asks, through `onDisplayModeChange`, and the mode changes by your prop. This demo has its own button, and ignores what the viewer asks:
+
+<Demo name="fullscreen-custom" height={440} />
+
+## Your own button
+
+`fullscreen-button` takes `render`, as above. Its context has `displayMode` and `toggle`.
+
+## Drive it from your code
+
+```tsx
+viewer.current?.setDisplayMode("fullscreen");
+```

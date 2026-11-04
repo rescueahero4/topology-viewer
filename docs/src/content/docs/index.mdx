@@ -1,0 +1,54 @@
+---
+title: Topology Viewer
+description: A graph explorer component for your API. Canvas, inspector, search, filters and an editable table, and every part of it can be customized.
+template: splash
+editUrl: false
+lastUpdated: false
+hero:
+  title: Explore any graph. Customize every part.
+  tagline: A complete graph explorer as one component. Point it at your API and get a canvas, inspector, search, filters and an editable table, with full control over how each one looks and behaves.
+  actions:
+    - text: Get started
+      link: /topology-viewer/start/introduction/
+      icon: right-arrow
+    - text: See the demos
+      link: /topology-viewer/examples/service-map/
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+<Demo name="hero" title="This is the real component. Press a node, or open the Dataset table." height={560} closed />
+
+## Up and running in one line
+
+```tsx
+<TopologyViewer url="/api/graph" />
+```
+
+## Everything is included, and everything is yours to change
+
+<CardGrid>
+  <Card title="A full explorer" icon="puzzle">
+    Five layouts, grouping, focus, hide and restore, search, filters, an inspector and an editable table.
+  </Card>
+  <Card title="Every element is addressable" icon="pencil">
+    Every element has a public name that works in CSS and in props. Use tokens, `::part`, inline styles or Tailwind.
+  </Card>
+  <Card title="Your components inside" icon="seti:react">
+    Replace any part with your own React, including the nodes on the canvas. Your CSS and React context keep working.
+  </Card>
+  <Card title="Safe to embed" icon="approve-check">
+    It runs in its own Shadow DOM, has no runtime dependencies, and needs no `unsafe-eval` or `unsafe-inline`.
+  </Card>
+</CardGrid>
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Quick start" description="Render your first graph." href="/topology-viewer/start/quick-start/" />
+  <LinkCard title="How customization works" description="The one model that every part follows." href="/topology-viewer/customize/overview/" />
+  <LinkCard title="Theme playground" description="Change the look with controls, and copy the code." href="/topology-viewer/customize/themes/" />
+  <LinkCard title="Parts explorer" description="Point at anything to read its public name." href="/topology-viewer/reference/parts/" />
+</CardGrid>

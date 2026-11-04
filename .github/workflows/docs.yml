@@ -1,0 +1,64 @@
+name: Docs
+
+# Builds the documentation site on each push to main, tests each page and demo in a browser, and
+# deploys it to GitHub Pages. In the repository settings, set Pages > Source to "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The "Last updated" date of a page comes from the git history.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            docs/package-lock.json
+      # The site runs on the built package, as a developer's project does.
+      - name: Build the package
+        run: npm ci
+      - name: Install the site
+        run: npm ci
+        working-directory: docs
+      - name: Build the site
+        run: npm run build
+        working-directory: docs
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+        working-directory: docs
+      - name: Test each page and demo
+        run: npx playwright test
+        working-directory: docs
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

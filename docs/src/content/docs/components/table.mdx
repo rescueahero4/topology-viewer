@@ -1,0 +1,100 @@
+---
+title: Table
+description: Choose the columns, validate edits, and use your own cells and editors.
+---
+
+import { Aside, LinkCard } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+The table lists every node and edge, under the canvas. Users can sort, filter, tick rows, and edit cells, with undo and redo. A press on a row shows it on the canvas.
+
+## Columns and validation
+
+<Demo name="table-columns" height={560} />
+
+### A column
+
+| Key | Does |
+|---|---|
+| `core` | A built-in column: `canvas`, `id`, `type`, `kind`, `name`, `system`, `description`, `predicate`, `subject`, `object`, `family`, `attributes` |
+| `attr` | A column for a key in `attrs`, or a new computed column |
+| `label` | The name in the header |
+| `hidden` | Starts out of the table |
+| `editable` | `false`, or a function of the row |
+| `editor` | `"text"`, `"number"`, `"date"`, `"boolean"`, or `{ select: [...], message? }` |
+| `value` | `(row) => value`. A computed column. It is read only. |
+| `format` | `(value, row) => string`. How it shows. |
+
+`columnsOnly: true` shows just the listed columns, in their order. Without it, your list changes those columns, and the others stay. Set `readOnly: true` to turn off editing for the whole table.
+
+### Validation
+
+`validate` runs after the built-in checks. Return a text to show it under the cell, which keeps the editor open.
+
+```tsx
+validate: ({ row, column, value }) => {
+  if (column === "name" && value === "") return "A name is required.";
+  if (column?.attr === "seats" && Number(value) > 10) return "The plan allows 10 seats.";
+},
+```
+
+A column is a core name, such as `"name"`, or `{ attr: "seats" }`.
+
+## Your own cells and editors
+
+`table-cell` changes how a cell shows, and `cell-editor` how it edits. `match` picks the cells. Your editor gets `commit` and `cancel`, and `commit` runs the same checks. Double-click a language, and tick a row:
+
+<Demo name="table-cells" height={560} />
+
+## The toolbar
+
+```tsx
+parts={{
+  "workbench-toolbar": {
+    items: [
+      "table-filters",
+      "spacer",
+      "table-search",
+      { id: "submit", render: () => <SubmitButton /> },
+      "table-close",
+    ],
+  },
+  "table-filters": { options: { show: { rowType: false, kinds: false } } },
+}}
+```
+
+The items are `table-filters`, `spacer`, `table-count`, `table-search`, `table-expand` and `table-close`.
+
+## Rows
+
+A press on a row shows it on the canvas. To do something else:
+
+```tsx
+parts={{
+  "table-row": {
+    on: {
+      rowPress: (event) => {
+        event.preventDefault();
+        openDetails(event.row);
+      },
+    },
+  },
+}}
+```
+
+<Aside type="note">
+The table edits cells. Adding and deleting rows is not built in yet.
+</Aside>
+
+## Drive it from your code
+
+```tsx
+viewer.current?.openTable();
+viewer.current?.setTableFilters({ rowType: "nodes" });
+viewer.current?.setTableSort({ column: { core: "name" }, dir: 1 });
+viewer.current?.setTableColumn({ attr: "owner" }, true);
+viewer.current?.setTableSearch("orders");
+```
+
+<LinkCard title="Save to your backend" description="Send the edits, with a pending state and failures." href="/topology-viewer/components/saving/" />
+<LinkCard title="Example: a table as a form" description="A full admin form, with your own submit bar." href="/topology-viewer/examples/admin-table/" />

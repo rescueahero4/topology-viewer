@@ -1,0 +1,22 @@
+---
+title: Service map
+description: A live service map with health on custom nodes, an incident filter, and buttons of your own.
+---
+
+import Demo from "~/components/Demo.astro";
+
+A map of services for an operations team. It combines several features: health shows on custom React nodes, **Incident mode** is a custom filter driven from your own button, and the inspector shows fields worked out from your data.
+
+<Demo name="example-service-map" height={600} />
+
+## How it's built
+
+| Feature | Uses |
+|---|---|
+| Health on each service | [`node.render`](/topology-viewer/components/canvas/), with `match` and `sizes` |
+| Incident mode | A [custom filter](/topology-viewer/components/filters/), with `setCustomFilter` |
+| Health in the inspector | [`fields`](/topology-viewer/components/inspector/), with a `value` function |
+| Go to Shipping | The [`focus` command](/topology-viewer/advanced/commands/) |
+| All of it in one component | [`createTopologyViewer`](/topology-viewer/customize/reusable-viewers/) |
+
+In a real app, `HEALTH` would come from your monitoring API. Pass the new data through React state, and the cards update.

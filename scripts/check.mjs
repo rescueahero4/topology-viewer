@@ -32,6 +32,13 @@ for (const file of [...walk("demo/src"), ...walk("demo/e2e"), ...walk("demo/serv
       problems.push(`${file} imports outside the demo: ${name}`);
     else if (/^topology-viewer\/(?!react$|profiles\/qdic$)/.test(name))
       problems.push(`${file} imports a private path: ${name}`);
+// The demos of the site show developers how to use the package, so they use it as a developer does.
+for (const file of walk("docs/src/demos").filter((f) => /\.tsx?$/.test(f)))
+  for (const [, name] of read(file).matchAll(IMPORT))
+    if (name.startsWith(".") && !path.resolve(ROOT, path.dirname(file), name).startsWith(path.join(ROOT, "docs", "src", "demos")))
+      problems.push(`${file} imports outside the demos: ${name}`);
+    else if (/^topology-viewer\/(?!react$|profiles\/qdic$)/.test(name))
+      problems.push(`${file} imports a private path: ${name}`);
 for (const file of walk("src"))
   if (/\.tsx?$/.test(file) && /["'][^"']*\bdemo\//.test(read(file)))
     problems.push(`${file} reads the demo`);

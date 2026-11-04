@@ -1,0 +1,22 @@
+---
+title: Commands
+description: Every command of the viewer, and the state it reports.
+---
+
+import ApiTable from "~/components/ApiTable.astro";
+
+Call these on a [ref](/topology-viewer/advanced/commands/), on `commands` in the context of a part, or on `commands` of the handle from `mountTopology`. These tables are generated from the types in the package.
+
+## Commands
+
+<ApiTable type="TopologyCommands" />
+
+## State
+
+What `getState` returns, and what `onStateChange` gets.
+
+<ApiTable type="TopologyState" />
+
+## The handle of `mountTopology`
+
+<ApiTable type="TopologyViewerHandle" />

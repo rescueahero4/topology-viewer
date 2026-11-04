@@ -1,0 +1,79 @@
+---
+// A table of the members of one type, read from the type declarations of the package when the site
+// builds. So the reference cannot differ from what the compiler and the editor of a developer see.
+import { marked } from "marked";
+import ts from "typescript";
+
+interface Props {
+  /** The name of a type in `types/`. */
+  type: string;
+  file?: "index" | "react";
+  /** Only these members, or all of them. */
+  only?: readonly string[];
+}
+
+const { type, file = "index", only } = Astro.props;
+
+const files = import.meta.glob<string>("../../../types/*.d.ts", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+const text = files[`../../../types/${file}.d.ts`] ?? "";
+const source = ts.createSourceFile(`${file}.d.ts`, text, ts.ScriptTarget.ES2022, true);
+
+let literal: ts.TypeLiteralNode | undefined;
+ts.forEachChild(source, (node) => {
+  if (!ts.isTypeAliasDeclaration(node) || node.name.text !== type) return;
+  if (ts.isTypeLiteralNode(node.type)) literal = node.type;
+  if (ts.isIntersectionTypeNode(node.type))
+    literal = node.type.types.find(ts.isTypeLiteralNode);
+});
+if (literal === undefined) throw new Error(`No object type named ${type} in types/${file}.d.ts`);
+
+const clean = (one: string) => one.replace(/\s+/g, " ").trim();
+
+const rows = literal.members.flatMap((member) => {
+  const name = member.name?.getText(source);
+  if (name === undefined || (only !== undefined && !only.includes(name))) return [];
+  const docs = ts.getJSDocCommentsAndTags(member).flatMap((doc) =>
+    ts.isJSDoc(doc) ? [ts.getTextOfJSDocComment(doc.comment) ?? ""] : [],
+  );
+  let shown = "";
+  if (ts.isPropertySignature(member)) shown = member.type?.getText(source) ?? "";
+  if (ts.isMethodSignature(member)) {
+    const args = member.parameters.map((one) => one.getText(source)).join(", ");
+    shown = `(${args}) => ${member.type?.getText(source) ?? "void"}`;
+  }
+  return [
+    {
+      name,
+      shown: clean(shown),
+      optional: member.questionToken !== undefined,
+      doc: marked.parseInline(clean(docs.join(" "))) as string,
+    },
+  ];
+});
+---
+
+<table class="api-table">
+  <thead>
+    <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    {
+      rows.map((row) => (
+        <tr id={`${type.toLowerCase()}-${row.name}`}>
+          <td>
+            <code>{row.name}</code>
+            {!row.optional && type !== "TopologyCommands" && type !== "TopologyState" && <small> required</small>}
+          </td>
+          <td>
+            <code>{row.shown}</code>
+          </td>
+          <td set:html={row.doc} />
+        </tr>
+      ))
+    }
+  </tbody>
+</table>

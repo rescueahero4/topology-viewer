@@ -1,0 +1,101 @@
+---
+title: Frameworks
+description: Use Topology Viewer with Next.js, Vite, Astro, or no framework.
+---
+
+import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
+
+The React component renders an empty element on the server and mounts in the browser, so server rendering is safe. Tested with Next.js 16 and Astro 7.
+
+## Next.js
+
+Use it in a client component.
+
+```tsx title="app/graph.tsx"
+"use client";
+
+import { TopologyViewer } from "topology-viewer/react";
+
+export function Graph() {
+  return (
+    <div style={{ height: 600 }}>
+      <TopologyViewer url="/api/graph" />
+    </div>
+  );
+}
+```
+
+To keep the viewer out of the first page's JavaScript, load it on demand:
+
+```tsx title="app/graph.tsx"
+"use client";
+
+import dynamic from "next/dynamic";
+
+const TopologyViewer = dynamic(
+  () => import("topology-viewer/react").then((m) => m.TopologyViewer),
+  { ssr: false },
+);
+```
+
+## Vite
+
+```tsx title="src/App.tsx"
+import { TopologyViewer } from "topology-viewer/react";
+
+export function App() {
+  return (
+    <div style={{ height: "100vh" }}>
+      <TopologyViewer url="/api/graph" />
+    </div>
+  );
+}
+```
+
+To load it on demand, use `React.lazy`:
+
+```tsx
+const TopologyViewer = lazy(() =>
+  import("topology-viewer/react").then((m) => ({ default: m.TopologyViewer })),
+);
+```
+
+## Astro
+
+This site is built with Astro. Use `client:only="react"`:
+
+```astro title="src/pages/graph.astro"
+---
+import { Graph } from "../components/Graph";
+---
+
+<Graph client:only="react" />
+```
+
+## No framework
+
+`mountTopology` takes the same options as the React component. The element needs a height.
+
+```ts title="main.ts"
+import { mountTopology } from "topology-viewer";
+
+const viewer = mountTopology(document.querySelector("#graph")!, {
+  url: "/api/graph",
+  onSelect: (selection) => console.log(selection),
+});
+
+viewer.update({ url: "/api/other-graph" }); // New options.
+viewer.reload();                            // Load again.
+viewer.commands.focus("orders");            // Drive it.
+viewer.destroy();                           // Clean up.
+```
+
+The same call works from Vue, Svelte, Angular or anything that can give you an element: mount it when the component mounts, and call `destroy` when it unmounts. See [Without React](/topology-viewer/advanced/without-react/).
+
+<Aside type="note">
+The tests of this project run with React and with plain `mountTopology`. Vue, Svelte and Angular are not part of them.
+</Aside>
+
+## Security headers
+
+If your site has a Content Security Policy, see [Security](/topology-viewer/advanced/security/).

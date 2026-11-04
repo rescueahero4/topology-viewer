@@ -4,6 +4,7 @@
   "private": true,
   "description": "A UI library that renders a graph payload from an external API: canvas, inspector, search and an editable table.",
   "license": "MIT",
+  "homepage": "https://rescueahero4.github.io/topology-viewer/",
   "type": "module",
   "sideEffects": [
     "./src/public/zodConfig.ts"

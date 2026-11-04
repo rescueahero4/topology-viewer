@@ -1,0 +1,52 @@
+---
+title: Security
+description: Content Security Policy, untrusted payloads, and what runs where.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Content Security Policy
+
+The viewer needs no `unsafe-eval` and no `unsafe-inline`. Its styles are constructed stylesheets, and inline styles go through the DOM style API.
+
+```text
+Content-Security-Policy:
+  default-src 'self';
+  connect-src 'self' https://your-api.example.com;
+```
+
+Add your API to `connect-src`. With [`pageStyles`](/topology-viewer/customize/tailwind/), `style-src` must also allow your stylesheets.
+
+## The payload is untrusted
+
+The viewer treats the payload as data from a stranger:
+
+- **No text becomes markup.** A label holding `<img onerror=...>` shows as those characters.
+- **Links are checked.** A `javascript:` link does not open.
+- **Colours and glyphs are checked** against strict patterns before they reach an attribute.
+- **Names are just names.** A node called `__proto__` cannot reach an object's prototype.
+- **There are limits:** 2,000 nodes, 4,000 edges, 8 MB, and a limit on nesting.
+
+A bad value falls back to a default, and shows in a notice. It does not throw.
+
+## Your code is trusted
+
+The options are your code, not data. A function in `parts`, a `className`, a `style` and `styles` are all yours, and they run with your page's rights.
+
+<Aside type="caution" title="Your components show payload text">
+Your own components get values from the payload. React escapes text for you, but `dangerouslySetInnerHTML` with a payload value would be a hole, as anywhere else. The same goes for `element.innerHTML` in `mountTopology`. Use `textContent`.
+</Aside>
+
+Icons in `defineProfile` are read with an [allow-list](/topology-viewer/components/types-and-icons/#icons), so an SVG cannot run code even if it comes from somewhere you trust less.
+
+## All the code runs in the browser
+
+- Keep secrets out of `load`. Send a user token, not an API key.
+- The viewer sends requests only to the `url` you give it, or through your `load` and `source`.
+- It stores no data, except the split between the canvas and the table, in local storage.
+
+## Isolation
+
+Each viewer has its own state and its own Shadow DOM, so two viewers on one page share nothing. Your page CSS stays out unless you use `pageStyles`, and the viewer's CSS never reaches your page.
+
+The viewer also keeps its layers to itself. The z-index of its controls and menus stays inside it, so nothing in the viewer comes over a sticky header of your page. Only the [full view](/topology-viewer/components/fullscreen/) comes over the page.

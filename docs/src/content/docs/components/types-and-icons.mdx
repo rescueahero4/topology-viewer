@@ -1,0 +1,102 @@
+---
+title: Types and icons
+description: Add your own node types, SVG icons, predicates and filter families.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+`defineProfile` describes your vocabulary: its types, icons, relationships and families. One icon shows everywhere that the type shows: on the canvas, in menus, in the table and in the inspector.
+
+<Demo name="icons" height={420} />
+
+## Node types
+
+```ts
+defineProfile({
+  nodeTypes: {
+    // With your own SVG.
+    table: { label: "Table", category: "Data", icon: tableSvg, color: "#2563eb" },
+    // With a drawn mark.
+    person: { label: "Person", category: "People", color: "#7c3aed", rank: 2, abbr: "PE" },
+  },
+});
+```
+
+| Key | Does |
+|---|---|
+| `label` | The name in menus and tooltips |
+| `category` | The group in the Types menu |
+| `icon` | SVG text |
+| `color` | `#rrggbb` |
+| `rank` | With no icon: the size, 0 to 6 |
+| `abbr` | With no icon: two capital letters |
+| `level` | The level in the tree layouts |
+| `tier` | How it behaves when zoomed out: `source`, `group`, `container`, `asset` or `leaf` |
+
+### Icons
+
+An icon is SVG text. An export from a design tool usually works as it is.
+
+- It needs `viewBox="0 0 w h"`, starting at `0 0`.
+- `class`, `id`, `style`, `xmlns`, `<title>` and comments are ignored.
+- A script, an event attribute, `url()`, `<use>`, `<a>` and `<foreignObject>` are errors, with a message that names them.
+
+It is read with an allow-list and built from data, never as markup, so an icon cannot run code.
+
+Load icons as text, for example with Vite:
+
+```ts
+import tableSvg from "./icons/table.svg?raw";
+```
+
+## Relationships and families
+
+```ts
+defineProfile({
+  families: ["Traffic"],
+  predicates: {
+    calls: { family: "Traffic", inverse: "calledBy" },
+    contains: { family: "Structure", layoutRole: "structure" },
+  },
+});
+```
+
+A family is a tab in the filter bar. New families go before "Other". The built-in families are Structure, Lineage, Reference, Annotation, Ownership & Access, and Other.
+
+`layoutRole` makes a predicate shape the tree layouts: `structure` for parent and child, or `lineage` for a flow.
+
+## Colours of a family
+
+`familyLooks` gives a family its colours, on every surface. `icon` is the name of a built-in interface icon.
+
+```tsx
+<TopologyViewer
+  profile={profile}
+  familyLooks={{
+    Traffic: { main: "#dc2626", tint: "#fee2e2", border: "#fca5a5", icon: "bot" },
+  }}
+/>
+```
+
+## Build on a profile
+
+Start from the neutral profile, which is the default, or from another one.
+
+```ts
+import { defineProfile } from "topology-viewer/react";
+import { qdicProfile } from "topology-viewer/profiles/qdic";
+
+const profile = defineProfile({
+  extends: qdicProfile,
+  nodeTypes: { model: { label: "ML model", category: "Data", icon: modelSvg } },
+});
+```
+
+<Aside type="note">
+`defineProfile` is safe to call on a server. `profile` is read when the viewer mounts, so give the viewer a new `key` to change it.
+</Aside>
+
+## Types in the payload
+
+A payload can set a drawn mark for its own types with no profile. See [Your data](/topology-viewer/start/data/#types). Use the payload when the backend decides the look, and a profile for real icons.

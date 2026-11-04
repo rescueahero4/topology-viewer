@@ -33,6 +33,7 @@ Each layer imports only the ones above it.
 | `src/ui/` | The panels, in Preact | Change or replace a panel |
 | `src/public/` | The package: mount, React wrapper, themes, slots | Change the public API |
 | `demo/` | A separate app and the browser tests. It uses only the public API | Try a change |
+| `docs/` | The documentation site, with live demos | Document a change |
 
 The whole UI runs in a browser with no backend. Everything in `src/` except `src/public/` goes into one bundle, `dist/core-bundle.js`, wrapped in `createCore()`. Each viewer calls it, so each viewer has its own copy of all module state.
 

@@ -1,0 +1,236 @@
+:root {
+  --sl-color-accent-low: #e0e7ff;
+  --sl-color-accent: #4f46e5;
+  --sl-color-accent-high: #312e81;
+  /* A demo needs room: under 900 px wide, the viewer collapses its inspector. */
+  --sl-content-width: 60rem;
+  --sl-sidebar-width: 15rem;
+}
+
+/* Starlight isolates its content, which traps the full view of a demo under the site header. */
+.main-pane {
+  isolation: auto;
+}
+
+/* The home page: less space above the live demo. */
+.hero {
+  padding-block: 2rem 1rem !important;
+}
+.hero h1 {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+}
+:root[data-theme="dark"] {
+  --sl-color-accent-low: #1e1b4b;
+  --sl-color-accent: #818cf8;
+  --sl-color-accent-high: #c7d2fe;
+}
+
+/* A live demo: the viewer, a bar with what it shows, and the source of the same file. */
+.tv-demo {
+  margin-block: 1.5rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--sl-color-bg-nav);
+}
+.tv-demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-2);
+}
+.tv-demo-bar strong {
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+.tv-demo-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+}
+.tv-demo-live::before {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #10b981;
+}
+.tv-demo-stage {
+  position: relative;
+  background: var(--sl-color-bg);
+}
+.tv-demo-loading {
+  display: grid;
+  place-items: center;
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+.tv-demo-error {
+  padding: 1rem;
+  color: var(--sl-color-red-high);
+  font-size: var(--sl-text-sm);
+}
+.tv-demo .expressive-code {
+  margin: 0;
+}
+.tv-demo .expressive-code .frame {
+  --header-border-radius: 0;
+  border-radius: 0;
+}
+.tv-demo details {
+  border-top: 1px solid var(--sl-color-gray-5);
+}
+.tv-demo summary {
+  padding: 0.45rem 0.75rem;
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--sl-color-gray-2);
+}
+.tv-demo summary:hover {
+  color: var(--sl-color-white);
+}
+
+/* The controls and the output inside a demo. */
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-bg-nav);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+.demo-bar button,
+.demo-bar select {
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+.demo-bar button:hover {
+  border-color: var(--sl-color-accent);
+}
+.demo-bar button[aria-pressed="true"] {
+  color: var(--sl-color-text-invert);
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+}
+.demo-log {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  height: 7rem;
+  overflow: auto;
+  font: 0.75rem/1.5 var(--__sl-font-mono);
+  color: var(--sl-color-gray-2);
+  background: var(--sl-color-bg-nav);
+  border-top: 1px solid var(--sl-color-gray-5);
+  white-space: pre-wrap;
+}
+
+/* The API tables. */
+.api-table code {
+  white-space: nowrap;
+}
+.api-table td:nth-child(2) code {
+  white-space: normal;
+  font-size: 0.8em;
+}
+.token-swatch {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-inline-end: 0.4em;
+  vertical-align: -0.1em;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.2em;
+}
+.part-card {
+  margin-block: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+}
+.part-card > :first-child {
+  margin: 0;
+  font: 600 1rem var(--__sl-font-mono);
+}
+.part-card p {
+  margin-block: 0.25rem 0.5rem;
+}
+.part-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-block: 0.5rem;
+}
+.part-chips span {
+  padding: 0 0.4rem;
+  font: 0.72rem/1.6 var(--__sl-font-mono);
+  border-radius: 0.25rem;
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+}
+
+/* The theme playground and the parts explorer. */
+.playground-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.4rem 1.25rem;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-1);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg-nav);
+}
+.playground-controls label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+}
+.playground-controls input,
+.playground-controls select {
+  margin: 0;
+  max-width: 7rem;
+}
+.playground-code {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 16rem;
+  overflow: auto;
+  font: 0.75rem/1.5 var(--__sl-font-mono);
+  color: var(--sl-color-gray-1);
+  background: var(--sl-color-bg-nav);
+  border-top: 1px solid var(--sl-color-gray-5);
+  white-space: pre;
+}
+.explorer-box {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  border: 2px solid #ec4899;
+  background: rgb(236 72 153 / 0.12);
+  border-radius: 2px;
+}
+.explorer-tag {
+  position: fixed;
+  z-index: 41;
+  pointer-events: none;
+  padding: 0.1rem 0.4rem;
+  font: 600 0.72rem/1.5 var(--__sl-font-mono);
+  color: #fff;
+  background: #ec4899;
+  border-radius: 0.2rem;
+  white-space: nowrap;
+}

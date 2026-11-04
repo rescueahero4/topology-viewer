@@ -1,0 +1,23 @@
+---
+title: Props
+description: Every prop of TopologyViewer and every option of mountTopology.
+tableOfContents: false
+---
+
+import ApiTable from "~/components/ApiTable.astro";
+
+These tables are generated from the types in the package, so they match what your editor shows.
+
+## `TopologyViewer` and `mountTopology`
+
+<ApiTable type="TopologyOptions" />
+
+## React only
+
+<ApiTable type="TopologyViewerProps" file="react" />
+
+## A part
+
+Each value in `parts`. See [Parts](/topology-viewer/reference/parts/) for what each part takes.
+
+<ApiTable type="TopologyPart" />

@@ -1,0 +1,111 @@
+---
+title: How customization works
+description: The one model that every part of the viewer follows.
+---
+
+import { Aside, LinkCard, CardGrid } from "@astrojs/starlight/components";
+
+You can change anything in the viewer. There is one model to learn: **every element has a public name, its part, and every part works the same way.**
+
+## The parts
+
+```text
+viewer-frame
+├ canvas: node, edge, tooltip
+├ filter-bar
+│ ├ filter-families: family-tab, family-picker
+│ └ filters: predicate-pill, predicate-picker
+├ search-tools
+│ ├ search: search-results, search-result
+│ └ fullscreen-button
+├ display-options: scope-menu, types-menu, layout-menu, grouping-menu, dataset-button
+├ inspector
+│ ├ inspector-empty
+│ ├ inspector-header, inspector-actions
+│ └ inspector-body
+│   ├ inspector-attributes: attribute-row
+│   ├ inspector-notes
+│   └ inspector-triples: triple-row
+├ hidden-panel: hidden-row
+├ workbench
+│ ├ workbench-toolbar: table-filters, column-menu
+│ ├ bulk-bar
+│ ├ table: table-head, table-row, table-cell, cell-editor
+│ └ change-bar
+├ split-handle
+└ load-status, canvas-notice, data-notice, focus-pill, undo-toast
+```
+
+Don't memorize this. The [parts explorer](/topology-viewer/reference/parts/) tells you the name of anything you point at.
+
+## The same keys on every part
+
+```tsx
+<TopologyViewer
+  parts={{
+    "triple-row": {
+      // Style
+      className: "my-row",
+      style: { paddingBlock: 8 },
+
+      // Modify
+      hidden: false,
+      options: {},
+      on: { select: (event) => event.preventDefault() },
+
+      // Extend
+      before: ({ triple }) => <RiskBadge triple={triple} />,
+      after: ({ triple }) => <OwnerLink triple={triple} />,
+
+      // Replace
+      render: ({ triple }) => <MyRow triple={triple} />,
+      match: ({ triple }) => triple.predicate === "owns",
+    },
+    "display-options": {
+      // Extend a container
+      items: ["layout-menu", "scope-menu", { id: "mine", render: () => <MyMenu /> }],
+    },
+  }}
+/>
+```
+
+| Key | Does | Learn more |
+|---|---|---|
+| `className`, `style` | Adds a class or an inline style | [CSS and parts](/topology-viewer/customize/css/) |
+| `hidden` | Removes the part | |
+| `options` | The settings of this part | [Components](/topology-viewer/components/canvas/) |
+| `on` | Sees or stops an action | [Actions](/topology-viewer/advanced/actions/) |
+| `before`, `after` | Your content around the default | [Your components](/topology-viewer/customize/your-components/) |
+| `render`, `match` | Your content instead of the default, for some or all items | [Your components](/topology-viewer/customize/your-components/) |
+| `items` | Reorders or adds to the children of a container | [Your components](/topology-viewer/customize/your-components/) |
+
+Not every part takes every key: for example, a part with no options has no `options`. The [parts reference](/topology-viewer/reference/parts/) lists what each one takes.
+
+## Three levels
+
+Start at the first level that does what you need.
+
+| Level | What it is | Use it when |
+|---|---|---|
+| **1. Options** | Props on one viewer | One screen needs a change |
+| **2. Reusable viewer** | [`createTopologyViewer`](/topology-viewer/customize/reusable-viewers/), with your own components | The whole project needs the same viewer |
+| **3. Fork** | [Change the source](/topology-viewer/advanced/forking/) | You need something no option reaches |
+
+Levels 1 and 2 use the same options. A preset is just options kept in a shared file.
+
+## What is stable
+
+52 named parts are a promise: they, their options and their context keep working across minor versions. Your editor lists them through the `TopologyPartName` type.
+
+Every other element also has a name, so that you can style it, but those names can change in a minor version until 1.0. The explorer marks which is which.
+
+Internal class names are not an API. Use a part where there is one.
+
+<Aside type="tip" title="Which way should I style this?">
+Use tokens for anything global, such as colours, radius and fonts. Use a part for one element. Use `styles` only when nothing else reaches.
+</Aside>
+
+<CardGrid>
+  <LinkCard title="Themes and tokens" href="/topology-viewer/customize/themes/" />
+  <LinkCard title="Your components" href="/topology-viewer/customize/your-components/" />
+</CardGrid>

@@ -1,0 +1,58 @@
+---
+title: Dark mode
+description: Add a dark theme and switch it, by a prop, by the system, or by your own CSS.
+---
+
+import { Aside, Code } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+import darkTheme from "~/demos/data/dark-theme.ts?raw";
+
+The library ships a light look, and you add the rest. `themes` holds your themes by name, and `colorMode` picks one.
+
+<Demo name="dark-mode" height={480} />
+
+`colorMode` is a name in `themes`, or `"system"` for `light` or `dark` by the setting of the system. Changing it keeps the chart and the selection.
+
+## A complete dark theme
+
+Copy this and change it to fit your brand. It sets every colour, which is what makes it work.
+
+<Code code={darkTheme.trimEnd()} lang="ts" title="dark-theme.ts" />
+
+<Aside type="caution" title="Set all the colours">
+A theme with only a few tokens leaves the rest at their light values, so dark text can land on a dark card. Start from the theme above.
+</Aside>
+
+## Follow your site
+
+If your site has its own switch, pass its state:
+
+```tsx
+const { theme } = useTheme(); // next-themes, or your own
+
+<TopologyViewer themes={{ dark: darkTheme }} colorMode={theme} />;
+```
+
+Or set the tokens in your CSS under your own selector:
+
+```css
+.dark .my-viewer {
+  --tv-canvas: #101014;
+  --tv-surface: #1b1b20;
+  /* ...the rest of the theme */
+}
+```
+
+<Aside type="note">
+The viewer adjusts node colours for contrast against the canvas. With the `themes` prop this follows the switch at once. With the CSS route, the viewer reads `--tv-canvas` when it renders, so give it a new `key` when the mode changes. This site does that for its own switch.
+</Aside>
+
+## Your content in dark mode
+
+The tokens inherit into [your own components](/topology-viewer/customize/your-components/), so they can follow the theme:
+
+```tsx
+<div style={{ background: "var(--tv-surface)", color: "var(--tv-text)" }}>
+```
+
+Text in your content takes the colour of the viewer. So a card with its own white background also needs its own text colour.

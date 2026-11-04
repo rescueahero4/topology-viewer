@@ -1,0 +1,72 @@
+---
+title: Search
+description: Change how search matches, search on your server, and control what a result does.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+By default, search matches labels and ids as you type, and picking a result focuses the node. Every step can change.
+
+## Your own matching and results
+
+<Demo name="search-local" height={460} />
+
+## Search on your server
+
+`source` gets the query and an abort signal, and returns the ids of the hits. The viewer shows a loading state and a failed state, and a new query cancels the last one.
+
+<Demo name="search-remote" height={420} />
+
+<Aside type="note">
+The query leaves the page only through your `source`. Without it, the search stays in the browser.
+</Aside>
+
+## A result outside the loaded graph
+
+A hit that is not in the loaded graph has no node to focus. Handle it in `pick`:
+
+```tsx
+parts={{
+  search: {
+    options: { source: searchEverything },
+    on: {
+      pick: (event) => {
+        if (event.node === null) {
+          event.preventDefault();
+          router.push(`/assets/${event.id}`);
+        }
+      },
+    },
+  },
+}}
+```
+
+## Options
+
+| Option | Type | Does |
+|---|---|---|
+| `placeholder` | `string` | The text in the empty box |
+| `debounce` | `number` | Milliseconds after the last key. Default: 120 |
+| `limit` | `number` | Results to show. Default: 50 |
+| `minLength` | `number` | Characters before it searches. Default: 1 |
+| `match` | `(node, query) => boolean` | Replaces the default matching |
+| `source` | `(query, signal) => Promise<string[]>` | Ids from your own search |
+
+## The key
+
+`/` focuses the search. Change it, or switch it off, with [`keyboard`](/topology-viewer/advanced/keyboard/). The hint in the box goes away when it is off.
+
+```tsx
+<TopologyViewer keyboard={{ search: "mod+k" }} />
+```
+
+## Drive it from your code
+
+```tsx
+viewer.current?.setSearch("orders"); // Fills the box and runs the search.
+```
+
+## The search in the table
+
+The table has its own search, which filters rows. It is `table-search` in the [`workbench-toolbar`](/topology-viewer/components/table/), and `setTableSearch` drives it.

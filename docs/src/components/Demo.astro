@@ -1,0 +1,39 @@
+---
+import { Code } from "@astrojs/starlight/components";
+import DemoHost from "./DemoHost";
+
+interface Props {
+  /** The file name in `src/demos`, without `.tsx`. */
+  name: string;
+  /** What the demo shows. */
+  title?: string;
+  height?: number;
+  /** Starts with the source closed. */
+  closed?: boolean;
+}
+
+const { name, title, height = 480, closed = false } = Astro.props;
+
+// The source shown here is the file that runs above it, so the two cannot differ.
+const sources = import.meta.glob<string>("../demos/*.tsx", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+});
+const code = sources[`../demos/${name}.tsx`];
+if (code === undefined) throw new Error(`No demo named "${name}" in src/demos`);
+---
+
+<figure class="tv-demo not-content" data-demo={name}>
+  <div class="tv-demo-bar">
+    {title !== undefined && <strong>{title}</strong>}
+    <span class="tv-demo-live">Live</span>
+  </div>
+  <div class="tv-demo-stage" style={`min-height:${height}px`}>
+    <DemoHost client:only="react" name={name} height={height} />
+  </div>
+  <details open={!closed}>
+    <summary>{closed ? "Show the code" : "Code"}</summary>
+    <Code code={code.trimEnd()} lang="tsx" title={`${name}.tsx`} />
+  </details>
+</figure>

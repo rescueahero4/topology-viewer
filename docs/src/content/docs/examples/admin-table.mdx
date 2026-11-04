@@ -1,0 +1,22 @@
+---
+title: A table as a form
+description: Edit records in the table, validate them, and submit them to your backend with your own footer.
+---
+
+import Demo from "~/components/Demo.astro";
+
+An admin form for team members. The table is the form, and the footer is your own component. Edit a role or the seats, try more than 10 seats, then submit.
+
+<Demo name="example-admin-table" height={800} />
+
+## How it's built
+
+| Feature | Uses |
+|---|---|
+| Only these columns | [`columnsOnly`](/topology-viewer/components/table/) |
+| A closed list, a boolean, a number | The `editor` of a column |
+| More than 10 seats is refused | [`validate`](/topology-viewer/components/table/#validation) |
+| Your own footer | [`change-bar`](/topology-viewer/components/saving/#your-own-bar-or-button) `render` |
+| Sending the changes | [`onSave`](/topology-viewer/components/saving/), with a pending state |
+| A simpler toolbar | `workbench-toolbar` `items` |
+| The table opens at the start | The `openTable` command |

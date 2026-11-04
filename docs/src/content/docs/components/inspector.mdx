@@ -1,0 +1,108 @@
+---
+title: Inspector
+description: Map the fields to your backend, reorder the sections, and add your own panels.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+The inspector shows the node that is selected: a header, its fields, notes and relationships.
+
+## Map the fields to your backend
+
+`fields` turns your API's field names into what users should read. Orders has `owner_email`, `cost_usd` and `internal_etag` in its data. See how they show in the inspector:
+
+<Demo name="inspector-fields" height={440} />
+
+A field in the list does one of these:
+
+| A field with | Does |
+|---|---|
+| `key` and `label` | Renames that row |
+| `key` and `format` | Formats its value |
+| `key` and `hidden: true` | Hides that row |
+| `value` and `label` | Adds a row that you work out |
+
+Other fields keep showing. To show only what you list, in your order, set `only: true`. It can also show keys that are normally skipped.
+
+```tsx
+parts={{
+  "inspector-attributes": {
+    options: {
+      only: true,
+      cap: 12, // Rows before "Show more". Default: 6.
+      fields: [
+        { key: "owner_email", label: "Owner" },
+        { key: "cost_usd", label: "Cost", format: (value) => `$${value}` },
+      ],
+    },
+  },
+}}
+```
+
+<Aside type="tip">
+A payload can name fields too, with [`fields`](/topology-viewer/start/data/#fields). Use the payload when your backend knows the names, and this option when your frontend does.
+</Aside>
+
+## Your own panels
+
+Replace any section, or add your own among them. The node is in the context.
+
+```tsx
+parts={{
+  "inspector-body": {
+    items: [
+      "inspector-attributes",
+      { id: "cost", render: ({ node }) => <CostChart id={node?.id} /> },
+      "inspector-triples",
+    ],
+  },
+  "inspector-notes": { render: ({ node }) => <OwnerCard node={node} /> },
+  "attribute-row": { after: ({ key, value }) => key === "owner" && <SendMail to={value} /> },
+}}
+```
+
+Try one in [Your components](/topology-viewer/customize/your-components/).
+
+## Relationships
+
+```tsx
+parts={{
+  "inspector-triples": {
+    options: {
+      tabs: false, // No All, Outgoing and Incoming tabs.
+      filter: (triple) => !triple.retired,
+    },
+  },
+  "triple-row": {
+    before: ({ triple }) => <RiskBadge predicate={triple.predicate} />,
+  },
+}}
+```
+
+## When nothing is selected
+
+```tsx
+parts={{ "inspector-empty": { render: () => <p>Pick a node to see its details.</p> } }}
+```
+
+## Replace it all
+
+Use your own panel next to the viewer, with `onSelect`, and remove the card:
+
+```tsx
+const [selected, setSelected] = useState(null);
+
+<TopologyViewer
+  onSelect={setSelected}
+  parts={{ inspector: { hidden: true } }}
+/>
+<MyDetailsPanel node={selected} />
+```
+
+## Drive it from your code
+
+```tsx
+viewer.current?.focus("orders");          // Selects a node, and shows it.
+viewer.current?.setInspectorOpen(false);  // Collapses the card.
+```

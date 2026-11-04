@@ -1,0 +1,18 @@
+---
+title: Tokens
+description: Every design token, with its default value and its key in theme.
+---
+
+import Tokens from "~/components/Tokens.astro";
+
+This list is generated from the CSS of the package. Set a token by its key in [`theme`](/topology-viewer/customize/themes/), or by its name in your CSS.
+
+```tsx
+<TopologyViewer theme={{ frameRadius: "0", accent: "#7c3aed" }} />
+```
+
+```css
+.my-viewer { --tv-frame-radius: 0; --tv-accent: #7c3aed; }
+```
+
+<Tokens />

@@ -1,0 +1,73 @@
+---
+title: CSS and parts
+description: Style any one element with CSS, classes or inline styles.
+---
+
+import { Aside, LinkCard } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+The viewer runs in a Shadow DOM, so your page CSS cannot reach inside it by accident. There are four ways to reach inside on purpose.
+
+## `::part` from your CSS
+
+Every element has a public name, and `::part(name)` selects it from outside. These rules beat the viewer's own rules, with no fight over specificity.
+
+<Demo name="part-css" height={440} />
+
+### States are part names too
+
+Add a state to the name. It works like a second class.
+
+```css
+.my-viewer::part(table-row selected) { background: gold; }
+.my-viewer::part(family-tab pressed) { font-weight: 700; }
+.my-viewer::part(inspector state-collapsed) { opacity: 0.9; }
+```
+
+The states are `selected`, `pressed`, `expanded`, `checked`, `disabled`, and `state-<value>` for the `data-state` of an element.
+
+<Aside type="note" title="What ::part cannot do">
+CSS does not let `::part` select children, as in `::part(a) span`. Name the child directly. That is why every element has a name of its own.
+</Aside>
+
+## Inline styles
+
+`style` on a part takes an object, or a function of its state. On the canvas, the function gets the data of the node or the edge.
+
+<Demo name="inline-style" height={440} />
+
+An inline style goes through the DOM style API, so it needs no `unsafe-inline`.
+
+## Classes
+
+`className` on a part adds a class. A class needs CSS inside the Shadow DOM to mean anything. Add it with `styles`, or bring in your page CSS with `pageStyles`:
+
+```tsx
+<TopologyViewer
+  styles=".warm { background: #fef3c7; }"
+  parts={{ "inspector-header": { className: "warm" } }}
+/>
+```
+
+## Raw CSS
+
+`styles` adds your CSS inside the Shadow DOM. It takes a string, a `CSSStyleSheet`, or a list of them. Your rules win over the viewer's, because the viewer's CSS sits in a cascade layer.
+
+```tsx
+<TopologyViewer styles=".insp-title { letter-spacing: 2px; }" />
+```
+
+<Aside type="caution">
+Internal class names like `.insp-title` are not a stable API, and they can change in any version. Use a part where there is one.
+</Aside>
+
+## The element around the viewer
+
+`className` and `style` on the component go on its host element, in your page:
+
+```tsx
+<TopologyViewer className="my-viewer" style={{ height: 600 }} />
+```
+
+<LinkCard title="Tailwind" description="Use utility classes on any part." href="/topology-viewer/customize/tailwind/" />
+<LinkCard title="Parts reference" description="Every part, and a tool that finds the name of anything." href="/topology-viewer/reference/parts/" />

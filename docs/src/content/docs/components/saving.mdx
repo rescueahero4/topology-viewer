@@ -1,0 +1,101 @@
+---
+title: Saving to your backend
+description: Send the edits of the table to your API, with a pending state and failures.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+Edits stay in the browser until a user presses **Save changes**. Then `onSave` gets them. Edit a cell, save, and try each mode of the backend:
+
+<Demo name="save-backend" height={620} />
+
+## What `onSave` gets
+
+```tsx
+onSave={async (changes, { all }) => { /* ... */ }}
+```
+
+`changes` holds only what is new since the last save, so sending it twice cannot apply an edit twice. `all` holds every change so far.
+
+Each change looks like this:
+
+```json
+{
+  "row": { "record": "orders" },
+  "column": "name",
+  "before": "Orders",
+  "after": "Order service"
+}
+```
+
+| Key | Values |
+|---|---|
+| `row` | `{ "record": id }` for a node, or `{ "triple": key }` for an edge |
+| `column` | A core name such as `"name"`, or `{ "attr": "owner" }`, or `{ "fact": "valid_from" }` |
+| `before`, `after` | The values |
+
+## Pending and failed
+
+Return a promise, and the bar waits for it. Meanwhile the button says "Saving…", and the table takes no edit.
+
+```tsx
+onSave={async (changes) => {
+  const answer = await fetch("/api/graph", {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  if (answer.status === 409) return { error: "Someone else changed this. Reload and try again." };
+  if (!answer.ok) throw new Error(`Save failed: ${answer.status}`);
+}}
+```
+
+| You do | The bar |
+|---|---|
+| Return nothing, or a promise that resolves | Clears the edits |
+| Return `{ error: "text" }` | Keeps the edits, and shows your text |
+| Throw, or reject | Keeps the edits, and shows a general message |
+
+<Aside type="note" title="Why a thrown error shows a general message">
+An error from a server can hold details that users should not see. So a server's text shows only when you choose to pass it in `{ error }`.
+</Aside>
+
+## Your own bar or button
+
+`change-bar` shows your own UI, with the same state and actions. Your `render` shows all the time, so that it can show a clean state too.
+
+```tsx
+parts={{
+  "change-bar": {
+    render: ({ dirty, saving, error, save, cancel }) => (
+      <FormFooter dirty={dirty} busy={saving} error={error} onSubmit={save} onDiscard={cancel} />
+    ),
+  },
+}}
+```
+
+See it in [a table as a form](/topology-viewer/examples/admin-table/).
+
+## Warn before leaving
+
+```tsx
+<TopologyViewer onDirtyChange={(dirty) => setUnsaved(dirty)} />
+```
+
+## Stop an edit or a save
+
+```tsx
+parts={{
+  table: { on: { edit: (event) => { if (!canEdit(event.changes)) event.preventDefault(); } } },
+  "change-bar": { on: { save: (event) => { if (!signedIn) event.preventDefault(); } } },
+}}
+```
+
+## Drive it from your code
+
+```tsx
+await viewer.current?.saveEdits();
+viewer.current?.cancelEdits();
+viewer.current?.undo();
+```

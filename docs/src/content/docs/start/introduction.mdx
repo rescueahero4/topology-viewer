@@ -1,0 +1,43 @@
+---
+title: Introduction
+description: What Topology Viewer is, what you get, and when to use it.
+---
+
+import { LinkCard, CardGrid, Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+Topology Viewer is a graph explorer you add as one component. Give it nodes and edges from your API, and your users get a full tool for exploring them.
+
+<Demo name="quick-start" title="All of this comes from one component and a JSON payload" />
+
+## What you get
+
+- **Canvas:** force, atomic, bubble and two tree layouts, with pan, zoom, drag, grouping, and expand and collapse.
+- **Inspector:** the fields and relationships of the selected node.
+- **Search:** find a node and go to it, even when it is not drawn yet.
+- **Filters:** by node type, relationship family and predicate.
+- **Table:** every node and edge as a sortable, filterable, editable table, with undo and redo.
+
+## When to use it
+
+It suits data catalogs, data lineage, service maps, knowledge graphs and access models: any data where users need to find things and follow relationships.
+
+It is not a low-level graph drawing library. If you want to build your own explorer from primitives, a library such as Cytoscape or D3 fits better. Topology Viewer gives you the finished explorer, and then lets you change it.
+
+## How it fits in your app
+
+- **No backend.** All the code runs in the browser, and it talks only to the API you point it at.
+- **No runtime dependencies.** The package bundles what it needs.
+- **Isolated.** It runs in a Shadow DOM, so your page and the viewer cannot break each other's styles.
+- **Framework choice.** There is a React component, and `mountTopology` for everything else.
+
+<Aside type="note">
+It handles up to 2,000 nodes, 4,000 edges and 8 MB per payload. A bad value in the data gives a notice in the viewer, not a thrown error.
+</Aside>
+
+## Next steps
+
+<CardGrid>
+  <LinkCard title="Install it" href="/topology-viewer/start/installation/" />
+  <LinkCard title="Quick start" href="/topology-viewer/start/quick-start/" />
+</CardGrid>

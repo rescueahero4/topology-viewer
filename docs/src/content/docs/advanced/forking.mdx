@@ -1,0 +1,96 @@
+---
+title: Forking
+description: Change the source when no option reaches what you need.
+---
+
+import { Aside, FileTree } from "@astrojs/starlight/components";
+
+Fork when the options do not reach what you need, such as adding table rows or replacing the renderer. The project is MIT licensed, and a fork is normal use. Keep the licence and `THIRD-PARTY-NOTICES.txt`.
+
+<Aside type="tip">
+A fork costs you the upstream merges. First check whether a part's `render` or an `on` handler does the job.
+</Aside>
+
+## Install your fork
+
+```sh
+npm install git+https://github.com/YOUR-NAME/topology-viewer.git
+```
+
+To work on it next to your project:
+
+```sh
+cd topology-viewer && npm install && npm run build
+cd ../your-project && npm install ../topology-viewer
+```
+
+Run `npm run build` in the fork after each change. To try a change on its own, use `npm run demo`.
+
+## How the code is arranged
+
+Each layer imports only the ones above it.
+
+<FileTree>
+- src/
+  - contract/ parses and checks a payload and a profile
+  - engine/ the graph: filters, layout, edits. No DOM
+  - renderer/ draws the canvas with D3 and SVG
+  - ui/ the panels, in Preact
+  - public/ the package: mount, React wrapper, themes, slots
+- types/ the public types
+- demo/ a test app, and the browser tests
+- docs/ this site
+</FileTree>
+
+Everything in `src/` except `src/public/` goes into one bundle, `dist/core-bundle.js`. Each viewer has its own copy of its module state.
+
+## Replace a component
+
+Every public part is wrapped once, at the end of its file. This is the one line to change:
+
+```tsx title="src/ui/InspectorHeader.tsx"
+export const InspectorHeader = extendable("inspector-header", InspectorHeaderView, ...);
+```
+
+Change `InspectorHeaderView`, or point the line at your own component, and every use follows. The components are Preact, so they use `class` rather than `className`.
+
+## Common changes
+
+| Change | Where |
+|---|---|
+| The look | `src/ui/shell-*.css`, `src/ui/tokens.css` |
+| The default icons | `assets/figma-raw/`, then `node scripts/build-icons.mjs` |
+| Interface text | `src/ui/strings/` |
+| A new public part | Wrap it with `extendable`, and add its name to `src/ui/partNames.ts` and `types/parts.d.ts` |
+| A new action | `src/ui/actions.ts`, and add its name to `CHECKED` so that `on` sees it |
+| A new engine action | `Action` in `src/engine/state/canvasState.ts`, then `src/engine/view/story.ts` |
+
+## Comments in the code
+
+Many comments cite documents that are not in the repository: `STORY-004-07 rule 3`, `SA §4.5`, `FR-CANVAS-13`, and line numbers of a `mockup app.js`. They were the requirements of the original project. Read each one as "this behaviour is deliberate, and a test usually pins it".
+
+## Tests
+
+```sh
+npm test && npm run typecheck && npm run check
+npm --prefix demo run test:e2e
+```
+
+Some tests pin exact values of the original look, so a change of the look can fail one on purpose. `src/ui/canvas/domAudit.ts` is a security check of the canvas DOM: add new names to its allow-list rather than turning it off.
+
+## Keep the security rules
+
+- No text from a payload in `innerHTML`, in an attribute name or in a selector.
+- A link goes through `linkOf`.
+- A name from a payload is read with `Object.hasOwn`.
+
+The hostile-payload tests check these, so keep them passing.
+
+## Stay close to upstream
+
+```sh
+git remote add upstream https://github.com/rescueahero4/topology-viewer.git
+git fetch upstream && git merge upstream/main
+```
+
+Merges stay easier when you add new files and change few lines.

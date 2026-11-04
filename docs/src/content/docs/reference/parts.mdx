@@ -1,0 +1,29 @@
+---
+title: Parts
+description: Every stable part, what it takes, and a tool that finds the name of anything.
+---
+
+import Parts from "~/components/Parts.astro";
+import PartExplorer from "~/components/PartExplorer";
+
+## Parts explorer
+
+Point at anything in the viewer to read its public name. The same name works in `::part(name)` and in `parts={{ name: {} }}`.
+
+<figure class="tv-demo not-content" data-tool="explorer">
+  <PartExplorer client:only="react" />
+</figure>
+
+The names below are stable. Every other element also has a name for styling, which can change in a minor version until 1.0.
+
+Each card lists the keys the part takes:
+
+- `style`: `className` and `style`
+- `hidden`: `hidden`
+- `on`: `on`, with its actions listed
+- `before/after`: `before` and `after`
+- `render`: `render` and `match`
+- `items`: `items`, with its default children listed
+- `options`: `options`, listed
+
+<Parts />

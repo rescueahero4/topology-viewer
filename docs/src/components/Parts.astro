@@ -1,0 +1,66 @@
+---
+import { marked } from "marked";
+import { PART_GROUPS } from "../data/parts";
+import names from "../../../types/parts.d.ts?raw";
+
+// The list of parts in the types is the promise. The site does not build if this page differs from it.
+const stable = [...names.matchAll(/\|\s*"([\w-]+)"/g)].map((one) => one[1] as string);
+const shown = PART_GROUPS.flatMap((group) => group.parts.map((part) => part.name));
+const missing = stable.filter((name) => !shown.includes(name));
+const extra = shown.filter((name) => !stable.includes(name));
+if (missing.length + extra.length > 0)
+  throw new Error(`Parts page differs from the types. Missing: ${missing.join(", ")}. Extra: ${extra.join(", ")}`);
+
+const inline = (text: string) => marked.parseInline(text) as string;
+const BASE = "/topology-viewer";
+---
+
+{
+  PART_GROUPS.map((group) => (
+    <>
+      <h2 id={group.title.toLowerCase().replace(/\W+/g, "-")}>{group.title}</h2>
+      {group.parts.map((part) => (
+        <section class="part-card" id={part.name}>
+          <h3 id={`part-${part.name}`}>{part.name}</h3>
+          <p set:html={inline(part.does)} />
+          <div class="part-chips">
+            {part.controls.map((one) => <span>{one}</span>)}
+          </div>
+          {part.options !== undefined && (
+            <>
+              <strong>Options</strong>
+              <ul>
+                {Object.entries(part.options).map(([name, text]) => (
+                  <li><code>{name}</code>: <Fragment set:html={inline(text)} /></li>
+                ))}
+              </ul>
+            </>
+          )}
+          {part.context !== undefined && (
+            <>
+              <strong>Context</strong>
+              <ul>
+                {Object.entries(part.context).map(([name, text]) => (
+                  <li><code>{name}</code>: <Fragment set:html={inline(text)} /></li>
+                ))}
+              </ul>
+            </>
+          )}
+          {part.items !== undefined && (
+            <>
+              <strong>Items</strong>
+              <p>{part.items.map((one) => <><code>{one}</code>{" "}</>)}</p>
+            </>
+          )}
+          {part.actions !== undefined && (
+            <>
+              <strong>Actions</strong>
+              <p>{part.actions.map((one) => <><code>{one}</code>{" "}</>)}</p>
+            </>
+          )}
+          {part.see !== undefined && <p><a href={`${BASE}${part.see}`}>Read the guide</a></p>}
+        </section>
+      ))}
+    </>
+  ))
+}

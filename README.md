@@ -2,6 +2,8 @@
 
 A graph explorer for your API payload: canvas, inspector, search, filters, layouts and an editable table. No runtime dependencies. No backend.
 
+**[Documentation and live demos](https://rescueahero4.github.io/topology-viewer/)**
+
 ```sh
 npm install git+https://github.com/rescueahero4/topology-viewer.git
 ```
@@ -85,6 +87,7 @@ The React component is safe to server-render: it renders an empty element and mo
 | `dist/`, `types/`, `CUSTOMIZING.md`, `FORKING.md`, `LICENSE`, `THIRD-PARTY-NOTICES.txt` | Yes | The package. |
 | `src/`, `assets/`, `scripts/` | No | Source of `dist/`, and its tests. |
 | `demo/` | No | A separate app with its own `package.json`. It uses only the public entries. |
+| `docs/` | No | The documentation site, with live demos. It uses only the public entries. |
 
 `npm run check` fails if this border or a dependency licence is broken.
 
@@ -96,6 +99,13 @@ npm --prefix demo run test:e2e
 ```
 
 After a library change, run `npm run build` and reload the demo.
+
+The documentation site runs on the same build:
+
+```sh
+npm run build && npm --prefix docs install && npm --prefix docs run dev   # http://localhost:4321/topology-viewer/
+npm --prefix docs run test:e2e
+```
 
 ## Licence
 

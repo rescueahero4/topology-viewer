@@ -1,0 +1,67 @@
+---
+title: Themes and tokens
+description: Change the colours, shapes and fonts of the whole viewer.
+---
+
+import { LinkCard } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+import ThemePlayground from "~/components/ThemePlayground";
+
+A token is one named value, such as the radius of the frame. Tokens are the quickest way to change the whole viewer.
+
+## Playground
+
+Change anything here, then copy the code.
+
+<figure class="tv-demo not-content" data-tool="playground">
+  <ThemePlayground client:only="react" />
+</figure>
+
+## The `theme` prop
+
+A key names a token: `frameRadius` is `--tv-frame-radius`, and `family0Tint` is `--tv-family-0-tint`.
+
+<Demo name="theme-tokens" height={464} />
+
+## From CSS
+
+Tokens are CSS custom properties, so you can set them from your own CSS. They inherit into the viewer through its Shadow DOM.
+
+```css
+.my-viewer {
+  --tv-frame-radius: 0;
+  --tv-accent: #7c3aed;
+  --tv-font: "Inter", sans-serif;
+}
+```
+
+```tsx
+<TopologyViewer className="my-viewer" url="/api/graph" />
+```
+
+The two are the same tokens. Use whichever fits your project. CSS is handy when your design system already sets custom properties:
+
+```css
+.my-viewer {
+  --tv-accent: var(--brand-primary);
+  --tv-surface: var(--panel-background);
+}
+```
+
+## The tokens that matter most
+
+| Key | Sets |
+|---|---|
+| `canvas` | The background of the chart |
+| `surface` | The background of cards and menus |
+| `text`, `textMuted`, `textStrong` | Text |
+| `border` | Lines |
+| `accent`, `focus` | Selected things and the focus ring |
+| `frameRadius`, `frameBorder` | The outer frame |
+| `radius`, `radiusSm`, `radiusPill` | Corners |
+| `font`, `fontCanvas` | Fonts |
+| `fontSize1` to `fontSize7` | Type sizes, from 8 to 14 px |
+
+There are about 90 in all, including every family colour. See the [full list with defaults](/topology-viewer/reference/tokens/).
+
+<LinkCard title="Dark mode" description="A complete dark theme, and how to switch it." href="/topology-viewer/customize/dark-mode/" />

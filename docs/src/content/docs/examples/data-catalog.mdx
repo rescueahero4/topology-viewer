@@ -1,0 +1,22 @@
+---
+title: Data catalog
+description: A catalog of 198 nodes with its own vocabulary and icons, in a tree layout.
+---
+
+import Demo from "~/components/Demo.astro";
+
+A data catalog: sources, schemas, tables, columns, dashboards and owners. The vocabulary and icons come from a profile, and it starts in a tree layout.
+
+Try searching for a table, opening the **Types** menu, and switching the layout.
+
+<Demo name="example-data-catalog" height={620} />
+
+## How it's built
+
+| Feature | Uses |
+|---|---|
+| Icons and vocabulary | `qdicProfile`, an optional profile. Make your own with [`defineProfile`](/topology-viewer/components/types-and-icons/) |
+| The tree to start with | [`layout-menu`](/topology-viewer/components/display-options/) `default` |
+| The search box | [`search`](/topology-viewer/components/search/) options |
+
+The profile is a separate import, so a project that does not use it does not load it.

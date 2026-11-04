@@ -1,5 +1,7 @@
 # Customizing topology-viewer
 
+The [documentation site](https://rescueahero4.github.io/topology-viewer/) has all of this with live demos. This file is the short form, for reading offline.
+
 There are three levels. Start at the first one that does what you need.
 
 | Level | What it is | Use it when |
@@ -314,7 +316,7 @@ onDisplayModeChange={(mode) => setExpanded(mode === "fullscreen")}
 
 In `viewport` mode, Escape closes an open menu first and then the full view, and the selection stays. The page behind does not scroll (`lockPageScroll={false}` turns this off), and `--tv-fullscreen-z` sets the layer.
 
-A parent with `transform`, `filter` or `contain` traps a fixed element, so the viewer only fills that parent. The viewer warns in the console when this happens. Use `"native"` or your own `{ enter, exit }` there.
+A parent with `transform`, `filter` or `contain` traps a fixed element, so the viewer only fills that parent. A parent with `isolation` or its own `z-index` keeps the view under what is above that parent, such as a sticky header. The viewer warns in the console in both cases. Remove that style from the parent, or use `"native"` or your own `{ enter, exit }` there.
 
 ### Inspector
 

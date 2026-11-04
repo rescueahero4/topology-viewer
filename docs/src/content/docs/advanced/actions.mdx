@@ -1,0 +1,88 @@
+---
+title: Actions and events
+description: See every action as it starts, and stop any of them.
+---
+
+import Demo from "~/components/Demo.astro";
+
+Every control goes through one pipeline. Before an action runs, your handlers can see it and stop it. Press things here, and lock the filters:
+
+<Demo name="actions" height={540} />
+
+## Two places to listen
+
+**On a part:** `on` runs for actions that start inside that part, innermost part first.
+
+```tsx
+parts={{
+  "family-tab": {
+    on: { toggleFamily: (event) => event.preventDefault() },
+  },
+}}
+```
+
+**On the viewer:** `onAction` runs for everything, last. It suits analytics and permissions.
+
+```tsx
+<TopologyViewer onAction={(event) => analytics.track(event.type, { args: event.args })} />
+```
+
+Call `event.preventDefault()` in either one to stop the action.
+
+## The event
+
+| Key | Holds |
+|---|---|
+| `type` | The action |
+| `part` | The part whose handler runs |
+| `args` | The arguments of the action |
+| `target` | The element that was pressed |
+| `preventDefault()` | Stops the action |
+| `defaultPrevented` | Whether it was stopped |
+
+Some actions add more: `id` and `node` on `pick`, `id` on a canvas `select` and `activate`, `row` on `rowPress`, and `changes` on `edit` and `save`.
+
+## The actions
+
+| Action | When |
+|---|---|
+| `select` | A node or an edge is selected, or the empty canvas is pressed |
+| `activate` | A double press on a node, or Space |
+| `focus` | A node is focused |
+| `expand`, `collapse` | A node or a group opens or closes |
+| `hide`, `restore`, `reveal` | Nodes are hidden or brought back |
+| `resetView`, `clearAndFit`, `groupAroundRoot` | The view changes |
+| `setLayout`, `setBudget`, `setGrouping` | A display option changes |
+| `toggleType`, `toggleFamily`, `togglePredicate`, `showAllTypes` | A filter changes |
+| `press` | A click on any part |
+| `pick` | A search result is picked |
+| `rowPress` | A table row is pressed |
+| `edit` | A cell edit is saved to the table |
+| `save` | **Save changes** is pressed |
+| `displayMode` | Full screen is asked for |
+
+## `press` works on any part
+
+`press` is a click on any element, so you can react to parts that have no action of their own.
+
+```tsx
+parts={{
+  "inspector-pill": {
+    on: { press: () => openHelp() },
+  },
+}}
+```
+
+## Events
+
+These tell you what happened, after it ran.
+
+| Prop | Fires when |
+|---|---|
+| `onSelect` | The selection changed |
+| `onStateChange` | Anything in the state changed |
+| `onFiltersChange` | A filter changed |
+| `onDirtyChange` | The table gained its first unsaved edit, or has none left |
+| `onDisplayModeChange` | The display mode changed |
+| `onSave` | **Save changes** was pressed |
+| `onError` | A load failed |

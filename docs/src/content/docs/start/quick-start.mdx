@@ -1,0 +1,57 @@
+---
+title: Quick start
+description: Render your first graph, load it from an API, and react to what users do.
+---
+
+import { Aside, LinkCard, Steps } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+<Steps>
+
+1. **Give it a height.** The viewer fills its parent, so the parent needs a size.
+
+2. **Give it data.** Pass `data`, `url` or `load`.
+
+3. **That's it.** Everything below comes from these few lines.
+
+</Steps>
+
+<Demo name="quick-start" />
+
+<Aside type="caution" title="An empty viewer usually means no height">
+The viewer takes the height of its parent, with a minimum of 480 px. In a flex or grid layout, check that the parent has a size.
+</Aside>
+
+## Load from your API
+
+Pass a `url` for a plain GET that answers with JSON.
+
+<Demo name="load-url" height={420} closed />
+
+Use `load` for headers, auth, or an API that wraps its answer. The viewer shows a loading state, and a failed load shows an error with a retry button. Try it here:
+
+<Demo name="load-function" height={460} />
+
+<Aside type="caution">
+All the code runs in the browser, so keep secrets out of `load`. Send a user token, not an API key.
+</Aside>
+
+## React to what users do
+
+```tsx
+<TopologyViewer
+  url="/api/graph"
+  onSelect={(selection) => {
+    if (selection?.kind === "node") openDetails(selection.id);
+  }}
+  onError={(error) => report(error.kind, error.status)}
+/>
+```
+
+Every action can be seen and stopped too. See [Actions and events](/topology-viewer/advanced/actions/).
+
+## Next steps
+
+<LinkCard title="The format of your data" description="Nodes, edges, types, and what shows first." href="/topology-viewer/start/data/" />
+<LinkCard title="Use it in your framework" description="Next.js, Vite, Astro, or no framework." href="/topology-viewer/start/frameworks/" />
+<LinkCard title="Make it yours" description="The one model that every part follows." href="/topology-viewer/customize/overview/" />

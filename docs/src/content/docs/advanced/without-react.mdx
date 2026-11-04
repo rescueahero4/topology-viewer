@@ -1,0 +1,59 @@
+---
+title: Without React
+description: Use mountTopology from any framework, or none.
+---
+
+import Demo from "~/components/Demo.astro";
+
+`mountTopology` takes the same options as the React component, and returns a handle. The element needs a height.
+
+<Demo name="vanilla" height={440} />
+
+## The handle
+
+| Member | Does |
+|---|---|
+| `update(options)` | New options. It loads again only when `data` or `url` changes. |
+| `reload()` | Loads again. |
+| `destroy()` | Removes the viewer. |
+| `commands` | All the [commands](/topology-viewer/reference/commands/). |
+
+## Your content
+
+With no React, a place in a part takes one of these:
+
+```ts
+parts: {
+  // A function: it gets the context and an element, and can return a cleanup.
+  "inspector-notes": {
+    render: (context, element) => {
+      element.textContent = `Notes of ${context.node?.label}`;
+      return () => { /* runs before the next render */ };
+    },
+  },
+  // A DOM node.
+  "focus-pill": { after: document.querySelector("#my-badge") },
+  // A text.
+  "data-notice": { before: "Heads up" },
+}
+```
+
+The function runs again when the context changes, so write it to fill the element from scratch. The element is a child of the viewer's host element, so your page CSS applies to it.
+
+## In Vue
+
+```vue
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from "vue";
+import { mountTopology } from "topology-viewer";
+
+const host = ref();
+let viewer;
+onMounted(() => { viewer = mountTopology(host.value, { url: "/api/graph" }); });
+onBeforeUnmount(() => viewer.destroy());
+</script>
+
+<template><div ref="host" style="height: 600px" /></template>
+```
+
+The same pattern works in Svelte and Angular: mount when the element exists, and destroy when it goes away.

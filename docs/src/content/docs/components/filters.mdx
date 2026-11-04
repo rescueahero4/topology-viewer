@@ -1,0 +1,86 @@
+---
+title: Filters
+description: Choose which filters show and how they start, and add your own.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+The filter bar has two rows: **families** of relationships, and the **predicates** of the families that are on. Node types filter from the Types menu at the bottom.
+
+<Demo name="filters" title="Two custom filters, a predicate that starts off, and a family with no tab" height={460} />
+
+## Your own filters
+
+A custom filter shows as a pill. While it is on, it leaves out the nodes that fail its `test`. With several on, a node has to pass them all.
+
+```tsx
+parts={{
+  filters: {
+    options: {
+      custom: [
+        {
+          id: "prod",
+          label: "Production",
+          active: true, // Starts on.
+          test: (node) => node.attrs.env === "prod",
+        },
+      ],
+    },
+  },
+}}
+```
+
+Drive one from your own UI with a command:
+
+```tsx
+viewer.current?.setCustomFilter("prod", false);
+```
+
+## Options
+
+| Part | Option | Does |
+|---|---|---|
+| `filter-families` | `off` | Families that start off |
+| `filter-families` | `hidden` | Families with no tab |
+| `filter-families` | `basicMax` | With more than this, the row is a picker. Default: 10 |
+| `filters` | `off` | Predicates that start off |
+| `filters` | `hidden` | Predicates with no pill |
+| `filters` | `basicMax` | With more than this, the row is a picker. Default: 10 |
+| `filters` | `custom` | Your own filters |
+| `types-menu` | `off` | Node types that start off |
+
+<Aside type="note">
+`hidden` removes the control, and the data stays. To also take it off the canvas, add it to `off`.
+</Aside>
+
+## Know when filters change
+
+```tsx
+<TopologyViewer
+  onFiltersChange={(filters) => saveToUrl(filters)}
+  parts={{
+    "family-tab": {
+      on: { toggleFamily: (event) => track(event.args) },
+    },
+  }}
+/>
+```
+
+## Your own filter UI
+
+Hide the bar, and drive the filters from your own components:
+
+```tsx
+const viewer = useRef<TopologyViewerRef>(null);
+
+<MyFilterPanel
+  onFamily={(name, on) => viewer.current?.setFamilyVisible(name, on)}
+  onType={(type, on) => viewer.current?.setTypeVisible(type, on)}
+/>
+<TopologyViewer ref={viewer} parts={{ "filter-bar": { hidden: true } }} />
+```
+
+## Colours of a family
+
+The six built-in families use the tokens `family0Main` to `family5Main`, with `Tint` and `Border`. For a family of your own, use [`familyLooks`](/topology-viewer/components/types-and-icons/).

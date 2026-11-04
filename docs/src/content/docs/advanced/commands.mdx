@@ -1,0 +1,63 @@
+---
+title: Commands and state
+description: Drive the viewer from your own code, and read what it shows.
+---
+
+import { LinkCard } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+Everything a user can do has a command. Use a ref to call them, and `onStateChange` to follow what happens.
+
+<Demo name="commands" height={560} />
+
+## In your own components
+
+Each function in `parts` gets `commands` in its context, so your component needs no ref.
+
+```tsx
+parts={{
+  "inspector-actions": {
+    after: ({ node, commands }) => (
+      <button onClick={() => commands.reveal([node.id])}>Show neighbours</button>
+    ),
+  },
+}}
+```
+
+## Without React
+
+`mountTopology` returns the same commands:
+
+```ts
+const viewer = mountTopology(element, { url: "/api/graph" });
+viewer.commands.focus("orders");
+```
+
+## Read the state
+
+`getState` gives the current state, and `onStateChange` fires when it changes.
+
+```tsx
+const state = viewer.current?.getState();
+// {
+//   selection: { node: "orders" },
+//   layout: "force",
+//   budget: 20,
+//   grouping: 2,
+//   filters: { typesOff: [], familiesOff: [], predicatesOff: [] },
+//   customFilters: [],
+//   displayMode: "inline",
+//   inspectorOpen: true,
+//   search: "",
+//   table: { open: false, layout: "canvas-only", filters: null, sort: null, search: "" },
+//   edits: { dirty: false, saving: false, error: null },
+// }
+```
+
+The state follows the settled chart, so a layout change shows here when its move ends.
+
+## A commands call is an action
+
+Commands take the same way as a press. So an [`on` handler or `onAction`](/topology-viewer/advanced/actions/) can see and stop them too.
+
+<LinkCard title="All the commands" href="/topology-viewer/reference/commands/" />

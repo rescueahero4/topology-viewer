@@ -1,0 +1,70 @@
+---
+title: Tailwind
+description: Use Tailwind classes on any part of the viewer.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+Page CSS cannot reach inside a Shadow DOM, so Tailwind needs one more prop. Tested with Tailwind 4 in a Next.js app.
+
+## On any part: `pageStyles`
+
+`pageStyles` copies your stylesheets into the viewer. Then a class works on any part.
+
+```tsx
+<TopologyViewer
+  pageStyles
+  parts={{
+    "family-tab": { className: "bg-amber-200 shadow-lg" },
+    "inspector-title": { className: "text-red-600 underline" },
+    "table-row": { className: ({ selected }) => (selected ? "bg-yellow-100" : "") },
+  }}
+/>
+```
+
+Tailwind finds the classes when it scans your source, as usual. Its utilities win over the viewer, and its reset stays under it, so the viewer keeps its look.
+
+This site does not use Tailwind, so this demo stands in with a few utilities of its own in a `utilities` layer. It works the same way:
+
+<Demo name="page-styles" height={440} />
+
+## On the frame: a variant, with no prop
+
+For a small change, an arbitrary variant on the component is enough, because `::part` reaches in from outside:
+
+```tsx
+<TopologyViewer className="[&::part(viewer-frame)]:rounded-none [&::part(viewer-frame)]:border-4" />
+```
+
+## In your own components: nothing to do
+
+Your content in `render`, `before`, `after` and `items` lives outside the Shadow DOM, so Tailwind just works there, with no `pageStyles`:
+
+```tsx
+<TopologyViewer
+  parts={{
+    node: {
+      render: ({ node, selected }) => (
+        <div className={`rounded-lg border p-2 shadow-lg ${selected ? "bg-amber-200" : "bg-white"}`}>
+          {node.label}
+        </div>
+      ),
+    },
+  }}
+/>
+```
+
+## How the layers work
+
+The viewer's CSS sits in a cascade layer inside `components`:
+
+```text
+theme → base (Tailwind's reset) → components (the viewer) → utilities
+```
+
+So `bg-amber-200` beats the viewer's background, and the reset does not break the viewer's buttons.
+
+<Aside type="caution" title="pageStyles lets in all your page CSS">
+A global rule of yours with no layer, such as `.row { display: flex }` or `button { background: red }`, also reaches the viewer while this is on. Tailwind's own CSS is safe, because it is all in layers. If your page has rules like these, put them in a layer, or use `::part` instead.
+</Aside>

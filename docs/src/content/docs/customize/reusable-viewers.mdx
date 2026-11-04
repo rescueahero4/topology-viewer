@@ -1,0 +1,63 @@
+---
+title: Reusable viewers
+description: Keep your project's viewer in one place with createTopologyViewer.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import Demo from "~/components/Demo.astro";
+
+`createTopologyViewer` makes a component with your options as its defaults. Keep it in one file, and use it all through your project.
+
+<Demo name="preset" title="One preset, and one use that changes it" height={436} />
+
+## A real preset
+
+```tsx title="src/components/CatalogViewer.tsx"
+import { createTopologyViewer, defineProfile } from "topology-viewer/react";
+import { OwnerCard } from "./OwnerCard";
+import { darkTheme } from "./dark-theme";
+import tableIcon from "./table.svg?raw";
+
+export const CatalogViewer = createTopologyViewer({
+  profile: defineProfile({
+    nodeTypes: { table: { label: "Table", icon: tableIcon } },
+  }),
+  themes: { dark: darkTheme },
+  colorMode: "system",
+  parts: {
+    "inspector-notes": { render: ({ node }) => <OwnerCard node={node} /> },
+    "grouping-menu": { hidden: true },
+  },
+});
+```
+
+```tsx title="Anywhere in your project"
+<CatalogViewer url="/api/graph" onSelect={openDetails} />
+```
+
+## How props merge
+
+Props win over the preset, with one rule to know: `parts`, `theme` and `themes` merge by key.
+
+```tsx
+// The preset has: parts: { search: { options: { limit: 5, debounce: 200 } } }
+
+<CatalogViewer parts={{ search: { options: { limit: 20 } } }} />
+// Gives: { limit: 20, debounce: 200 }
+```
+
+Any other prop replaces the preset's value.
+
+## Merge options yourself
+
+`mergeOptions` is the same merge, for when you build options in several places:
+
+```ts
+import { mergeOptions } from "topology-viewer/react";
+
+const options = mergeOptions(baseOptions, teamOptions, screenOptions);
+```
+
+<Aside type="note">
+`profile` is read when the viewer mounts. To change it, give the viewer a new `key`.
+</Aside>
