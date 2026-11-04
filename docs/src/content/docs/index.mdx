@@ -1,54 +1,40 @@
 ---
-title: Topology Viewer
-description: A graph explorer component for your API. Canvas, inspector, search, filters and an editable table, and every part of it can be customized.
+title: Data Topology Viewer
+description: A free, open source graph explorer component. Point it at your API and get a canvas, inspector, search, filters and an editable table.
 template: splash
 editUrl: false
 lastUpdated: false
+pagination: false
 hero:
-  title: Explore any graph. Customize every part.
-  tagline: A complete graph explorer as one component. Point it at your API and get a canvas, inspector, search, filters and an editable table, with full control over how each one looks and behaves.
-  actions:
-    - text: Get started
-      link: /topology-viewer/start/introduction/
-      icon: right-arrow
-    - text: See the demos
-      link: /topology-viewer/examples/service-map/
-      variant: minimal
+  title: Free open source graph explorer component.
+  tagline: Point it at your API and get a canvas, inspector, search, filters and an editable table in one component. Then change anything, from one token to the nodes on the canvas, with no fork.
 ---
 
-import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
-import Demo from "~/components/Demo.astro";
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+import Showcase from "~/components/Showcase";
 
-<Demo name="hero" title="This is the real component. Press a node, or open the Dataset table." height={560} closed />
+## See it in action
 
-## Up and running in one line
+<Showcase client:only="react" />
 
-```tsx
-<TopologyViewer url="/api/graph" />
-```
-
-## Everything is included, and everything is yours to change
+## Documentation
 
 <CardGrid>
-  <Card title="A full explorer" icon="puzzle">
-    Five layouts, grouping, focus, hide and restore, search, filters, an inspector and an editable table.
-  </Card>
-  <Card title="Every element is addressable" icon="pencil">
-    Every element has a public name that works in CSS and in props. Use tokens, `::part`, inline styles or Tailwind.
-  </Card>
-  <Card title="Your components inside" icon="seti:react">
-    Replace any part with your own React, including the nodes on the canvas. Your CSS and React context keep working.
-  </Card>
-  <Card title="Safe to embed" icon="approve-check">
-    It runs in its own Shadow DOM, has no runtime dependencies, and needs no `unsafe-eval` or `unsafe-inline`.
-  </Card>
-</CardGrid>
-
-## Where to go next
-
-<CardGrid>
-  <LinkCard title="Quick start" description="Render your first graph." href="/topology-viewer/start/quick-start/" />
+  <LinkCard title="Quick start" description="Render your first graph, and load it from your API." href="/topology-viewer/start/quick-start/" />
+  <LinkCard title="Your data" description="The payload format, from the minimum to every option." href="/topology-viewer/start/data/" />
+  <LinkCard title="Frameworks" description="Next.js, Vite, Astro, or no framework." href="/topology-viewer/start/frameworks/" />
   <LinkCard title="How customization works" description="The one model that every part follows." href="/topology-viewer/customize/overview/" />
   <LinkCard title="Theme playground" description="Change the look with controls, and copy the code." href="/topology-viewer/customize/themes/" />
-  <LinkCard title="Parts explorer" description="Point at anything to read its public name." href="/topology-viewer/reference/parts/" />
+  <LinkCard title="Canvas and nodes" description="Use any React component as a node." href="/topology-viewer/components/canvas/" />
+  <LinkCard title="Table and saving" description="Edit records, validate them, and send them to your backend." href="/topology-viewer/components/saving/" />
+  <LinkCard title="Examples" description="A service map, a data catalog, and a table as a form." href="/topology-viewer/examples/service-map/" />
+  <LinkCard title="Parts explorer and reference" description="Point at anything to read its name. Every prop and command." href="/topology-viewer/reference/parts/" />
 </CardGrid>
+
+<footer class="land-footer">
+  <a href="https://github.com/rescueahero4/topology-viewer">GitHub</a>
+  <a href="https://github.com/rescueahero4/topology-viewer/fork">Fork</a>
+  <a href="https://github.com/rescueahero4/topology-viewer/blob/main/LICENSE">MIT licence</a>
+  <a href="https://github.com/rescueahero4/topology-viewer/blob/main/CHANGELOG.md">Changelog</a>
+  <a href="/topology-viewer/advanced/security/">Security</a>
+</footer>

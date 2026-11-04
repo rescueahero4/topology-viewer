@@ -10,14 +10,31 @@ export default defineConfig({
   base: "/topology-viewer",
   integrations: [
     starlight({
-      title: "Topology Viewer",
+      title: "Data Topology Viewer",
       description:
         "A graph explorer component for your API. Canvas, inspector, search, filters and an editable table, and every part of it can be customized.",
-      logo: { src: "./src/assets/logo.svg", alt: "" },
+      logo: {
+        light: "./src/assets/icon-light.svg",
+        dark: "./src/assets/icon-dark.svg",
+      },
       favicon: "/favicon.svg",
+      // Light by default, not the theme of the system. Starlight saves "" for Auto on each visit, so an
+      // empty value says nothing about a choice: this runs once, and after it Auto is a real choice.
+      head: [
+        {
+          tag: "script",
+          content: `try {
+  if (!localStorage.getItem("tv-theme-default")) {
+    localStorage.setItem("tv-theme-default", "light");
+    if (!localStorage.getItem("starlight-theme")) localStorage.setItem("starlight-theme", "light");
+  }
+} catch {}`,
+        },
+      ],
       social: [{ icon: "github", label: "GitHub", href: GITHUB }],
       editLink: { baseUrl: `${GITHUB}/edit/main/docs/` },
       customCss: ["./src/styles/custom.css"],
+      components: { Hero: "./src/components/LandingHero.astro" },
       lastUpdated: true,
       plugins: [links()],
       sidebar: [
@@ -66,7 +83,6 @@ export default defineConfig({
             { slug: "advanced/without-react" },
             { slug: "advanced/security" },
             { slug: "advanced/forking" },
-            { slug: "advanced/upgrading" },
           ],
         },
         {

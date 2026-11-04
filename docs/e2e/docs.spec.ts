@@ -22,6 +22,13 @@ function watch(page: Page): string[] {
   return errors;
 }
 
+// The counts on the home page come from GitHub, so a test does not depend on it.
+test.beforeEach(({ page }) =>
+  page.route("https://api.github.com/**", (route) =>
+    route.fulfill({ json: { stargazers_count: 7, forks_count: 3 } }),
+  ),
+);
+
 const demo = (page: Page, name: string) => page.locator(`[data-demo="${name}"]`);
 const viewerIn = (where: Locator) => where.locator(".shell").first();
 const nodes = (where: Locator) => where.locator("g.qt-node");
@@ -86,6 +93,59 @@ test("demos follow the light and dark switch of the site", async ({ page }) => {
   await ready(one);
 });
 
+test.describe("the theme of the site", () => {
+  const theme = (page: Page) =>
+    page.evaluate(() => document.documentElement.dataset.theme);
+  const picker = (page: Page) => page.locator("starlight-theme-select select").first();
+
+  test.beforeEach(({ page }) => page.emulateMedia({ colorScheme: "dark" }));
+
+  test("is light by default, on a dark system", async ({ page }) => {
+    await page.goto("start/introduction/");
+    expect(await theme(page)).toBe("light");
+    await expect(picker(page)).toHaveValue("light");
+  });
+
+  test("becomes light for a visitor that Starlight saved as Auto", async ({ page }) => {
+    await page.addInitScript(() => {
+      if (localStorage.getItem("tv-theme-default") === null)
+        localStorage.setItem("starlight-theme", "");
+    });
+    await page.goto("start/introduction/");
+    expect(await theme(page)).toBe("light");
+  });
+
+  test("keeps a choice of Auto or dark", async ({ page }) => {
+    await page.goto("start/introduction/");
+    await picker(page).selectOption("auto");
+    expect(await theme(page)).toBe("dark");
+    await page.reload();
+    expect(await theme(page)).toBe("dark");
+    await expect(picker(page)).toHaveValue("auto");
+    await picker(page).selectOption("dark");
+    await page.reload();
+    await expect(picker(page)).toHaveValue("dark");
+  });
+});
+
+for (const width of [320, 375, 1280])
+  test(`the header shows the icon and the whole name at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto("start/quick-start/");
+    await expect(page.locator(".site-title img:visible")).toHaveCount(1);
+    const name = page.locator(".site-title span");
+    await expect(name).toHaveText("Data Topology Viewer");
+    expect(await name.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  });
+
+test("the home page has no site header, and leaves no room for one", async ({ page }) => {
+  await page.goto("");
+  await expect(page.locator("header.header")).toBeHidden();
+  const top = await page.locator(".land").evaluate((el) => el.getBoundingClientRect().top);
+  // The header is at least 56 px high, so content under its room would start lower than this.
+  expect(top).toBeLessThan(56);
+});
+
 test("no control of a demo comes over the header of the site", async ({ page }) => {
   await page.goto("components/canvas/");
   const one = demo(page, "custom-nodes");
@@ -97,6 +157,105 @@ test("no control of a demo comes over the header of the site", async ({ page }) 
     return top?.closest("header") !== null;
   });
   expect(under).toBe(true);
+});
+
+test.describe("the home page", () => {
+  const show = (page: Page) => page.locator("[data-showcase]");
+  const code = (page: Page) => page.locator('[data-show-code="code"]');
+
+  test("has the code, the install command and the fork, then the demo, then the docs", async ({ page }) => {
+    const errors = watch(page);
+    await page.goto("");
+    const land = page.locator(".land");
+    await expect(land.getByRole("link", { name: "Get the code" })).toHaveAttribute(
+      "href",
+      "https://github.com/rescueahero4/topology-viewer",
+    );
+    await expect(land.getByRole("link", { name: /Fork from GitHub/ })).toHaveAttribute(
+      "href",
+      "https://github.com/rescueahero4/topology-viewer/fork",
+    );
+    await expect(land.locator('[data-count="stars"]')).toContainText("7");
+    await expect(land.locator('[data-count="forks"]')).toContainText("3");
+    await expect(land.locator("code:visible")).toHaveText(
+      "npm install git+https://github.com/rescueahero4/topology-viewer.git",
+    );
+    await land.getByRole("tab", { name: "pnpm" }).click();
+    await expect(land.locator("code:visible")).toHaveText("pnpm add github:rescueahero4/topology-viewer");
+    // The order on the page.
+    const y = async (where: ReturnType<Page["locator"]>) => (await where.boundingBox())?.y ?? -1;
+    const install = await y(land.locator(".land-install"));
+    const codePanel = await y(page.locator(".show-code"));
+    const ui = await y(page.locator(".show-stage"));
+    const controls = await y(page.locator(".show-controls"));
+    const docs = await y(page.getByRole("heading", { name: "Documentation" }));
+    expect(install).toBeLessThan(codePanel);
+    expect(codePanel).toBeLessThan(ui);
+    expect(ui).toBeLessThan(controls);
+    expect(controls).toBeLessThan(docs);
+    expect(errors).toEqual([]);
+  });
+
+  test("the code follows the controls, and the viewer does what the code says", async ({ page }) => {
+    const errors = watch(page);
+    await page.goto("");
+    await ready(show(page));
+    await expect(code(page)).not.toContainText("colorMode");
+    await show(page).locator('[data-control="dark"]').click();
+    await expect(code(page)).toContainText('colorMode="dark"');
+    await expect
+      .poll(() => viewerIn(show(page)).evaluate((el) => getComputedStyle(el).backgroundColor))
+      .toBe("rgb(16, 16, 20)");
+    await show(page).locator('[data-control="layout"]').selectOption("tree-h");
+    await expect(code(page)).toContainText('default: "tree-h"');
+    await show(page).locator('[data-control="cards"]').click();
+    await expect(code(page)).toContainText("<Card");
+    await expect(show(page).locator(".show-card").first()).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test("each sample loads", async ({ page }) => {
+    const errors = watch(page);
+    await page.goto("");
+    await ready(show(page));
+    for (const sample of ["extend", "governance", "catalog", "access", "services"]) {
+      await show(page).locator('[data-control="sample"]').selectOption(sample);
+      await expect(nodes(show(page)).first()).toBeAttached({ timeout: 30_000 });
+      await expect(viewerIn(show(page)).locator(".overlay")).toHaveCount(0);
+    }
+    await expect(show(page).locator('[data-control="qdic"]')).not.toBeChecked();
+    expect(errors).toEqual([]);
+  });
+
+  test("the mutations change the graph", async ({ page }) => {
+    const errors = watch(page);
+    await page.goto("");
+    await ready(show(page));
+    const canvas = show(page);
+    const count = () => nodes(canvas).count();
+    const log = canvas.locator("[data-show-log]");
+    await expect.poll(count).toBe(10);
+    await canvas.getByRole("button", { name: "Add node" }).click();
+    await expect(log).toContainText("11 nodes");
+    await expect.poll(count).toBe(11);
+    await expect(canvas.locator(".qt-name", { hasText: "New node" }).first()).toBeAttached();
+    await canvas.getByRole("button", { name: "Rename" }).click();
+    await expect(canvas.locator(".qt-name", { hasText: "renamed" }).first()).toBeAttached();
+    await canvas.getByRole("button", { name: "Add edge" }).click();
+    await expect(log).toContainText("added an edge");
+    await canvas.getByRole("button", { name: "Remove" }).click();
+    await expect(log).toContainText("removed a node");
+    await canvas.getByRole("tab", { name: "graph.json" }).click();
+    await expect(page.locator('[data-show-code="data"]')).toContainText("nodes and");
+    await canvas.getByRole("button", { name: "Send bad data" }).click();
+    // A bad payload gives a notice, and nothing in it runs.
+    await expect(canvas.locator(".data-notice")).toBeVisible();
+    await expect(canvas.locator("img")).toHaveCount(0);
+    await canvas.getByRole("button", { name: "Reset" }).click();
+    await expect.poll(count).toBe(10);
+    await expect(canvas.locator(".data-notice")).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
 });
 
 test("the theme playground changes the viewer and writes the code", async ({ page }) => {

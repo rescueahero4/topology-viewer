@@ -1,0 +1,309 @@
+---
+import iconDark from "../assets/icon-dark.svg";
+import iconLight from "../assets/icon-light.svg";
+
+const REPO = "https://github.com/rescueahero4/topology-viewer";
+const BASE = "/topology-viewer";
+const { hero } = Astro.locals.starlightRoute.entry.data;
+
+const INSTALL: readonly (readonly [string, string])[] = [
+  ["npm", "npm install git+https://github.com/rescueahero4/topology-viewer.git"],
+  ["pnpm", "pnpm add github:rescueahero4/topology-viewer"],
+  ["yarn", "yarn add github:rescueahero4/topology-viewer"],
+];
+---
+
+<header class="land" data-repo="rescueahero4/topology-viewer">
+  <div class="land-lockup">
+    <span class="land-title">
+      <img class="land-mark dark:sl-hidden" src={iconLight.src} alt="" />
+      <img class="land-mark light:sl-hidden" src={iconDark.src} alt="" />
+      <span class="land-name">Data Topology Viewer</span>
+    </span>
+    <a class="land-pill" href={REPO}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.7-5.5 6 .4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z" /></svg>
+      GitHub
+      <span class="land-count" data-count="stars" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.200l1-6.200L3 9.600l6.200-.9Z" /></svg>
+        <span></span>
+      </span>
+    </a>
+    <button class="land-pill" type="button" data-share>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.600 13.500 6.800 4M15.400 6.500l-6.800 4" /></g></svg>
+      <span data-share-label>Share</span>
+    </button>
+  </div>
+
+  <h1 id="_top" class="land-headline">{hero?.title}</h1>
+  <p class="land-lede">{hero?.tagline}</p>
+
+  <div class="land-ctas">
+    <a class="land-pill land-pill--solid" href={REPO}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m8 8-5 4 5 4m8-8 5 4-5 4m-2-11-4 14" /></svg>
+      Get the code
+    </a>
+    <a class="land-pill land-pill--solid" href={`${BASE}/start/introduction/`}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 6c-2-1.500-5-2-8-2v15c3 0 6 .5 8 2m0-15c2-1.500 5-2 8-2v15c-3 0-6 .5-8 2m0-15v15" /></svg>
+      Read the docs
+    </a>
+    <a class="land-pill" href={`${REPO}/fork`}>
+      Fork from GitHub
+      <span class="land-count" data-count="forks" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="5" r="2.500" /><circle cx="18" cy="5" r="2.500" /><circle cx="12" cy="19" r="2.500" /><path d="M6 7.500c0 4 6 3 6 9m6-9c0 4-6 3-6 9" /></g></svg>
+        <span></span>
+      </span>
+    </a>
+  </div>
+  <p class="land-note">
+    MIT licensed, with no runtime dependencies. See the <a href={`${BASE}/start/installation/`}>install guide</a>.
+  </p>
+
+  <section class="land-install" aria-labelledby="land-install-label">
+    <div class="land-install-head">
+      <h2 id="land-install-label">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m7 9 3 3-3 3m6 0h4" /></g></svg>
+        Install
+      </h2>
+      <div class="land-install-tabs" role="tablist" aria-label="Package manager">
+        {INSTALL.map(([name], at) => (
+          <button type="button" role="tab" aria-selected={at === 0} data-pm={name}>{name}</button>
+        ))}
+      </div>
+    </div>
+    <div class="land-install-box">
+      {INSTALL.map(([name, command], at) => (
+        <code data-pm-code={name} hidden={at !== 0}>{command}</code>
+      ))}
+      <button type="button" class="land-copy" data-copy aria-label="Copy the install command">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" /></g></svg>
+      </button>
+    </div>
+  </section>
+</header>
+
+<script>
+  const land = document.querySelector<HTMLElement>(".land");
+
+  // The counts come from GitHub in the browser. With no answer, the pills show no count.
+  if (land !== null) {
+    fetch(`https://api.github.com/repos/${land.dataset.repo}`)
+      .then((answer) => (answer.ok ? answer.json() : null))
+      .then((repo) => {
+        if (repo === null) return;
+        const show = (name: string, value: unknown) => {
+          const pill = land.querySelector<HTMLElement>(`[data-count="${name}"]`);
+          const text = pill?.querySelector("span");
+          if (pill == null || text == null || typeof value !== "number") return;
+          text.textContent = String(value);
+          pill.hidden = false;
+        };
+        show("stars", repo.stargazers_count);
+        show("forks", repo.forks_count);
+      })
+      .catch(() => undefined);
+
+    const label = land.querySelector<HTMLElement>("[data-share-label]");
+    land.querySelector("[data-share]")?.addEventListener("click", async () => {
+      const page = { title: document.title, url: location.href };
+      if (navigator.share !== undefined) {
+        await navigator.share(page).catch(() => undefined);
+        return;
+      }
+      await navigator.clipboard.writeText(page.url);
+      if (label !== null) {
+        label.textContent = "Link copied";
+        setTimeout(() => {
+          label.textContent = "Share";
+        }, 1400);
+      }
+    });
+
+    const tabs = [...land.querySelectorAll<HTMLElement>("[data-pm]")];
+    const codes = [...land.querySelectorAll<HTMLElement>("[data-pm-code]")];
+    for (const tab of tabs)
+      tab.addEventListener("click", () => {
+        for (const one of tabs)
+          one.setAttribute("aria-selected", String(one === tab));
+        for (const code of codes) code.hidden = code.dataset.pmCode !== tab.dataset.pm;
+      });
+
+    const copy = land.querySelector<HTMLElement>("[data-copy]");
+    copy?.addEventListener("click", async () => {
+      const shown = codes.find((code) => !code.hidden);
+      await navigator.clipboard.writeText(shown?.textContent ?? "");
+      copy.dataset.copied = "";
+      setTimeout(() => delete copy.dataset.copied, 1400);
+    });
+  }
+</script>
+
+<style>
+  .land {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-block: 2rem 1rem;
+  }
+  .land svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+  }
+  .land-lockup {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .land-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .land-mark {
+    flex: none;
+    width: clamp(2.25rem, 6vw, 2.75rem);
+    height: clamp(2.25rem, 6vw, 2.75rem);
+  }
+  .land-name {
+    font-size: clamp(1.6rem, 5vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--sl-color-white);
+  }
+  .land-headline {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--sl-color-white);
+  }
+  .land-lede {
+    margin: 0;
+    max-width: 58rem;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    color: var(--sl-color-gray-1);
+  }
+  .land-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: 0.5rem;
+  }
+  .land-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid var(--sl-color-white);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .land-pill:hover {
+    background: var(--sl-color-gray-6);
+  }
+  .land-pill--solid {
+    color: var(--sl-color-black);
+    background: var(--sl-color-white);
+  }
+  .land-pill--solid:hover {
+    background: var(--sl-color-gray-2);
+    border-color: var(--sl-color-gray-2);
+  }
+  .land-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-inline-start: 0.5rem;
+    border-inline-start: 1px solid currentColor;
+  }
+  .land-count[hidden] {
+    display: none;
+  }
+  .land-note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--sl-color-gray-2);
+  }
+  .land-note a {
+    color: inherit;
+  }
+  .land-install {
+    width: 100%;
+    max-width: 44rem;
+    margin-block-start: 0.75rem;
+  }
+  .land-install-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-end: 0.5rem;
+  }
+  .land-install h2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--sl-color-white);
+  }
+  .land-install-tabs {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .land-install-tabs button {
+    padding: 0.1rem 0.55rem;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-2);
+    background: transparent;
+    border: 0;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+  .land-install-tabs button[aria-selected="true"] {
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-6);
+  }
+  .land-install-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--sl-color-gray-6);
+    border-radius: 0.6rem;
+  }
+  .land-install-box code {
+    overflow-x: auto;
+    padding: 0;
+    font: 0.8125rem/1.5 var(--__sl-font-mono);
+    white-space: nowrap;
+    color: var(--sl-color-white);
+    background: transparent;
+    border: 0;
+  }
+  .land-copy {
+    display: inline-flex;
+    padding: 0.2rem;
+    color: var(--sl-color-white);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+  .land-copy[data-copied] {
+    color: #10b981;
+  }
+</style>
